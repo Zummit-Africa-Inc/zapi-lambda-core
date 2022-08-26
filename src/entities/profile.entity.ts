@@ -1,9 +1,8 @@
-import { SharedEntity } from "src/common/model/sharedEntity";
+import { SharedEntity } from "../common/model/sharedEntity";
 import { Column, Entity } from "typeorm";
 
 @Entity()
 export class Profile extends SharedEntity {
-    
     @Column()
     email: string;
 
