@@ -10,5 +10,5 @@ export class CreateProfileDto {
     @IsUUID()
     @IsNotEmpty()
     @ApiProperty()
-    userID: string
+    userId: string
 }
