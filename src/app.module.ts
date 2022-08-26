@@ -14,7 +14,7 @@ const RabbitMQService = {
         urls: [configService.get<string>('RABBITMQ_URL')],
         queue: configService.get<string>('RABBITMQ_QUEUE'),
         queueOptions: {
-          durable: false,
+          durable: true,
         },
       },
     });
