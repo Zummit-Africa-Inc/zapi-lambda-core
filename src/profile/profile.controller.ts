@@ -15,8 +15,8 @@ export class ProfileController {
     }
 
     @Get('/:id')
-    async getOne(@Param('id', new ParseUUIDPipe()) id: string) {
-        const getOneProfile = await this.profileService.getone(id)
-        return getOneProfile;
+    async getOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<Ok<Profile>> {
+        const profile = await this.profileService.getone(id)
+        return ZaLaResponse.Ok(profile, 'Ok', 200)
     }
 }
