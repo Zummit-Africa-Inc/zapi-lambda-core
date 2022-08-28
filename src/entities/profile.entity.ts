@@ -7,7 +7,7 @@ export class Profile extends SharedEntity {
     email: string;
 
     @Column()
-    userID: string
+    userId: string
 
     @Column({ nullable: true})
     picture: string

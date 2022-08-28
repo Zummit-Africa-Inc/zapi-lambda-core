@@ -36,10 +36,10 @@ export class ProfileService {
         }
     }
 
-   async getone(profileID: string):Promise<Profile>{
+   async getone(profileId: string):Promise<Profile>{
     try{
-        const profile = await this.profileRepo.findOneByOrFail({
-            id: profileID
+        const profile = await this.profileRepo.findOne({
+            where: {id: profileId}
         });
         if(!profile) {
             throw new NotFoundException(
