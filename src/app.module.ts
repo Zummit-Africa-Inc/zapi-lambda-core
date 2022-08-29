@@ -3,6 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientProxyFactory, Transport } from '@nestjs/microservices';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ProfileModule } from './profile/profile.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppDataSource } from 'ormconfig';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -23,7 +26,11 @@ const RabbitMQService = {
 };
 @Global()
 @Module({
-  imports: [ConfigModule.forRoot()],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRoot(AppDataSource.options),
+    ProfileModule
+  ],
   controllers: [AppController],
   providers: [AppService, RabbitMQService],
   exports: [RabbitMQService],
