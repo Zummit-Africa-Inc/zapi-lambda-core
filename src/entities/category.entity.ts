@@ -1,6 +1,5 @@
 import { SharedEntity } from '../common/model/sharedEntity';
 import { Column, Entity, OneToMany } from 'typeorm';
-import { Api } from './api.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
@@ -12,6 +11,6 @@ export class Category extends SharedEntity {
   @Column({ nullable: true })
   description: string;
 
-  @OneToMany(() => Api, (api) => api.category)
-  api: Api[];
+  @Column('text', { array: true, nullable: true, default: [] })
+  api: string[];
 }
