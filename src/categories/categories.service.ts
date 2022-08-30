@@ -44,9 +44,7 @@ export class CategoriesService {
 
   async findAllCategory(): Promise<Category[]> {
     try{
-      const category = await this.categoryRepo.find({
-        select: { id: true, name: true, description: true}
-      })
+      const category = await this.categoryRepo.find()
       return category;
     }
     catch(err){
