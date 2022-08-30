@@ -1,9 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
-import { ZaLaResponse } from '../common/helpers/response';
+import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { Category } from '../entities/category.entity';
 
 @Controller('categories')
 export class CategoriesController {
@@ -11,15 +12,15 @@ export class CategoriesController {
 
   @Post('/create')
   @ApiOperation({summary: 'Create a new category'})
-  async create(@Body() createCategoryDto: CreateCategoryDto) {
+  async create(@Body() createCategoryDto: CreateCategoryDto):Promise<Ok<Category>> {
     const category = await this.categoryService.createNewCategory(createCategoryDto);
     return ZaLaResponse.Ok(category, 'Category created', '201')
   }
 
   @Get()
   @ApiOperation({summary: 'Get all available category'})
-  async findAll(){
-    const allCategories = this.categoryService.findAllCategory();
+  async findAll(): Promise<Ok<Category[]>>{
+    const allCategories = await this.categoryService.findAllCategory();
     return ZaLaResponse.Ok(allCategories, 'Ok', '200')
   }
 
