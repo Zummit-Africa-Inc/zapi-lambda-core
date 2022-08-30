@@ -6,8 +6,6 @@ import { AppService } from './app.service';
 import { ProfileModule } from './profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from 'ormconfig';
-import { PricingModule } from './pricing/pricing.module';
-import { CategoriesModule } from './categories/categories.module';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
