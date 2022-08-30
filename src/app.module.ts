@@ -8,6 +8,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
 import { ProfileModule } from './profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from 'ormconfig';
+import { ApiModule } from './api/api.module';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -33,7 +34,8 @@ const RabbitMQService = {
     TypeOrmModule.forRoot(AppDataSource.options),
     EndpointsModule, 
     SubscriptionModule,
-    ProfileModule
+    ProfileModule,
+    ApiModule
   ],
   controllers: [AppController],
   providers: [AppService, RabbitMQService],
