@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientProxyFactory, Transport } from '@nestjs/microservices';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { EndpointsModule } from './endpoints/endpoints.module';
+import { SubscriptionModule } from './subscription/subscription.module';
 import { ProfileModule } from './profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from 'ormconfig';
@@ -30,6 +32,8 @@ const RabbitMQService = {
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot(AppDataSource.options),
+    EndpointsModule, 
+    SubscriptionModule,
     ProfileModule,
     CategoriesModule
   ],
