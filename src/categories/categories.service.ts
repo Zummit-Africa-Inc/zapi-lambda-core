@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ZaLaResponse } from 'src/common/helpers/response';
 import { Category } from 'src/entities/category.entity';
@@ -33,16 +33,29 @@ export class CategoriesService {
   }
 
   async getAllApis(categoryId: string){
-    //check if category exists
-    const categoryExists = await this.categoryRepo.findOne({where:{id:categoryId}})
-    if(!categoryExists){
-      throw ZaLaResponse.NotFoundRequest(
-        "Not found",
-        "Category not found",
-        "404"
+    try {
+      //check if category exists
+      const categoryExists = await this.categoryRepo.findOne({where:{id:categoryId}})
+      if(!categoryExists){
+        throw new NotFoundException(
+          ZaLaResponse.NotFoundRequest(
+            "Not found",
+            "Category not found",
+            "404"
+        )
+      ) 
+    }
+      //return all apis in the category
+      return categoryExists.api
+      
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(
+          error.name,
+          error.message,
+          error.status
+        )
       )
     }
-    //return all apis in the category
-    return categoryExists.api
   }
 }
