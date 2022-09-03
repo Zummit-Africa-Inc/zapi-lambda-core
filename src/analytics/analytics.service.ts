@@ -68,10 +68,21 @@ export class AnalyticsService {
     }
   }
 
+  /**
+   * It creates a new analytics log and saves it to the database
+   * @param {CreateLogsDto} data - CreateLogsDto
+   */
+
   async analyticLogs(data: CreateLogsDto): Promise<void> {
-    const newLog = this.logsRepository.create({
-      ...data,
-    });
-    await this.logsRepository.save(newLog);
+    try {
+      const newLog = this.logsRepository.create({
+        ...data,
+      });
+      await this.logsRepository.save(newLog);
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+      );
+    }
   }
 }
