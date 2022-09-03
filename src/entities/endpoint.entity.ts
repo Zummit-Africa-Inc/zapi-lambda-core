@@ -1,8 +1,7 @@
 import { SharedEntity } from '../common/model/sharedEntity';
 import { BeforeInsert, Column, Entity } from 'typeorm';
 import { HttpMethod } from '../common/enums/httpMethods.enum';
-import { ReqBody } from '../endpoints/interface/endpoint.interface';
-const urlEncoode = require('urlencode')
+import { ReqBody } from '../common/interfaces/endpoint.interface';
 
 @Entity()
 export class Endpoint extends SharedEntity {
@@ -33,18 +32,18 @@ export class Endpoint extends SharedEntity {
   headers: object[];
 
   @Column({
-        type: 'jsonb',
-        array: false,
-        default: () => "'[]'",
-        nullable: false,
-    })
+    type: 'jsonb',
+    array: false,
+    default: () => "'[]'",
+    nullable: false,
+  })
   requestBody: ReqBody[];
-  
-  @BeforeInsert()
-  public encodeUrl(){
-    let encodedRoute = urlEncoode(this.route)
-    this.route = encodedRoute
-    return this.route
-  }
 
+  @BeforeInsert()
+  public modifyRoute() {
+    this.route = encodeURIComponent(
+      this.route.charAt(0) === '/' ? this.route : `/${this.route}`,
+    );
+    return this.route;
+  }
 }

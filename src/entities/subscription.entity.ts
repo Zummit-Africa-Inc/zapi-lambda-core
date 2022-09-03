@@ -11,6 +11,9 @@ export class Subscription extends SharedEntity {
   @Column()
   profileId: string;
 
+  @Column()
+  subscriptionToken: string;
+
   @ManyToOne(() => Api, (api) => api.subscription, {
     onDelete: 'SET NULL',
   })

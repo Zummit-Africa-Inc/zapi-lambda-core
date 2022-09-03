@@ -7,7 +7,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
   app.setGlobalPrefix('zl-core');
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   if (process.env.NODE_ENV !== 'production') {
     const options = new DocumentBuilder()
