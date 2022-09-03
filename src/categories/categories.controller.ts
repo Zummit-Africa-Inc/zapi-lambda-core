@@ -20,7 +20,7 @@ export class CategoriesController {
     return this.categoriesService.findAll();
   }
 
-  @Get('getAllApis:categoryId')
+  @Get('apis:categoryId')
   @ApiOperation({summary:"get all apis in a particular category"})
   findAllApis(@Param('categoryId') categoryId: string) {
     return this.categoriesService.getAllApis(categoryId);
