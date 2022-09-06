@@ -33,5 +33,12 @@ export class ProfileController {
   @EventPattern('test')
   async testProd(@Body() body: any) {
     console.log(body);
+    return body
+  }
+
+  @Get('/testing')
+  async getTesting(){
+    console.log("hello");
+    return "helloe"
   }
 }
