@@ -5,11 +5,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { EndpointsModule } from './endpoints/endpoints.module';
 import { SubscriptionModule } from './subscription/subscription.module';
+import { CategoriesModule } from './categories/categories.module';
 import { ProfileModule } from './profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from 'ormconfig';
 import { ApiModule } from './api/api.module';
-import { CategoriesModule } from './categories/categories.module';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
