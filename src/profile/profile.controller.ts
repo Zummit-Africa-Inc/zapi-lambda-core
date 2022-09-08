@@ -5,16 +5,22 @@ import {
   Get,
   ParseUUIDPipe,
   Param,
+  Inject,
 } from '@nestjs/common';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { ProfileService } from './profile.service';
 import { Profile } from '../entities/profile.entity';
 import { Ok, ZaLaResponse } from '../common/helpers/response';
-import { EventPattern } from '@nestjs/microservices';
+import { ClientProxy, EventPattern } from '@nestjs/microservices';
+import { ApiOperation } from '@nestjs/swagger';
+import { TestDto } from 'src/test.dto';
 
 @Controller('profile')
 export class ProfileController {
-  constructor(private profileService: ProfileService) {}
+  constructor(
+    private profileService: ProfileService,
+    @Inject('NOTIFY_SERVICE') private readonly client: ClientProxy,
+  ) {}
 
   @Post('/create')
   async createProfile(@Body() body: CreateProfileDto): Promise<Ok<Profile>> {
@@ -30,15 +36,15 @@ export class ProfileController {
     return ZaLaResponse.Ok(profile, 'Ok', 200);
   }
 
-  @EventPattern('test')
-  async testProd(@Body() body: any) {
-    console.log(body);
-    return body
+  //Endpoints for communication testing
+  @Post('/send_to_notification')
+  @ApiOperation({ description: 'send to notification' })
+  async testNotify(@Body() body: TestDto): Promise<any> {
+    this.client.emit('notify_test', body);
   }
 
-  @Get('/testing')
-  async getTesting(){
-    console.log("hello");
-    return "helloe"
+  @EventPattern('identity_test')
+  async testProd(@Body() body: any) {
+    console.log(body);
   }
 }

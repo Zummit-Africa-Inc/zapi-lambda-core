@@ -18,7 +18,10 @@ const RabbitMQService = {
       transport: Transport.RMQ,
       options: {
         urls: [configService.get<string>('RABBITMQ_URL')],
-        queue: configService.get<string>('RABBITMQ_QUEUE'),
+        queue:
+          process.env.NODE_ENV !== 'production'
+            ? process.env.DEV_NOTIFY_QUEUE
+            : process.env.NOTIFY_QUEUE,
         queueOptions: {
           durable: true,
         },
@@ -32,10 +35,10 @@ const RabbitMQService = {
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot(AppDataSource.options),
-    EndpointsModule, 
+    EndpointsModule,
     SubscriptionModule,
     ProfileModule,
-    CategoriesModule
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService, RabbitMQService],
