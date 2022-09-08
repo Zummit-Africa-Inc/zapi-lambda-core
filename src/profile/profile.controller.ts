@@ -14,7 +14,9 @@ import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { ClientProxy, EventPattern } from '@nestjs/microservices';
 import { ApiOperation } from '@nestjs/swagger';
 import { TestDto } from 'src/test.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Profile')
 @Controller('profile')
 export class ProfileController {
   constructor(
