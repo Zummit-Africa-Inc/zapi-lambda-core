@@ -3,10 +3,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientProxyFactory, Transport } from '@nestjs/microservices';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { EndpointsModule } from './endpoints/endpoints.module';
+import { SubscriptionModule } from './subscription/subscription.module';
+import { CategoriesModule } from './categories/categories.module';
 import { ProfileModule } from './profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from 'ormconfig';
-import { CategoriesModule } from './categories/categories.module';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -16,7 +18,10 @@ const RabbitMQService = {
       transport: Transport.RMQ,
       options: {
         urls: [configService.get<string>('RABBITMQ_URL')],
-        queue: configService.get<string>('RABBITMQ_QUEUE'),
+        queue:
+          process.env.NODE_ENV !== 'production'
+            ? process.env.DEV_NOTIFY_QUEUE
+            : process.env.NOTIFY_QUEUE,
         queueOptions: {
           durable: true,
         },
@@ -30,8 +35,10 @@ const RabbitMQService = {
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot(AppDataSource.options),
+    EndpointsModule,
+    SubscriptionModule,
     ProfileModule,
-    CategoriesModule
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService, RabbitMQService],
