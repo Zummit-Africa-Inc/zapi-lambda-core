@@ -6,15 +6,17 @@ import {
   ParseUUIDPipe,
   Param,
   Inject,
+  Delete,
 } from '@nestjs/common';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { ProfileService } from './profile.service';
 import { Profile } from '../entities/profile.entity';
 import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { ClientProxy, EventPattern } from '@nestjs/microservices';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TestDto } from 'src/test.dto';
 
+@ApiTags('Profile')
 @Controller('profile')
 export class ProfileController {
   constructor(
@@ -34,6 +36,13 @@ export class ProfileController {
   ): Promise<Ok<Profile>> {
     const profile = await this.profileService.getone(id);
     return ZaLaResponse.Ok(profile, 'Ok', 200);
+  }
+  @Delete('/:id')
+  async deleteOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<Ok<string>> {
+    await this.profileService.deleteProfile(id);
+    return ZaLaResponse.Ok('Profile deleted successfully', 'Ok', 200);
   }
 
   //Endpoints for communication testing
