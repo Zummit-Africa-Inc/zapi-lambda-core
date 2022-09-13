@@ -45,4 +45,7 @@ export class CategoriesController {
   remove(@Param('id') id: string) {
     return this.categoryService.remove(+id);
   }
+
+
+  
 }
