@@ -25,7 +25,7 @@ export class CategoriesController {
     return ZaLaResponse.Ok(allCategories, 'Ok', '200')
   }
 
-  @Get('apis:categoryId')
+  @Get('apis/:categoryId')
   @ApiOperation({summary:"get all apis in a particular category"})
   findAllApis(@Param('categoryId') categoryId: string) {
     return this.categoryService.getAllApis(categoryId);
