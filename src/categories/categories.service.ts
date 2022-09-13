@@ -10,14 +10,48 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 export class CategoriesService {
   constructor(
     @InjectRepository(Category)
-    private readonly categoryRepo : Repository<Category>) {}
+    private readonly categoryRepo: Repository<Category>
+  ) {}
 
-  create(createCategoryDto: CreateCategoryDto) {
-    return 'This action adds a new category';
+  async createNewCategory(createCategoryDto: CreateCategoryDto):Promise<Category> {
+    try{
+      const category = await this.categoryRepo.findOne({
+        where: { name: createCategoryDto.name},
+      })
+
+      if(category) {
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            'Existing Value',
+            `A category with name ${createCategoryDto.name} already exist`,
+            '400'
+          )
+        )
+      }
+
+      const newCategory = this.categoryRepo.create({
+        ...createCategoryDto,
+      });
+      const savedCategory = await this.categoryRepo.save(newCategory);
+      return savedCategory;
+    }
+    catch(err){
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(err.name, err.message, err.status)
+      )
+    }
   }
 
-  findAll() {
-    return `This action returns all categories`;
+  async findAllCategory(): Promise<Category[]> {
+    try{
+      const category = await this.categoryRepo.find()
+      return category;
+    }
+    catch(err){
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(err.name, err.message, err.status)
+      )
+    }
   }
 
   findOne(id: number) {
