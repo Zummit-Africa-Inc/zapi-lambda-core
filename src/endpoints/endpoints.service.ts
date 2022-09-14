@@ -7,7 +7,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ZaLaResponse } from 'src/common/helpers/response';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { Repository } from 'typeorm';
-import { CreateEndpointDto } from './dto/create-endpoint.dto';
 
 @Injectable()
 export class EndpointsService {
