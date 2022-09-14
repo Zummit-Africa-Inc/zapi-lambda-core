@@ -10,6 +10,14 @@ export class ApiController {
     constructor (
         private readonly apiService: ApiService
     ) {}
+
+    // This is a get request that takes profileId and returns all api belonging to the user
+    @Get('myapi/:profileId')
+    @ApiOperation({ summary: 'Get all api belonging to the user' })
+    async getUserApis(@Param('profileId') profileId: string): Promise<Ok<Api[]>> {
+        const myApis = await this.apiService.getUserApis(profileId);
+        return ZaLaResponse.Ok(myApis, 'OK', '200');
+    }
     
     @Post(':profileId/new')
     @ApiOperation({summary: "Create an API"})
