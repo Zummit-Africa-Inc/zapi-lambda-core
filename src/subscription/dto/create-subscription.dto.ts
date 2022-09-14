@@ -10,9 +10,3 @@ export class CreateSubscriptionDto {
   @ApiProperty()
   profileId: string;
 }
-
-export class SubscriptionTokenDto {
-  @IsNotEmpty()
-  @ApiProperty()
-  subscriptionToken: string;
-}
