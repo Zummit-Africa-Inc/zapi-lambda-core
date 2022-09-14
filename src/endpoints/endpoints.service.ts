@@ -18,10 +18,10 @@ export class EndpointsService {
   async getAllApiEndpoints(apiId: string) {
     try {
       //check if api exists in Endpoint table
-      const apiExists = await this.endpointRepo.find({
+      const endpoints = await this.endpointRepo.find({
         where: { apiId: apiId },
       });
-      if (!apiExists) {
+      if (!endpoints) {
         throw new NotFoundException(
           ZaLaResponse.NotFoundRequest(
             'Not Found',
@@ -30,8 +30,7 @@ export class EndpointsService {
           ),
         );
       }
-      //return endpoints
-      return apiExists;
+      return endpoints;
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),
