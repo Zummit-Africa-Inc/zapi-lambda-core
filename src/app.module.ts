@@ -10,6 +10,7 @@ import { ProfileModule } from './profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from 'ormconfig';
 import { ApiModule } from './api/api.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -40,7 +41,8 @@ const RabbitMQService = {
     SubscriptionModule,
     ProfileModule,
     ApiModule,
-    CategoriesModule
+    CategoriesModule,
+    AnalyticsModule
   ],
   controllers: [AppController],
   providers: [AppService, RabbitMQService],

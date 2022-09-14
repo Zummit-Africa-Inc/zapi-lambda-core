@@ -9,6 +9,6 @@ import { ApiService } from './api.service';
     TypeOrmModule.forFeature([Api]),
   ],
   controllers: [ApiController],
-  providers: [ApiService]
+  providers: [ApiService],
 })
 export class ApiModule {}
