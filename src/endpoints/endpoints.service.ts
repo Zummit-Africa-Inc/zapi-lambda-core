@@ -16,39 +16,6 @@ export class EndpointsService {
     private readonly endpointRepo: Repository<Endpoint>,
   ) {}
 
-  async createEndpoint(apiId: string, createEndpointDto: CreateEndpointDto) {
-    try {
-      const endpoint = await this.endpointRepo.findOne({
-        where: {
-          apiId,
-          method: createEndpointDto.method,
-          route: createEndpointDto.route,
-        },
-      });
-
-      if (endpoint) {
-        throw new BadRequestException(
-          ZaLaResponse.BadRequest(
-            'Existing Endpoint',
-            'An endpoint with duplicate method already exists, use another method',
-          ),
-        );
-      }
-
-      const newEndpoint = this.endpointRepo.create({
-        ...createEndpointDto,
-        apiId,
-      });
-
-      const savedEndpoint = await this.endpointRepo.save(newEndpoint);
-      return savedEndpoint;
-    } catch (error) {
-      throw new BadRequestException(
-        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
-      );
-    }
-  }
-
   async getAllApiEndpoints(apiId: string) {
     try {
       //check if api exists in Endpoint table
