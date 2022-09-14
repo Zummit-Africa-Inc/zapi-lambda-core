@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Api } from 'src/entities/api.entity';
+import { Api } from '../entities/api.entity'
 import { ApiController } from './api.controller';
 import { ApiService } from './api.service';
 
