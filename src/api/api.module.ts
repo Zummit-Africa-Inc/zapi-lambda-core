@@ -5,7 +5,9 @@ import { ApiController } from './api.controller';
 import { ApiService } from './api.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Api])],
+  imports:[
+    TypeOrmModule.forFeature([Api]),
+  ],
   controllers: [ApiController],
   providers: [ApiService],
 })
