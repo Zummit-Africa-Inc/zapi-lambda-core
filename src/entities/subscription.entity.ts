@@ -22,4 +22,7 @@ export class Subscription extends SharedEntity {
   })
   @JoinColumn({ name: 'profileId' })
   profile: Profile;
+
+  @Column()
+  subscriptionToken: string
 }
