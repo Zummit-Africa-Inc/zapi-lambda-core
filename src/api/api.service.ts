@@ -47,13 +47,13 @@ export class ApiService {
     }
   }
 
-/**
+  /**
    * @param {string} profileId - The id of the user who is trying to get his or her api list.
    * checks if user has an api created from query result.
    * @returns The getUserApis method returns a promise of unique apis created by the user(profileId).
    */
 
- async getUserApis(profileId: string): Promise<Api[]> {
+  async getUserApis(profileId: string): Promise<Api[]> {
     try {
       const userApis = await this.apiRepo.find({ where: { profileId } });
       if (userApis.length === 0) {
@@ -73,28 +73,27 @@ export class ApiService {
     }
   }
 
-
   /**
    * @param {string} apiId - id of the API
    * @param {string} profileId -  id of the user who is trying to get the api.
    * checks if the api exist and the user is can get the api.
    * @returns The getAnApi method returns a promise of unique api the user(profileId) requested .
    */
-  
-  async getAnApi(apiId: string, profileId: string) {
-    try{
+
+  async getAnApi(apiId: string) {
+    try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
-    if (!api) {
-      throw new NotFoundException(
-        ZaLaResponse.NotFoundRequest(
-          'Not found',
-          'The api does not exist',
-          '404',
-        ),
-      );
-    }
-    return api;
-    }catch(error){
+      if (!api) {
+        throw new NotFoundException(
+          ZaLaResponse.NotFoundRequest(
+            'Not found',
+            'The api does not exist',
+            '404',
+          ),
+        );
+      }
+      return api;
+    } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
       );

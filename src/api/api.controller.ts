@@ -42,11 +42,8 @@ export class ApiController {
    */
   @Get(':apiId')
   @ApiOperation({ summary: 'Get an API' })
-  async getAnApi(
-    @Query('profileId') profileId: string,
-    @Param('apiId') apiId: string,
-  ): Promise<Ok<Api>> {
-    const api = await this.apiService.getAnApi(apiId, profileId);
+  async getAnApi(@Param('apiId') apiId: string): Promise<Ok<Api>> {
+    const api = await this.apiService.getAnApi(apiId);
     return ZaLaResponse.Ok(api, 'Ok', '200');
   }
 
