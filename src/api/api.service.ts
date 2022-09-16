@@ -93,7 +93,13 @@ export class ApiService {
         ),
       );
     }
-    return api;
+    if(api.profileId === profileId){
+      return api;
+    }else{
+      delete api.base_url,api.visibility,api.website
+      return api;
+    }
+    
     }catch(error){
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
