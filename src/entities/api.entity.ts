@@ -22,6 +22,15 @@ export class Api extends SharedEntity {
   @Column({ nullable: true })
   about: string;
 
+  @Column({ nullable: true })
+  logo_url: string;
+
+  @Column({ nullable: true })
+  api_website: string;
+
+  @Column({ nullable: true })
+  term_of_use: string;
+
   @Column('text', { array: true, nullable: true, default: [] })
   subscriptions: string[];
 
