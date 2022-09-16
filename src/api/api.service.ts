@@ -82,7 +82,8 @@ export class ApiService {
    */
   
   async getAnApi(apiId: string, profileId: string) {
-    const api = await this.apiRepo.findOne({ where: { id: apiId } });
+    try{
+      const api = await this.apiRepo.findOne({ where: { id: apiId } });
     if (!api) {
       throw new NotFoundException(
         ZaLaResponse.NotFoundRequest(
@@ -92,16 +93,12 @@ export class ApiService {
         ),
       );
     }
-    if (api.profileId !== profileId) {
-      throw new NotFoundException(
-        ZaLaResponse.NotFoundRequest(
-          'Not found',
-          'Your profile id is not associated with this api',
-          '404',
-        ),
+    return api;
+    }catch(error){
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
       );
     }
-    return api;
   }
 
   async verify(apiId: string, profileId: string) {
