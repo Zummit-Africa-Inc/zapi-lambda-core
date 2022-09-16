@@ -8,6 +8,7 @@ import { ZaLaResponse } from '../common/helpers/response';
 import { Profile } from '../entities/profile.entity';
 import { DeleteResult, Repository } from 'typeorm';
 import { CreateProfileDto } from './dto/create-profile.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class ProfileService {
@@ -61,6 +62,38 @@ export class ProfileService {
         ZaLaResponse.BadRequest('Internal Server Error', err.message, '500'),
       );
     }
+  }
+
+  /**
+   * It updates a profile by id
+   * @param {string} profileId - string - The id of the profile to be deleted
+   * @param {UpdateProfileDto} updateProfileDto - UpdateProfileDto - the data to be updated
+   * @returns The delete method returns a DeleteResult object.
+   */
+
+  async updateProfile(
+    profileId: string,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<Profile> {
+    try{
+      const profile = await this.profileRepo.findOne({
+        where: { id: profileId },
+      });
+      if (profile) {
+        await this.profileRepo.update(profileId, updateProfileDto);
+  
+        const undatedProfile = await this.profileRepo.findOne({ where: {id:profileId}});
+        if (undatedProfile){
+          return undatedProfile;
+        }else{
+          ZaLaResponse.NotFoundRequest('Not Found', 'Profile does not exist', '404');
+        }
+      }
+    }catch(error){
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
+      );
+    };
   }
 
   /**
