@@ -144,6 +144,35 @@ export class ApiService {
           );
         }
 
+        /* Checking if categoryID exist in the api. */
+        const findCategory = await this.apiRepo.findOne({
+          where: { categoryId: updateApiDto.categoryId },
+        });
+
+        if (!findCategory) {
+          throw new NotFoundException(
+            ZaLaResponse.NotFoundRequest(
+              'Not Found',
+              'Category does not exist',
+              '404',
+            ),
+          );
+        }
+
+        /* Checking if the new category name already exist. */
+        const apiNameExist = await this.apiRepo.findOne({
+          where: { name: updateApiDto.name },
+        });
+
+        if (apiNameExist) {
+          throw new BadRequestException(
+            ZaLaResponse.BadRequest(
+              'Existing values',
+              'An api with this name already exist... try another name',
+            ),
+          );
+        }
+
         await this.apiRepo.update(apiId, updateApiDto);
         const updatedApi = await this.apiRepo.findOne({
           where: { id: apiId },
