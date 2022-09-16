@@ -95,7 +95,7 @@ export class ApiService {
     if(api.profileId === profileId){
       return api;
     }else{
-      delete api.base_url,api.visibility,api.website
+      delete api.base_url,api.visibility,api.website;
       return api;
     }
     
