@@ -10,12 +10,15 @@ import { Api } from '../entities/api.entity';
 import { CreateApiDto } from './dto/create-api.dto';
 import { v4 as uuid } from 'uuid';
 import { UpdateApiDto } from './dto/update-api.dto';
+import { Category } from 'src/entities/category.entity';
 
 @Injectable()
 export class ApiService {
   constructor(
     @InjectRepository(Api)
     private readonly apiRepo: Repository<Api>,
+    @InjectRepository(Category)
+    private readonly categoryRepo: Repository<Category>,
   ) {}
 
   /**
@@ -139,27 +142,12 @@ export class ApiService {
         /* Checking if the user is the owner of the api. */
         const verified = await this.verify(apiId, profileId);
         if (verified === false) {
-          throw new NotFoundException(
+          throw new BadRequestException(
             ZaLaResponse.BadRequest('Forbidden', 'Unauthorized action', '403'),
           );
         }
 
-        /* Checking if categoryID exist in the api. */
-        const findCategory = await this.apiRepo.findOne({
-          where: { categoryId: updateApiDto.categoryId },
-        });
-
-        if (!findCategory) {
-          throw new NotFoundException(
-            ZaLaResponse.NotFoundRequest(
-              'Not Found',
-              'Category does not exist',
-              '404',
-            ),
-          );
-        }
-
-        /* Checking if the new category name already exist. */
+        /* Checking if the new updated API name already exist. */
         const apiNameExist = await this.apiRepo.findOne({
           where: { name: updateApiDto.name },
         });
@@ -171,6 +159,26 @@ export class ApiService {
               'An api with this name already exist... try another name',
             ),
           );
+        }
+
+        /* Checking if user is also updating the categoryId.
+         * then it finds and check if it exist
+         */
+
+        if (updateApiDto.categoryId) {
+          const findCategory = await this.categoryRepo.findOne({
+            where: { id: updateApiDto.categoryId },
+          });
+
+          if (!findCategory) {
+            throw new NotFoundException(
+              ZaLaResponse.NotFoundRequest(
+                'Not Found',
+                'Category does not exist',
+                '404',
+              ),
+            );
+          }
         }
 
         await this.apiRepo.update(apiId, updateApiDto);
