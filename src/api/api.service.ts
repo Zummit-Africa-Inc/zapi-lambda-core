@@ -181,7 +181,13 @@ export class ApiService {
           return updatedApi;
         }
       } else {
-        ZaLaResponse.NotFoundRequest('Not Found', 'Api does not exist', '404');
+        throw new BadRequestException(
+          ZaLaResponse.NotFoundRequest(
+            'Not Found',
+            'Api does not exist',
+            '404',
+          ),
+        );
       }
     } catch (error) {
       throw new BadRequestException(
