@@ -147,18 +147,26 @@ export class ApiService {
           );
         }
 
-        /* Checking if the new updated API name already exist. */
-        const apiNameExist = await this.apiRepo.findOne({
-          where: { name: updateApiDto.name },
-        });
+        console.log(updateApiDto.name);
+        console.log(!updateApiDto.name);
 
-        if (apiNameExist) {
-          throw new BadRequestException(
-            ZaLaResponse.BadRequest(
-              'Existing values',
-              'An api with this name already exist... try another name',
-            ),
-          );
+        /* Checking if the user is also updating the Api name
+         *  then check if the new updated API name already exist.
+         */
+
+        if (updateApiDto.name) {
+          const apiNameExist = await this.apiRepo.findOne({
+            where: { name: updateApiDto.name },
+          });
+
+          if (apiNameExist) {
+            throw new BadRequestException(
+              ZaLaResponse.BadRequest(
+                'Existing values',
+                'An api with this name already exist... try another name',
+              ),
+            );
+          }
         }
 
         /* Checking if user is also updating the categoryId.
