@@ -9,7 +9,6 @@ import { Repository } from 'typeorm';
 import { Api } from '../entities/api.entity';
 import { CreateApiDto } from './dto/create-api.dto';
 import { v4 as uuid } from 'uuid';
-import { verify } from 'crypto';
 
 @Injectable()
 export class ApiService {
@@ -74,32 +73,24 @@ export class ApiService {
   }
 
   /**
-   * @param {string} apiId - id of the API
-   * @param {string} profileId -  id of the user who is trying to get the api.
-   * checks if the api exist and the user is can get the api.
-   * @returns The getAnApi method returns a promise of unique api the user(profileId) requested .
+   * It gets an api by its id
+   * @param {string} apiId - string - the id of the api you want to get
+   * @returns The api object
    */
-  
-  async getAnApi(apiId: string, profileId: string) {
-    try{
+  async getAnApi(apiId: string): Promise<Api> {
+    try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
-    if (!api) {
-      throw new NotFoundException(
-        ZaLaResponse.NotFoundRequest(
-          'Not found',
-          'The api does not exist',
-          '404',
-        ),
-      );
-    }
-    if(api.profileId === profileId){
+      if (!api) {
+        throw new NotFoundException(
+          ZaLaResponse.NotFoundRequest(
+            'Not found',
+            'The api does not exist',
+            '404',
+          ),
+        );
+      }
       return api;
-    }else{
-      delete api.base_url,api.visibility,api.website;
-      return api;
-    }
-    
-    }catch(error){
+    } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
       );
