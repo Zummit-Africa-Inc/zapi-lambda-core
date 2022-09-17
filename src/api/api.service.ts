@@ -147,9 +147,6 @@ export class ApiService {
           );
         }
 
-        console.log(updateApiDto.name);
-        console.log(!updateApiDto.name);
-
         /* Checking if the user is also updating the Api name
          *  then check if the new updated API name already exist.
          */
