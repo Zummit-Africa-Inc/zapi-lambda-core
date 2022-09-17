@@ -14,6 +14,7 @@ export class UpdateApiDto extends PartialType(CreateApiDto) {
   @ApiPropertyOptional()
   base_url: string;
 
+  @IsString()
   @ApiPropertyOptional()
   about: string;
 
