@@ -28,6 +28,7 @@ export class ApiService {
           ZaLaResponse.BadRequest(
             'Existing values',
             'An api with with this name already exist... try another name',
+            '400'
           ),
         );
       }
