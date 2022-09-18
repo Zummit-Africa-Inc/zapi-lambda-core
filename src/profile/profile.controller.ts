@@ -33,7 +33,6 @@ export class ProfileController {
   }
 
   @Get('/:id')
-  @UseGuards(AccessTokenGuard)
   async getOne(
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<Ok<Profile>> {
