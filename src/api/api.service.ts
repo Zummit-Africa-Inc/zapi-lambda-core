@@ -19,11 +19,11 @@ export class ApiService {
     @InjectRepository(Analytics)
     private readonly analyticsRepo: Repository<Analytics>,
   ) {}
-
+  
   /**
    * @param {string} profileId - The id of the user who is trying to get his or her api list.
    * checks if user has an api created from query result.
-   * @returns The getUserApis method returns a promise of unique api created by the user(profileId).
+   * @returns The getUserApis method returns a promise of unique apis created by the user(profileId).
    */
 
   async getUserApis(profileId: string): Promise<Api[]> {
@@ -47,6 +47,31 @@ export class ApiService {
   }
 
   /**
+   * It gets an api by its id
+   * @param {string} apiId - string - the id of the api you want to get
+   * @returns The api object
+   */
+  async getAnApi(apiId: string): Promise<Api> {
+    try {
+      const api = await this.apiRepo.findOne({ where: { id: apiId } });
+      if (!api) {
+        throw new NotFoundException(
+          ZaLaResponse.NotFoundRequest(
+            'Not found',
+            'The api does not exist',
+            '404',
+          ),
+        );
+      }
+      return api;
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+       );
+    }
+  }
+
+/**
    * It creates an api for a user
    * @param {CreateApiDto} createApiDto - CreateApiDto
    * @param {string} profileId - string
