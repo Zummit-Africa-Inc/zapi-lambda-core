@@ -11,6 +11,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from 'ormconfig';
 import { ApiModule } from './api/api.module';
 import { JwtService } from '@nestjs/jwt';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -42,7 +43,7 @@ const RabbitMQService = {
     ProfileModule,
     ApiModule,
     CategoriesModule,
-  
+    AnalyticsModule
   ],
   controllers: [AppController],
   providers: [AppService, RabbitMQService, JwtService],
