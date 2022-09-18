@@ -1,5 +1,12 @@
 import { SharedEntity } from '../common/model/sharedEntity';
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { Status } from '../common/enums/apiVerification.enum';
 import { Profile } from './profile.entity';
 import { Category } from './category.entity';
@@ -73,4 +80,15 @@ export class Api extends SharedEntity {
   })
   @JoinColumn({ name: 'subscriptions' })
   subscription: Subscription[];
+
+  /* A function that is called before the entity is inserted into the database. It is used to modify
+  the base_url property of the entity. */
+  @BeforeInsert()
+  public modifyUrl() {
+    this.base_url =
+      this.base_url.slice(-1) === '/'
+        ? this.base_url.slice(0, -1)
+        : this.base_url;
+    return this.base_url;
+  }
 }
