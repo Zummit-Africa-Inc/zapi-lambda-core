@@ -59,7 +59,7 @@ export class SubscriptionService {
         );
       }
       if (api && profile) {
-        const subscriptionToken = await this.getTokens(apiId, profileId);
+        const subscriptionToken = await this.setTokens(apiId, profileId);
         const subPayload = { apiId, profileId, subscriptionToken };
         const userSubscription = this.subscriptionRepo.create(subPayload);
         const newSub = await this.subscriptionRepo.save(userSubscription);
@@ -83,21 +83,27 @@ export class SubscriptionService {
     }
   }
 
-  async getTokens(apiId: string, profileId: string): Promise<string> {
+  /**
+   * It takes an apiId and a profileId, and returns a subscriptionToken
+   * @param {string} apiId - The id of the API
+   * @param {string} profileId - The id of the profile that is subscribing to the API
+   * @returns A JWT token
+   */
+  async setTokens(apiId: string, profileId: string): Promise<string> {
     const subscriptionToken = await this.jwtService.signAsync(
       {
         profileId,
         apiId,
       },
       {
-        secret: this.configService.get(configConstant.jwt.subSecret),
-        expiresIn: 43200,
+        secret: process.env.JWT_SUBSCRIPTION_SECRET,
+        expiresIn: '30d',
       },
     );
     return subscriptionToken;
   }
 
-  async apiRequest(token: string, body: any): Promise<any> {
+  async apiRequest(token: string, body: ApiRequestDto): Promise<any> {
     const { api, profile } = await this.verifySub(token);
     const encodedRoute = encodeURIComponent(body.route);
     const endpoint = await this.endpointRepository.findOne({
@@ -122,56 +128,62 @@ export class SubscriptionService {
     const endMethod = endpoint.method.toLowerCase();
     const url = base_url + `${endRoute}`;
     const ref = this.httpService.axiosRef;
-
     try {
-      /* Getting the current time in nanoseconds. */
-      const startTime = process.hrtime();
+      try {
+        /* Getting the current time in nanoseconds. */
+        const startTime = process.hrtime();
 
-      /* Making a request to the api with the payload and the secret key. */
-      const axiosResponse = await ref({
-        method: endMethod,
-        url: url,
-        data: body.payload,
-        headers: { 'X-Zapi-Proxy-Secret': uniqueApiSecurityKey },
-      });
+        /* Making a request to the api with the payload and the secret key. */
+        const axiosResponse = await ref({
+          method: endMethod,
+          url: url,
+          data: body.payload,
+          headers: { 'X-Zapi-Proxy-Secret': uniqueApiSecurityKey },
+        });
 
-      /* Calculating the time it takes to make a request to the api. */
-      const totalTime = process.hrtime(startTime);
-      const totalTimeInMs = totalTime[0] * 1000 + totalTime[1] / 1e6;
+        /* Calculating the time it takes to make a request to the api. */
+        const totalTime = process.hrtime(startTime);
+        const totalTimeInMs = totalTime[0] * 1000 + totalTime[1] / 1e6;
 
-      const data = axiosResponse.data;
+        const data = axiosResponse.data;
 
-      this.analyticsService.updateAnalytics(
-        axiosResponse.status,
-        api.id,
-        totalTimeInMs,
-      );
-      this.analyticsService.analyticLogs({
-        status: axiosResponse.status,
-        latency: Math.round(totalTimeInMs),
-        profileId: profile.id,
-        apiId: api.id,
-        endpoint: endRoute,
-        method: endMethod,
-      });
+        this.analyticsService.updateAnalytics(
+          axiosResponse.status,
+          api.id,
+          totalTimeInMs,
+        );
+        this.analyticsService.analyticLogs({
+          status: axiosResponse.status,
+          latency: Math.round(totalTimeInMs),
+          profileId: profile.id,
+          apiId: api.id,
+          endpoint: endRoute,
+          method: endMethod,
+        });
 
-      return data;
+        return data;
+      } catch (error) {
+        this.analyticsService.updateAnalytics(error.response.status, api.id);
+        this.analyticsService.analyticLogs({
+          status: error.response.status,
+          errorMessage: error.response.statusText,
+          profileId: profile.id,
+          apiId: api.id,
+          endpoint: endRoute,
+          method: endMethod,
+        });
+
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            'External server error',
+            `Message from external server: '${error.message}'`,
+            '500',
+          ),
+        );
+      }
     } catch (error) {
-      this.analyticsService.updateAnalytics(error.response.status, api.id);
-      this.analyticsService.analyticLogs({
-        status: error.response.status,
-        errorMessage: error.response.statusText,
-        profileId: profile.id,
-        apiId: api.id,
-        endpoint: endRoute,
-        method: endMethod,
-      });
       throw new BadRequestException(
-        ZaLaResponse.BadRequest(
-          'External server error',
-          `Message from external server: '${error.response.statusText}'`,
-          error.response.status,
-        ),
+        ZaLaResponse.BadRequest('Internal server error', error.message, '500'),
       );
     }
   }
@@ -182,7 +194,7 @@ export class SubscriptionService {
    * @returns The api and profile are being returned.
    */
   async verifySub(token: string) {
-    const secret = this.configService.get(configConstant.jwt.subSecret);
+    const secret = process.env.JWT_SUBSCRIPTION_SECRET;
     try {
       const { apiId, profileId } = this.jwtService.verify(token, { secret });
       // both the API and the profile are fetched from the database
@@ -195,14 +207,14 @@ export class SubscriptionService {
         throw new UnauthorizedException(
           ZaLaResponse.BadRequest(
             'Unauthorized',
-            'user not subscribed to this api',
+            'User not subscribed to this api',
             '401',
           ),
         );
       }
       return { api, profile };
     } catch (error) {
-      if (error.name === 'JsonWebTokenError') {
+      if (error.name === 'TokenExpiredError') {
         throw new UnauthorizedException(
           ZaLaResponse.BadRequest(
             'Subscription Error',
@@ -214,7 +226,7 @@ export class SubscriptionService {
         throw new BadRequestException(
           ZaLaResponse.BadRequest(
             'Internal Server Error',
-            'Something went wrong',
+            error.message,
             '500',
           ),
         );

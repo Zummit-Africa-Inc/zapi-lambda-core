@@ -33,7 +33,11 @@ export class SubscriptionController {
   ): Promise<Ok<any>> {
     if (!xZapiAuth) {
       throw new BadRequestException(
-        ZaLaResponse.BadRequest('No Token', 'No Token provided', '403'),
+        ZaLaResponse.BadRequest(
+          'Bad Request',
+          'Subscription token is required to make a request',
+          '403',
+        ),
       );
     }
     const request = await this.subscriptionService.apiRequest(
