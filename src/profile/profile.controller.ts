@@ -7,6 +7,7 @@ import {
   Param,
   Inject,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { ProfileService } from './profile.service';
@@ -15,6 +16,7 @@ import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { ClientProxy, EventPattern } from '@nestjs/microservices';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TestDto } from 'src/test.dto';
+import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
 
 @ApiTags('Profile')
 @Controller('profile')
@@ -31,6 +33,7 @@ export class ProfileController {
   }
 
   @Get('/:id')
+  @UseGuards(AccessTokenGuard)
   async getOne(
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<Ok<Profile>> {
