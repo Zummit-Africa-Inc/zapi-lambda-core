@@ -17,3 +17,4 @@ export class CreateApiDto {
     @IsString()
     base_url: string;
 }
+
