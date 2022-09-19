@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { ZaLaResponse } from '../common/helpers/response';
 import { Profile } from '../entities/profile.entity';
-import { DeleteResult, Repository } from 'typeorm';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
@@ -74,26 +74,27 @@ export class ProfileService {
   async updateProfile(
     profileId: string,
     updateProfileDto: UpdateProfileDto,
-  ): Promise<Profile> {
-    try{
+  ) {
+    try {
       const profile = await this.profileRepo.findOne({
         where: { id: profileId },
       });
       if (profile) {
-        await this.profileRepo.update(profileId, updateProfileDto);
-  
-        const undatedProfile = await this.profileRepo.findOne({ where: {id:profileId}});
-        if (undatedProfile){
-          return undatedProfile;
-        }else{
-          ZaLaResponse.NotFoundRequest('Not Found', 'Profile does not exist', '404');
+         const updatedProfile = await this.profileRepo.update(profileId, updateProfileDto)
+         return updatedProfile;
+        } else {
+          ZaLaResponse.NotFoundRequest(
+            'Not Found',
+            'Profile does not exist',
+            '404',
+          );
         }
       }
-    }catch(error){
+     catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
       );
-    };
+    }
   }
 
   /**
