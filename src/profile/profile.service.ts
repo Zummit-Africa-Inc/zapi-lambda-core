@@ -82,10 +82,12 @@ export class ProfileService {
       if (profile) {
         await this.profileRepo.update(profileId, updateProfileDto);
       } else {
-        ZaLaResponse.NotFoundRequest(
-          'Not Found',
-          'Profile does not exist',
-          '404',
+        throw new NotFoundException(
+          ZaLaResponse.NotFoundRequest(
+            'Not Found',
+            'Profile does not exist',
+            '404',
+          ),
         );
       }
     } catch (error) {
