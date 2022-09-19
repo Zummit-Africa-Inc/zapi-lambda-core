@@ -74,23 +74,21 @@ export class ProfileService {
   async updateProfile(
     profileId: string,
     updateProfileDto: UpdateProfileDto,
-  ) {
+  ): Promise<void> {
     try {
       const profile = await this.profileRepo.findOne({
         where: { id: profileId },
       });
       if (profile) {
-         const updatedProfile = await this.profileRepo.update(profileId, updateProfileDto)
-         return updatedProfile;
-        } else {
-          ZaLaResponse.NotFoundRequest(
-            'Not Found',
-            'Profile does not exist',
-            '404',
-          );
-        }
+        await this.profileRepo.update(profileId, updateProfileDto);
+      } else {
+        ZaLaResponse.NotFoundRequest(
+          'Not Found',
+          'Profile does not exist',
+          '404',
+        );
       }
-     catch (error) {
+    } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
       );

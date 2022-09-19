@@ -17,6 +17,7 @@ import { ClientProxy, EventPattern } from '@nestjs/microservices';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TestDto } from 'src/test.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateResult } from 'typeorm';
 
 @ApiTags('Profile')
 @Controller('profile')
@@ -40,17 +41,14 @@ export class ProfileController {
     return ZaLaResponse.Ok(profile, 'Ok', 200);
   }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Updates an existing profile' })
+  @Patch(':profileId')
+  @ApiOperation({ summary: 'Update a profile' })
   async updateProfile(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('profileId') profileId: string,
     @Body() updateProfileDto: UpdateProfileDto,
-  ): Promise<Ok<Profile>> {
-    const profile = await this.profileService.updateProfile(
-      id,
-      updateProfileDto,
-    );
-    return ZaLaResponse.Ok(profile, 'Ok', 200);
+  ): Promise<Ok<string>> {
+    await this.profileService.updateProfile(profileId, updateProfileDto);
+    return ZaLaResponse.Ok('Profile Updated', 'Ok', 200);
   }
 
   @Delete('/:id')

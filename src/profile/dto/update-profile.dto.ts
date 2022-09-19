@@ -1,23 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
-
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmail } from 'class-validator';
 export class UpdateProfileDto {
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
+  @IsEmail()
+  @ApiPropertyOptional()
   email?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  picture?: string;
-
 }
-
-
-
-
-// import { PartialType } from '@nestjs/swagger';
-// import { CreateProfileDto } from './create-profile.dto';
-
-// export class UpdateProfileDto extends PartialType(CreateProfileDto) {}
