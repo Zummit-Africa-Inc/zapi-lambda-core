@@ -7,7 +7,6 @@ import {
   Param,
   Inject,
   Delete,
-  Patch,
 } from '@nestjs/common';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { ProfileService } from './profile.service';
@@ -16,7 +15,6 @@ import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { ClientProxy, EventPattern } from '@nestjs/microservices';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TestDto } from 'src/test.dto';
-import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @ApiTags('Profile')
 @Controller('profile')
@@ -39,20 +37,6 @@ export class ProfileController {
     const profile = await this.profileService.getone(id);
     return ZaLaResponse.Ok(profile, 'Ok', 200);
   }
-
-  @Patch(':id')
-  @ApiOperation({ summary: 'Updates an existing profile' })
-  async updateProfile(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateProfileDto: UpdateProfileDto,
-  ): Promise<Ok<Profile>> {
-    const profile = await this.profileService.updateProfile(
-      id,
-      updateProfileDto,
-    );
-    return ZaLaResponse.Ok(profile, 'Ok', 200);
-  }
-
   @Delete('/:id')
   async deleteOne(
     @Param('id', new ParseUUIDPipe()) id: string,
