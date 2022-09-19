@@ -7,6 +7,7 @@ import {
   Param,
   Inject,
   Delete,
+  Patch,
   UploadedFile,
   MaxFileSizeValidator,
   ParseFilePipe,
@@ -20,6 +21,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TestDto } from 'src/test.dto';
 import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
 import { ApiFile } from 'src/common/decorators/swaggerUploadField';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @ApiTags('Profile')
 @Controller('profile')
@@ -40,6 +42,19 @@ export class ProfileController {
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<Ok<Profile>> {
     const profile = await this.profileService.getone(id);
+    return ZaLaResponse.Ok(profile, 'Ok', 200);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Updates an existing profile' })
+  async updateProfile(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ): Promise<Ok<Profile>> {
+    const profile = await this.profileService.updateProfile(
+      id,
+      updateProfileDto,
+    );
     return ZaLaResponse.Ok(profile, 'Ok', 200);
   }
 
