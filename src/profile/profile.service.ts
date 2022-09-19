@@ -107,11 +107,12 @@ export class ProfileService {
 
       /* Generating a random string of characters to be prefixed to the name of the file. */
       const fileName = randomStrings(file.originalname);
+      const dpFolder = process.env.AWS_S3_DP_FOLDER;
 
       /* Creating an object that will be used to upload the image to the S3 bucket. */
       const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
-        Key: String('profile-images/' + fileName),
+        Key: String(dpFolder + fileName),
         Body: file.buffer,
         ACL: 'public-read',
         ContentType: file.mimetype,
@@ -156,7 +157,10 @@ export class ProfileService {
       const deleteImage = async (key: string): Promise<string> => {
         try {
           await s3Client.send(
-            new DeleteObjectCommand({ Bucket: 'zapi-images', Key: key }),
+            new DeleteObjectCommand({
+              Bucket: process.env.AWS_BUCKET_NAME,
+              Key: key,
+            }),
           );
           return uploadImage();
         } catch (error) {
@@ -173,7 +177,7 @@ export class ProfileService {
       if (!profile.picture) {
         return uploadImage();
       } else {
-        const key = `profile-images/${profile.picture.split('/')[4]}`;
+        const key = `${dpFolder}${profile.picture.split('/')[4]}`;
         return deleteImage(key);
       }
     } catch (error) {
