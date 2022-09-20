@@ -20,6 +20,6 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, options);
     SwaggerModule.setup('api-doc', app, document);
   }
-  await app.listen(Number(process.env.NODE_PORT) || 5000);
+  await app.listen(Number(process.env.NODE_PORT) || 3000);
 }
 bootstrap();

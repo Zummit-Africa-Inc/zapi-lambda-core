@@ -7,7 +7,10 @@ import {
   Param,
   Inject,
   Delete,
-  UseGuards,
+  Patch,
+  UploadedFile,
+  MaxFileSizeValidator,
+  ParseFilePipe,
 } from '@nestjs/common';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { ProfileService } from './profile.service';
@@ -16,10 +19,10 @@ import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { ClientProxy, EventPattern } from '@nestjs/microservices';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TestDto } from 'src/test.dto';
-import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
+import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @ApiTags('Profile')
-@Controller('profile')
 export class ProfileController {
   constructor(
     private profileService: ProfileService,
@@ -39,6 +42,35 @@ export class ProfileController {
     const profile = await this.profileService.getone(id);
     return ZaLaResponse.Ok(profile, 'Ok', 200);
   }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Updates an existing profile' })
+  async updateProfile(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ): Promise<Ok<Profile>> {
+    const profile = await this.profileService.updateProfile(
+      id,
+      updateProfileDto,
+    );
+    return ZaLaResponse.Ok(profile, 'Ok', 200);
+  }
+
+  @Post('profile-image/:profileId')
+  @ApiFile('image', true, { fileFilter: fileMimetypeFilter('image') })
+  async upload(
+    @Param('profileId') profileId: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new MaxFileSizeValidator({ maxSize: 500000 })],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    const imageUrl = await this.profileService.upload(file, profileId);
+    return ZaLaResponse.Ok(imageUrl, 'Ok', 201);
+  }
+
   @Delete('/:id')
   async deleteOne(
     @Param('id', new ParseUUIDPipe()) id: string,
