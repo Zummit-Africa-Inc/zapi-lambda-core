@@ -16,7 +16,8 @@ export class AccessTokenGuard implements CanActivate {
     private configService: ConfigService,
   ) {}
   async canActivate(context: ExecutionContext) {
-    const request = context.switchToHttp().getRequest();
+    try {
+      const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
     if(!authHeader) {
       throw new BadRequestException( ZaLaResponse.BadRequest('bad request', 'Not Authorized', '401'));
@@ -29,5 +30,10 @@ export class AccessTokenGuard implements CanActivate {
       }
 
     return true
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
+      );
+    }
   }
 }
