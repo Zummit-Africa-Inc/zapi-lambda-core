@@ -9,17 +9,16 @@ async function bootstrap() {
   app.setGlobalPrefix('zl-core');
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-  if (process.env.NODE_ENV !== 'production') {
-    const options = new DocumentBuilder()
-      .setTitle('ZA Lambda Core Service')
-      .setDescription('Zummit Africa Lambda Core Service')
-      .setVersion('1.0')
-      .addBearerAuth()
-      .build();
+  const options = new DocumentBuilder()
+    .setTitle('ZA Lambda Core Service')
+    .setDescription('Zummit Africa Lambda Core Service')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
 
-    const document = SwaggerModule.createDocument(app, options);
-    SwaggerModule.setup('api-doc', app, document);
-  }
+  const document = SwaggerModule.createDocument(app, options);
+  SwaggerModule.setup('api-doc', app, document);
+
   await app.listen(Number(process.env.NODE_PORT) || 3000);
 }
 bootstrap();
