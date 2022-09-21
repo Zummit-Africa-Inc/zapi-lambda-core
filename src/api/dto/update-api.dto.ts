@@ -14,22 +14,18 @@ export class UpdateApiDto extends PartialType(CreateApiDto) {
   @ApiPropertyOptional()
   base_url: string;
 
-  @IsString()
   @ApiPropertyOptional()
   about: string;
 
   @ApiPropertyOptional()
   categoryId: string;
 
-  @IsString()
   @ApiPropertyOptional()
   logo_url: string;
 
-  @IsString()
   @ApiPropertyOptional()
   api_website: string;
 
-  @IsString()
   @ApiPropertyOptional()
   term_of_use: string;
 
