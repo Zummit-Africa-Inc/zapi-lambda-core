@@ -6,18 +6,15 @@ import { ReqBody } from '../interface/endpoint.interface';
 import { CreateEndpointDto } from './create-endpoint.dto';
 
 export class UpdateEndpointDto extends PartialType(CreateEndpointDto) {
-  @IsString()
   @ApiPropertyOptional()
   name: string;
 
-  @IsString()
   @ApiPropertyOptional()
   description: string;
 
   @ApiPropertyOptional({ default: 'get' })
   method: HttpMethod;
 
-  @IsString()
   @ApiPropertyOptional()
   route: string;
 
