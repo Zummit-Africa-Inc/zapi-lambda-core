@@ -12,6 +12,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateApiDto } from './dto/create-api.dto';
 import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { Api } from '../entities/api.entity';
+import { GetApiDto } from './dto/get-api.dto';
 @ApiTags('Apis')
 @Controller('api')
 export class ApiController {
@@ -42,8 +43,11 @@ export class ApiController {
    */
   @Get(':apiId')
   @ApiOperation({ summary: 'Get an API' })
-  async findOne(@Param('apiId') apiId: string): Promise<Ok<Api>> {
-    const api = await this.apiService.getAnApi(apiId);
+  async findOne(
+    @Param('apiId') apiId: string,
+    @Query('profileId') profileId?: string,
+  ): Promise<Ok<GetApiDto>> {
+    const api = await this.apiService.getAnApi(apiId, profileId);
     return ZaLaResponse.Ok(api, 'Ok', '200');
   }
 

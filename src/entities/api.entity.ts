@@ -21,7 +21,7 @@ export class Api extends SharedEntity {
   description: string;
 
   @Column()
-  base_url: string;
+  base_url?: string;
 
   @Column({ default: 0 })
   popularity: number;
@@ -30,21 +30,21 @@ export class Api extends SharedEntity {
   about: string;
 
   @Column('text', { array: true, nullable: true, default: [] })
-  subscriptions: string[];
+  subscriptions?: string[];
 
   @Column({
     type: 'enum',
     enum: Status,
     default: Status.Unverified,
   })
-  status: Status;
+  status?: Status;
 
   @Column({
     type: 'enum',
     enum: Visibility,
     default: Visibility.Private,
   })
-  visibility: Visibility;
+  visibility?: Visibility;
 
   @Column({ default: 0 })
   rating: number;
@@ -62,7 +62,7 @@ export class Api extends SharedEntity {
   profileId: string;
 
   @Column({ nullable: true })
-  secretKey: string;
+  secretKey?: string;
 
   @Column({ nullable: true })
   tutorialsId: string;

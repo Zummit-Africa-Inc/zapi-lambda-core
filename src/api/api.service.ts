@@ -10,6 +10,7 @@ import { Api } from '../entities/api.entity';
 import { CreateApiDto } from './dto/create-api.dto';
 import { v4 as uuid } from 'uuid';
 import { Analytics } from 'src/entities/analytics.entity';
+import { GetApiDto } from './dto/get-api.dto';
 
 @Injectable()
 export class ApiService {
@@ -19,7 +20,7 @@ export class ApiService {
     @InjectRepository(Analytics)
     private readonly analyticsRepo: Repository<Analytics>,
   ) {}
-  
+
   /**
    * @param {string} profileId - The id of the user who is trying to get his or her api list.
    * checks if user has an api created from query result.
@@ -51,9 +52,10 @@ export class ApiService {
    * @param {string} apiId - string - the id of the api you want to get
    * @returns The api object
    */
-  async getAnApi(apiId: string): Promise<Api> {
+  async getAnApi(apiId: string, profileId?: string): Promise<GetApiDto> {
     try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
+      const isOwner = await this.verify(apiId, profileId);
       if (!api) {
         throw new NotFoundException(
           ZaLaResponse.NotFoundRequest(
@@ -63,15 +65,28 @@ export class ApiService {
           ),
         );
       }
-      return api;
+      if (api && isOwner === true) {
+        return api;
+      } else {
+        const {
+          ['base_url']: unused1,
+          ['visibility']: unused2,
+          ['subscriptions']: unused3,
+          ['status']: unused4,
+          ['secretKey']: unused5,
+          ...partialApi
+        } = api;
+
+        return partialApi;
+      }
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
-       );
+      );
     }
   }
 
-/**
+  /**
    * It creates an api for a user
    * @param {CreateApiDto} createApiDto - CreateApiDto
    * @param {string} profileId - string
