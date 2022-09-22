@@ -52,12 +52,14 @@ export class ApiService {
 
   /**
    * It gets an api by its id
+   * @param {string} profileId? - string -  oprional user id 
    * @param {string} apiId - string - the id of the api you want to get
-   * @returns The api object
+   * @returns The full api object when id is provided, partial when it is not
    */
-  async getAnApi(apiId: string): Promise<Api> {
+  async getAnApi(apiId: string, profileId?: string): Promise<Api> {
     try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
+
       if (!api) {
         throw new NotFoundException(
           ZaLaResponse.NotFoundRequest(
@@ -67,7 +69,18 @@ export class ApiService {
           ),
         );
       }
-      return api;
+      if (profileId && (await this.verify(apiId, profileId))) {
+        return api;
+      } else {
+        delete api.base_url;
+        delete api.visibility;
+        delete api.subscriptions;
+        delete api.status;
+        delete api.secretKey;
+        delete api.api_website;
+
+        return api;
+      }
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
