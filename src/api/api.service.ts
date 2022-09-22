@@ -23,7 +23,7 @@ export class ApiService {
     @InjectRepository(Analytics)
     private readonly analyticsRepo: Repository<Analytics>,
   ) {}
-  
+
   /**
    * @param {string} profileId - The id of the user who is trying to get his or her api list.
    * checks if user has an api created from query result.
@@ -71,11 +71,11 @@ export class ApiService {
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
-       );
+      );
     }
   }
 
-/**
+  /**
    * It creates an api for a user
    * @param {CreateApiDto} createApiDto - CreateApiDto
    * @param {string} profileId - string
@@ -205,13 +205,21 @@ export class ApiService {
           }
         }
 
-        await this.apiRepo.update(apiId, updateApiDto);
-        const updatedApi = await this.apiRepo.findOne({
-          where: { id: apiId },
-        });
-        if (updatedApi) {
-          return updatedApi;
-        }
+        updateApiDto.base_url
+          ? updateApiDto.base_url.slice(-1) === '/'
+            ? (updateApiDto.base_url = updateApiDto.base_url.slice(0, -1))
+            : updateApiDto.base_url
+          : null;
+
+        const updatedApi = await this.apiRepo
+          .createQueryBuilder()
+          .update(Api)
+          .set(updateApiDto)
+          .where('id = :apiId', { apiId })
+          .returning('*')
+          .execute();
+
+        return updatedApi.raw[0];
       } else {
         throw new BadRequestException(
           ZaLaResponse.NotFoundRequest(

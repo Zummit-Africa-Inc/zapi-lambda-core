@@ -8,6 +8,7 @@ import { ZaLaResponse } from 'src/common/helpers/response';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { Repository } from 'typeorm';
 import { CreateEndpointDto } from './dto/create-endpoint.dto';
+import { UpdateEndpointDto } from './dto/update-endpoint.dto';
 
 @Injectable()
 export class EndpointsService {
@@ -58,7 +59,12 @@ export class EndpointsService {
     }
   }
 
-  async getAllApiEndpoints(apiId: string) {
+  /**
+   * It gets all the endpoints of an API
+   * @param {string} apiId - string
+   * @returns An array of Endpoint objects.
+   */
+  async getAllApiEndpoints(apiId: string): Promise<Endpoint[]> {
     try {
       //check if api exists in Endpoint table
       const endpoints = await this.endpointRepo.find({
@@ -77,6 +83,76 @@ export class EndpointsService {
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),
+      );
+    }
+  }
+
+  /**
+   * It updates an endpoint in the database
+   * @param {string} endpointId - string - the id of the endpoint to be updated
+   * @param {UpdateEndpointDto} body - UpdateEndpointDto
+   * @returns The updatedEndpoint is being returned.
+   */
+  async update(endpointId: string, body: UpdateEndpointDto): Promise<Endpoint> {
+    try {
+      const endpoint = await this.endpointRepo.findOne({
+        where: { id: endpointId },
+      });
+      if (!endpoint) {
+        throw new NotFoundException(
+          ZaLaResponse.NotFoundRequest(
+            'Not Found',
+            'Endpoint does not exist',
+            '404',
+          ),
+        );
+      }
+
+      body.route
+        ? (body.route = encodeURIComponent(
+            body.route.charAt(0) === '/' ? body.route : `/${body.route}`,
+          ))
+        : null;
+
+      const updatedEndpoint = await this.endpointRepo
+        .createQueryBuilder()
+        .update(Endpoint)
+        .set(body)
+        .where('id = :endpointId', { endpointId })
+        .returning('*')
+        .execute();
+
+      return updatedEndpoint.raw[0];
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+      );
+    }
+  }
+
+  /**
+   * It deletes an endpoint from the database.
+   * @param {string} endpointId - string - The id of the endpoint to be deleted
+   */
+  async delete(endpointId: string): Promise<void> {
+    try {
+      const endpoint = await this.endpointRepo.findOne({
+        where: { id: endpointId },
+      });
+      if (!endpoint) {
+        throw new NotFoundException(
+          ZaLaResponse.NotFoundRequest(
+            'Not Found',
+            'Endpoint does not exist',
+            '404',
+          ),
+        );
+      }
+
+      await this.endpointRepo.delete(endpointId);
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
       );
     }
   }

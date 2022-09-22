@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsString } from 'class-validator';
 import { HttpMethod } from '../../common/enums/httpMethods.enum';
+import { ReqBody } from '../interface/endpoint.interface';
 
 export class CreateEndpointDto {
   @IsString()
@@ -30,10 +31,5 @@ export class CreateEndpointDto {
 
   @IsArray()
   @ApiPropertyOptional()
-  requestBody: [
-    {
-      name: string;
-      data_type: string | VarDate | boolean | number | object | symbol;
-    },
-  ];
+  requestBody: ReqBody[];
 }
