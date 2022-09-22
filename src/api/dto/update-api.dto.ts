@@ -30,5 +30,8 @@ export class UpdateApiDto extends PartialType(CreateApiDto) {
   term_of_use: string;
 
   @ApiPropertyOptional()
+  read_me: string;
+
+  @ApiPropertyOptional()
   visibility: Visibility;
 }
