@@ -7,7 +7,9 @@ import {
   Query,
   Get,
   Patch,
-  DefaultValuePipe,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
 } from '@nestjs/common';
 import { ApiService } from './api.service';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
@@ -15,10 +17,16 @@ import { CreateApiDto } from './dto/create-api.dto';
 import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { Api } from '../entities/api.entity';
 import { UpdateApiDto } from './dto/update-api.dto';
+import { ApiFile } from 'src/common/decorators/swaggerUploadField';
+import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
+import { ImageUploadService } from 'src/common/helpers/imageUploadService';
 @ApiTags('Apis')
 @Controller('api')
 export class ApiController {
-  constructor(private readonly apiService: ApiService) {}
+  constructor(
+    private readonly apiService: ApiService,
+    private readonly imageUploadService: ImageUploadService,
+  ) {}
 
   @Post(':profileId/new')
   @ApiOperation({ summary: 'Create an API' })
@@ -47,8 +55,8 @@ export class ApiController {
   @ApiOperation({ summary: 'Get an API' })
   @ApiQuery({
     name: 'profileId',
-	required: false,
-	type: String
+    required: false,
+    type: String,
   })
   async findOne(
     @Param('apiId') apiId: string,
@@ -66,6 +74,22 @@ export class ApiController {
   ): Promise<Ok<Api>> {
     const api = await this.apiService.deleteApi(apiId, profileId);
     return ZaLaResponse.Ok(api, 'Api deleted', '200');
+  }
+
+  @Post('api-logo/:apiId')
+  @ApiOperation({ summary: 'Upload api logo' })
+  @ApiFile('image', true, { fileFilter: fileMimetypeFilter('image') })
+  async upload(
+    @Param('apiId') apiId: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new MaxFileSizeValidator({ maxSize: 200000 })],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    const imageUrl = await this.imageUploadService.upload(file, apiId);
+    return ZaLaResponse.Ok(imageUrl, 'Ok', 201);
   }
 
   /* A put request that takes in an apiId, profileId, and a body and returns a promise of an
