@@ -59,7 +59,7 @@ export class ApiService {
   async getAnApi(apiId: string, profileId?: string): Promise<GetApiDto> {
     try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
-      const isOwner = await this.verify(apiId, profileId);
+      
       if (!api) {
         throw new NotFoundException(
           ZaLaResponse.NotFoundRequest(
@@ -69,19 +69,21 @@ export class ApiService {
           ),
         );
       }
-      if (api && isOwner === true) {
+      if (profileId && (await this.verify(apiId, profileId))) {
+        
         return api;
       } else {
-        const {
-          ['base_url']: unused1,
-          ['visibility']: unused2,
-          ['subscriptions']: unused3,
-          ['status']: unused4,
-          ['secretKey']: unused5,
-          ...partialApi
-        } = api;
+        // const {
+        //   ['base_url']: unused1,
+        //   ['visibility']: unused2,
+        //   ['subscriptions']: unused3,
+        //   ['status']: unused4,
+        //   ['secretKey']: unused5,['api_website']:unused6,
+        //   ...partialApi
+        // } = api;
+        delete api['base_url'];
 
-        return partialApi;
+        return api;
       }
     } catch (error) {
       throw new BadRequestException(
