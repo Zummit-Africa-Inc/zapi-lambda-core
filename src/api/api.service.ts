@@ -12,7 +12,6 @@ import { v4 as uuid } from 'uuid';
 import { UpdateApiDto } from './dto/update-api.dto';
 import { Category } from 'src/entities/category.entity';
 import { Analytics } from 'src/entities/analytics.entity';
-import { GetApiDto } from './dto/get-api.dto';
 
 @Injectable()
 export class ApiService {
@@ -53,13 +52,14 @@ export class ApiService {
 
   /**
    * It gets an api by its id
+   * @param {string} profileId? - string -  oprional user id 
    * @param {string} apiId - string - the id of the api you want to get
-   * @returns The api object
+   * @returns The full api object when id is provided, partial when it is not
    */
-  async getAnApi(apiId: string, profileId?: string): Promise<GetApiDto> {
+  async getAnApi(apiId: string, profileId?: string): Promise<Api> {
     try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
-      
+
       if (!api) {
         throw new NotFoundException(
           ZaLaResponse.NotFoundRequest(
@@ -70,18 +70,14 @@ export class ApiService {
         );
       }
       if (profileId && (await this.verify(apiId, profileId))) {
-        
         return api;
       } else {
-        // const {
-        //   ['base_url']: unused1,
-        //   ['visibility']: unused2,
-        //   ['subscriptions']: unused3,
-        //   ['status']: unused4,
-        //   ['secretKey']: unused5,['api_website']:unused6,
-        //   ...partialApi
-        // } = api;
-        delete api['base_url'];
+        delete api.base_url;
+        delete api.visibility;
+        delete api.subscriptions;
+        delete api.status;
+        delete api.secretKey;
+        delete api.api_website;
 
         return api;
       }

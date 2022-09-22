@@ -7,13 +7,13 @@ import {
   Query,
   Get,
   Patch,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { ApiService } from './api.service';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CreateApiDto } from './dto/create-api.dto';
 import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { Api } from '../entities/api.entity';
-import { GetApiDto } from './dto/get-api.dto';
 import { UpdateApiDto } from './dto/update-api.dto';
 @ApiTags('Apis')
 @Controller('api')
@@ -40,15 +40,20 @@ export class ApiController {
 
   /**
    * @Get request that takes
-   * @Param {string} profileId and {string} apiId
+   * @Param {string} profileId as optional and {string} apiId as required
    * @returns a response from the api.service
    */
   @Get(':apiId')
   @ApiOperation({ summary: 'Get an API' })
+  @ApiQuery({
+    name: 'profileId',
+	required: false,
+	type: String
+  })
   async findOne(
     @Param('apiId') apiId: string,
-    @Query('profileId') profileId?: string,
-  ): Promise<Ok<GetApiDto>> {
+    @Query('profileId') profileId: string,
+  ): Promise<Ok<Api>> {
     const api = await this.apiService.getAnApi(apiId, profileId);
     return ZaLaResponse.Ok(api, 'Ok', '200');
   }
