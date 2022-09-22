@@ -39,7 +39,7 @@ export class Api extends SharedEntity {
   term_of_use: string;
 
   @Column('text', { array: true, nullable: true, default: [] })
-  subscriptions?: string[];
+  subscriptions: string[];
 
   @Column({
     type: 'enum',
