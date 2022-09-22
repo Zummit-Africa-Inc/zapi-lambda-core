@@ -1,7 +1,6 @@
 import { SharedEntity } from '../common/model/sharedEntity';
 import {
   BeforeInsert,
-  BeforeUpdate,
   Column,
   Entity,
   JoinColumn,
@@ -94,22 +93,11 @@ export class Api extends SharedEntity {
   @JoinColumn({ name: 'subscriptions' })
   subscription: Subscription[];
 
-  /* A lifecycle hook that is called before the entity is inserted or updated. It is used to modify the
-entity before it is saved to the database. */
-
-  // @BeforeInsert()
-  // public onInsert() {
-  //   this.base_url =
-  //     this.base_url.slice(-1) === '/'
-  //       ? this.base_url.slice(0, -1)
-  //       : this.base_url;
-  //   return this.base_url;
-  // }
-
-  @BeforeUpdate()
-  public onUpdate() {
+  /* A lifecycle hook that is called before the entity is inserted into the database. */
+  @BeforeInsert()
+  public onInsert() {
     this.base_url =
-      this.base_url?.slice(-1) === '/'
+      this.base_url.slice(-1) === '/'
         ? this.base_url.slice(0, -1)
         : this.base_url;
     return this.base_url;
