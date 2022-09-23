@@ -70,7 +70,7 @@ export class ProfileController {
     )
     file: Express.Multer.File,
   ) {
-    const imageUrl = await this.profileService.uploadLogo(file, profileId);
+    const imageUrl = await this.profileService.uploadImage(file, profileId);
     return ZaLaResponse.Ok(imageUrl, 'Ok', 201);
   }
 

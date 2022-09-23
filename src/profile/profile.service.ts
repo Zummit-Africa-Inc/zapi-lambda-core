@@ -137,12 +137,12 @@ export class ProfileService {
   }
 
   /**
-   * It uploads a logo to AWS S3 and updates the profile picture in the database
+   * It uploads an image to AWS S3 and updates the profile picture in the database
    * @param file - Express.Multer.File,
    * @param {string} profileId - string - the id of the profile
    * @returns The picture is being returned.
    */
-  async uploadLogo(
+  async uploadImage(
     file: Express.Multer.File,
     profileId: string,
   ): Promise<string> {
