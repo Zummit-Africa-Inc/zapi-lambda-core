@@ -5,12 +5,10 @@ import { Analytics } from 'src/entities/analytics.entity';
 import { Api } from '../entities/api.entity';
 import { ApiController } from './api.controller';
 import { ApiService } from './api.service';
-import { ImageUploadService } from 'src/common/helpers/imageUploadService';
-import { Profile } from 'src/entities/profile.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Api, Analytics, Category, Profile])],
+  imports: [TypeOrmModule.forFeature([Api, Analytics, Category])],
   controllers: [ApiController],
-  providers: [ApiService, ImageUploadService],
+  providers: [ApiService],
 })
 export class ApiModule {}

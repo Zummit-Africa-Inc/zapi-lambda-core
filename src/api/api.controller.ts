@@ -19,14 +19,10 @@ import { Api } from '../entities/api.entity';
 import { UpdateApiDto } from './dto/update-api.dto';
 import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
-import { ImageUploadService } from 'src/common/helpers/imageUploadService';
 @ApiTags('Apis')
 @Controller('api')
 export class ApiController {
-  constructor(
-    private readonly apiService: ApiService,
-    private readonly imageUploadService: ImageUploadService,
-  ) {}
+  constructor(private readonly apiService: ApiService) {}
 
   @Post(':profileId/new')
   @ApiOperation({ summary: 'Create an API' })
@@ -88,7 +84,7 @@ export class ApiController {
     )
     file: Express.Multer.File,
   ) {
-    const imageUrl = await this.imageUploadService.upload(file, apiId);
+    const imageUrl = await this.apiService.uploadLogo(file, apiId);
     return ZaLaResponse.Ok(imageUrl, 'Ok', 201);
   }
 

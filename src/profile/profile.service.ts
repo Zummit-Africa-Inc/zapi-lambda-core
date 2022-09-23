@@ -12,6 +12,10 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client } from '../common/helpers/aws-lib';
 import { randomStrings } from 'src/common/helpers/randomString';
+import {
+  deleteImage,
+  uploadImage,
+} from 'src/common/helpers/imageUploadService';
 
 @Injectable()
 export class ProfileService {
@@ -125,6 +129,38 @@ export class ProfileService {
         );
       }
       await this.profileRepo.delete(id);
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
+      );
+    }
+  }
+
+  /**
+   * It uploads a logo to AWS S3 and updates the profile picture in the database
+   * @param file - Express.Multer.File,
+   * @param {string} profileId - string - the id of the profile
+   * @returns The picture is being returned.
+   */
+  async uploadLogo(
+    file: Express.Multer.File,
+    profileId: string,
+  ): Promise<string> {
+    try {
+      const profile = await this.profileRepo.findOne({
+        where: { id: profileId },
+      });
+      const folder = process.env.AWS_S3_DP_FOLDER;
+      let picture: string;
+
+      if (profile.picture) {
+        const key = `${folder}${profile.picture.split('/')[4]}`;
+        picture = await deleteImage(file, folder, key);
+      } else {
+        picture = await uploadImage(file, folder);
+      }
+      await this.profileRepo.update(profileId, { picture });
+      return picture;
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),

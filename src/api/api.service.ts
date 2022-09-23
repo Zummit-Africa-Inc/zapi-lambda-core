@@ -12,6 +12,10 @@ import { v4 as uuid } from 'uuid';
 import { UpdateApiDto } from './dto/update-api.dto';
 import { Category } from 'src/entities/category.entity';
 import { Analytics } from 'src/entities/analytics.entity';
+import {
+  deleteImage,
+  uploadImage,
+} from 'src/common/helpers/imageUploadService';
 
 @Injectable()
 export class ApiService {
@@ -52,7 +56,7 @@ export class ApiService {
 
   /**
    * It gets an api by its id
-   * @param {string} profileId? - string -  oprional user id 
+   * @param {string} profileId? - string -  oprional user id
    * @param {string} apiId - string - the id of the api you want to get
    * @returns The full api object when id is provided, partial when it is not
    */
@@ -275,6 +279,29 @@ export class ApiService {
     } catch (err) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', err.message, '500'),
+      );
+    }
+  }
+
+  async uploadLogo(file: Express.Multer.File, apiId: string): Promise<string> {
+    try {
+      const api = await this.apiRepo.findOne({
+        where: { id: apiId },
+      });
+      const folder = process.env.AWS_S3_LOGO_FOLDER;
+      let logo_url: string;
+
+      if (api.logo_url) {
+        const key = `${folder}${api.logo_url.split('/')[4]}`;
+        logo_url = await deleteImage(file, folder, key);
+      } else {
+        logo_url = await uploadImage(file, folder);
+      }
+      await this.apiRepo.update(apiId, { logo_url });
+      return logo_url;
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
       );
     }
   }

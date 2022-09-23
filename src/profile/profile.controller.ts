@@ -22,14 +22,12 @@ import { TestDto } from 'src/test.dto';
 import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
 import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { ImageUploadService } from '.././common/helpers/imageUploadService';
 
 @ApiTags('Profile')
 @Controller('profile')
 export class ProfileController {
   constructor(
     private profileService: ProfileService,
-    private imageUploadService: ImageUploadService,
     @Inject('NOTIFY_SERVICE') private readonly client: ClientProxy,
   ) {}
 
@@ -72,7 +70,7 @@ export class ProfileController {
     )
     file: Express.Multer.File,
   ) {
-    const imageUrl = await this.imageUploadService.upload(file, profileId);
+    const imageUrl = await this.profileService.uploadLogo(file, profileId);
     return ZaLaResponse.Ok(imageUrl, 'Ok', 201);
   }
 
