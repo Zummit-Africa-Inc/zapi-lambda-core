@@ -18,7 +18,7 @@ export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
 
   @Post('subscribe')
-  @ApiOperation({ summary: 'User to subscribe to an API' })
+  @ApiOperation({ summary: 'Subscribe to an API' })
   async subscribe(
     @Body() createSubDto: CreateSubscriptionDto,
   ): Promise<Ok<Tokens>> {
