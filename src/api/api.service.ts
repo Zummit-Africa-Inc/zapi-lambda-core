@@ -25,23 +25,14 @@ export class ApiService {
   ) {}
 
   /**
-   * @param {string} profileId - The id of the user who is trying to get his or her api list.
-   * checks if user has an api created from query result.
-   * @returns The getUserApis method returns a promise of unique apis created by the user(profileId).
+   * It gets all the apis for a user
+   * @param {string} profileId - string - this is the id of the user whose apis we are fetching
+   * @returns An array of Api objects.
    */
 
   async getUserApis(profileId: string): Promise<Api[]> {
     try {
       const userApis = await this.apiRepo.find({ where: { profileId } });
-      if (userApis.length === 0) {
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            'Not Found',
-            'User has no api created.',
-            '404',
-          ),
-        );
-      }
       return userApis;
     } catch (error) {
       throw new BadRequestException(
@@ -52,7 +43,7 @@ export class ApiService {
 
   /**
    * It gets an api by its id
-   * @param {string} profileId? - string -  oprional user id 
+   * @param {string} profileId? - string -  oprional user id
    * @param {string} apiId - string - the id of the api you want to get
    * @returns The full api object when id is provided, partial when it is not
    */

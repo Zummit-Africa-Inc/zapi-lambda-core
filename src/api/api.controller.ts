@@ -31,11 +31,11 @@ export class ApiController {
   }
 
   // This is a get request that takes profileId and returns all api belonging to the user
-  @Get(':profileId/myapis')
-  @ApiOperation({ summary: 'Get all api belonging to a user' })
+  @Get('/user-apis/:profileId')
+  @ApiOperation({ summary: 'Get all APIs belonging to a user' })
   async getUserApis(@Param('profileId') profileId: string): Promise<Ok<Api[]>> {
-    const myApis = await this.apiService.getUserApis(profileId);
-    return ZaLaResponse.Ok(myApis, 'OK', '200');
+    const userApis = await this.apiService.getUserApis(profileId);
+    return ZaLaResponse.Ok(userApis, 'OK', '200');
   }
 
   /**
@@ -47,8 +47,8 @@ export class ApiController {
   @ApiOperation({ summary: 'Get an API' })
   @ApiQuery({
     name: 'profileId',
-	required: false,
-	type: String
+    required: false,
+    type: String,
   })
   async findOne(
     @Param('apiId') apiId: string,
