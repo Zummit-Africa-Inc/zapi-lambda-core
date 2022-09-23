@@ -7,7 +7,6 @@ import {
   Query,
   Get,
   Patch,
-  DefaultValuePipe,
 } from '@nestjs/common';
 import { ApiService } from './api.service';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
@@ -20,7 +19,7 @@ import { UpdateApiDto } from './dto/update-api.dto';
 export class ApiController {
   constructor(private readonly apiService: ApiService) {}
 
-  @Post(':profileId/new')
+  @Post('/new/:profileId')
   @ApiOperation({ summary: 'Create an API' })
   async createApi(
     @Body() body: CreateApiDto,
@@ -58,7 +57,7 @@ export class ApiController {
     return ZaLaResponse.Ok(api, 'Ok', '200');
   }
 
-  @Delete(':apiId/delete')
+  @Delete(':apiId')
   @ApiOperation({ summary: 'Delete an API' })
   async deleteApi(
     @Param('apiId') apiId: string,
@@ -71,7 +70,7 @@ export class ApiController {
   /* A put request that takes in an apiId, profileId, and a body and returns a promise of an
   UpdateResult. */
   @Patch(':apiId')
-  @ApiOperation({ summary: 'Update api' })
+  @ApiOperation({ summary: 'Update an API' })
   async update(
     @Param('apiId') apiId: string,
     @Query('profileId') profileId: string,
