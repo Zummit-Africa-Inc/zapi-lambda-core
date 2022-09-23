@@ -48,18 +48,8 @@ export const uploadImage = async (
   }
 };
 
-/**
- * It deletes an image from S3 and then uploads a new one
- * @param file - Express.Multer.File - The file that you want to upload
- * @param {string} folder - The folder you want to upload the image to.
- * @param {string} key - The key is the name of the file that you want to delete.
- * @returns a promise that resolves to a string.
- */
-export const deleteImage = async (
-  file: Express.Multer.File,
-  folder: string,
-  key: string,
-): Promise<string> => {
+/* Deleting the image from the S3 bucket. */
+export const deleteImage = async (key: string): Promise<string> => {
   try {
     const response = await s3Client.send(
       new DeleteObjectCommand({
@@ -68,15 +58,8 @@ export const deleteImage = async (
       }),
     );
     if (response.$metadata.httpStatusCode === 204) {
-      return uploadImage(file, folder);
+      return 'Image deleted';
     }
-    throw new BadRequestException(
-      ZaLaResponse.BadRequest(
-        'Something went wrong',
-        "Couldn't delete image",
-        '500',
-      ),
-    );
   } catch (error) {
     throw new BadRequestException(
       ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),

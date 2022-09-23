@@ -155,7 +155,8 @@ export class ProfileService {
 
       if (profile.picture) {
         const key = `${folder}${profile.picture.split('/')[4]}`;
-        picture = await deleteImage(file, folder, key);
+        await deleteImage(key);
+        picture = await uploadImage(file, folder);
       } else {
         picture = await uploadImage(file, folder);
       }

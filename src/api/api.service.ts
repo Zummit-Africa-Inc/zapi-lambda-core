@@ -293,7 +293,8 @@ export class ApiService {
 
       if (api.logo_url) {
         const key = `${folder}${api.logo_url.split('/')[4]}`;
-        logo_url = await deleteImage(file, folder, key);
+        await deleteImage(key);
+        logo_url = await uploadImage(file, folder);
       } else {
         logo_url = await uploadImage(file, folder);
       }
