@@ -13,6 +13,7 @@ import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { CreateEndpointDto } from './dto/create-endpoint.dto';
 import { UpdateEndpointDto } from './dto/update-endpoint.dto';
+import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 
 @ApiTags('endpoints')
 @Controller('endpoints')
@@ -21,6 +22,7 @@ export class EndpointsController {
 
   /* This is a post request that takes in a body and returns a promise of an Api */
   @Post('new/:apiId')
+  @IdCheck('apiId')
   @ApiOperation({ summary: 'Add a new endpoint' })
   async create(
     @Param('apiId') apiId: string,
@@ -34,6 +36,7 @@ export class EndpointsController {
   }
 
   @Get(':apiId')
+  @IdCheck('apiId')
   @ApiOperation({ summary: 'Get all endpoints of an api' })
   async getApiEndpoints(
     @Param('apiId') apiId: string,
@@ -43,6 +46,7 @@ export class EndpointsController {
   }
 
   @Patch(':endpointId')
+  @IdCheck('endpointId')
   @ApiOperation({ summary: 'Update an endpoint' })
   async updateEndpoint(
     @Param('endpointId') endpointId: string,
@@ -56,6 +60,7 @@ export class EndpointsController {
   }
 
   @Delete(':endpointId')
+  @IdCheck('endpointId')
   @ApiOperation({ summary: 'Delete an endpoint' })
   async deleteEndpoint(
     @Param('endpointId') endpointId: string,
