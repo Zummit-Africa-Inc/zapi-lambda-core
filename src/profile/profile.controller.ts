@@ -21,6 +21,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TestDto } from 'src/test.dto';
 import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 
 @ApiTags('Profile')
 export class ProfileController {
