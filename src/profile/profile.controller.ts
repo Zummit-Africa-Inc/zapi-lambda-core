@@ -22,6 +22,7 @@ import { TestDto } from 'src/test.dto';
 import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
 import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 
 @ApiTags('Profile')
 @Controller('profile')
@@ -37,11 +38,12 @@ export class ProfileController {
     return ZaLaResponse.Ok(userProfile, 'Profile created', 201);
   }
 
-  @Get('/:id')
+  @Get('/:profileId')
+  @IdCheck('profileId')
   async getOne(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('profileId', new ParseUUIDPipe()) profileId: string,
   ): Promise<Ok<Profile>> {
-    const profile = await this.profileService.getone(id);
+    const profile = await this.profileService.getone(profileId);
     return ZaLaResponse.Ok(profile, 'Ok', 200);
   }
 
