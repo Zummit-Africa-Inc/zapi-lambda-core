@@ -44,7 +44,7 @@ export class ApiController {
    * @Param {string} profileId as optional and {string} apiId as required
    * @returns a response from the api.service
    */
-  @Get(':apiId')
+  @Get('/findOne/:apiId')
   @ApiOperation({ summary: 'Get an API' })
   @ApiQuery({
     name: 'profileId',
@@ -86,5 +86,12 @@ export class ApiController {
   @ApiOperation({ summary: 'Get or search all apis' })
   async findAll(@Paginate() query: PaginateQuery): Promise<Paginated<Api>> {
     return await this.apiService.findAll(query);
+  }
+
+  @Get('/dpd/:profileId')
+  @ApiOperation({ summary: "Get Developer's Platform Data" })
+  async getdpd(@Param('profileId') profileId: string): Promise<Ok<Api[]>> {
+    const apis = await this.apiService.getDPD(profileId);
+    return ZaLaResponse.Ok(apis, 'Ok', '200');
   }
 }

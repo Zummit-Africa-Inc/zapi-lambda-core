@@ -18,6 +18,7 @@ import {
   paginate,
   Paginated,
 } from 'nestjs-paginate';
+import { Endpoint } from 'src/entities/endpoint.entity';
 
 @Injectable()
 export class ApiService {
@@ -28,6 +29,8 @@ export class ApiService {
     private readonly categoryRepo: Repository<Category>,
     @InjectRepository(Analytics)
     private readonly analyticsRepo: Repository<Analytics>,
+    @InjectRepository(Endpoint)
+    private readonly endpointsRepo: Repository<Endpoint>,
   ) {}
 
   /**
@@ -294,6 +297,30 @@ export class ApiService {
           rating: [FilterOperator.GTE, FilterOperator.LTE],
         },
       });
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+      );
+    }
+  }
+
+  /**
+   * It gets all the APIs and their endpoints from the database
+   * @param {string} profileId - string - the id of the profile
+   * @returns An array of objects.
+   */
+  async getDPD(profileId: string): Promise<any> {
+    try {
+      const apis = (await this.apiRepo.find({ where: { id: profileId } })).map(
+        async (api) => ({
+          ...api,
+          endpoints: await this.endpointsRepo.find({
+            where: { apiId: api.id },
+          }),
+        }),
+      );
+
+      return await Promise.all(apis);
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
