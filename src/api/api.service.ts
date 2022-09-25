@@ -23,25 +23,16 @@ export class ApiService {
     @InjectRepository(Analytics)
     private readonly analyticsRepo: Repository<Analytics>,
   ) {}
-  
+
   /**
-   * @param {string} profileId - The id of the user who is trying to get his or her api list.
-   * checks if user has an api created from query result.
-   * @returns The getUserApis method returns a promise of unique apis created by the user(profileId).
+   * It gets all the apis for a user
+   * @param {string} profileId - string - this is the id of the user whose apis we are fetching
+   * @returns An array of Api objects.
    */
 
   async getUserApis(profileId: string): Promise<Api[]> {
     try {
       const userApis = await this.apiRepo.find({ where: { profileId } });
-      if (userApis.length === 0) {
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            'Not Found',
-            'User has no api created.',
-            '404',
-          ),
-        );
-      }
       return userApis;
     } catch (error) {
       throw new BadRequestException(
@@ -52,12 +43,14 @@ export class ApiService {
 
   /**
    * It gets an api by its id
+   * @param {string} profileId? - string -  oprional user id
    * @param {string} apiId - string - the id of the api you want to get
-   * @returns The api object
+   * @returns The full api object when id is provided, partial when it is not
    */
-  async getAnApi(apiId: string): Promise<Api> {
+  async getAnApi(apiId: string, profileId?: string): Promise<Api> {
     try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
+
       if (!api) {
         throw new NotFoundException(
           ZaLaResponse.NotFoundRequest(
@@ -67,15 +60,26 @@ export class ApiService {
           ),
         );
       }
-      return api;
+      if (profileId && (await this.verify(apiId, profileId))) {
+        return api;
+      } else {
+        delete api.base_url;
+        delete api.visibility;
+        delete api.subscriptions;
+        delete api.status;
+        delete api.secretKey;
+        delete api.api_website;
+
+        return api;
+      }
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
-       );
+      );
     }
   }
 
-/**
+  /**
    * It creates an api for a user
    * @param {CreateApiDto} createApiDto - CreateApiDto
    * @param {string} profileId - string
@@ -205,13 +209,21 @@ export class ApiService {
           }
         }
 
-        await this.apiRepo.update(apiId, updateApiDto);
-        const updatedApi = await this.apiRepo.findOne({
-          where: { id: apiId },
-        });
-        if (updatedApi) {
-          return updatedApi;
-        }
+        updateApiDto.base_url
+          ? updateApiDto.base_url.slice(-1) === '/'
+            ? (updateApiDto.base_url = updateApiDto.base_url.slice(0, -1))
+            : updateApiDto.base_url
+          : null;
+
+        const updatedApi = await this.apiRepo
+          .createQueryBuilder()
+          .update(Api)
+          .set(updateApiDto)
+          .where('id = :apiId', { apiId })
+          .returning('*')
+          .execute();
+
+        return updatedApi.raw[0];
       } else {
         throw new BadRequestException(
           ZaLaResponse.NotFoundRequest(

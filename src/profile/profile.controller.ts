@@ -30,12 +30,14 @@ export class ProfileController {
   ) {}
 
   @Post('/create')
+  @ApiOperation({ summary: 'Add a new profile' })
   async createProfile(@Body() body: CreateProfileDto): Promise<Ok<Profile>> {
     const userProfile = await this.profileService.createprofile(body);
     return ZaLaResponse.Ok(userProfile, 'Profile created', 201);
   }
 
   @Get('/:id')
+  @ApiOperation({ summary: 'Get a profile' })
   async getOne(
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<Ok<Profile>> {
@@ -44,7 +46,7 @@ export class ProfileController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Updates an existing profile' })
+  @ApiOperation({ summary: 'Update an existing profile' })
   async updateProfile(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateProfileDto: UpdateProfileDto,
@@ -72,6 +74,7 @@ export class ProfileController {
   }
 
   @Delete('/:id')
+  @ApiOperation({ summary: 'Delete a profile' })
   async deleteOne(
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<Ok<string>> {
