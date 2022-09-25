@@ -9,7 +9,7 @@ import {
   Patch,
 } from '@nestjs/common';
 import { ApiService } from './api.service';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CreateApiDto } from './dto/create-api.dto';
 import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { Api } from '../entities/api.entity';
@@ -19,7 +19,7 @@ import { UpdateApiDto } from './dto/update-api.dto';
 export class ApiController {
   constructor(private readonly apiService: ApiService) {}
 
-  @Post(':profileId/new')
+  @Post('/new/:profileId')
   @ApiOperation({ summary: 'Create an API' })
   async createApi(
     @Body() body: CreateApiDto,
@@ -30,26 +30,34 @@ export class ApiController {
   }
 
   // This is a get request that takes profileId and returns all api belonging to the user
-  @Get(':profileId/myapis')
-  @ApiOperation({ summary: 'Get all api belonging to a user' })
+  @Get('/user-apis/:profileId')
+  @ApiOperation({ summary: 'Get all APIs belonging to a user' })
   async getUserApis(@Param('profileId') profileId: string): Promise<Ok<Api[]>> {
-    const myApis = await this.apiService.getUserApis(profileId);
-    return ZaLaResponse.Ok(myApis, 'OK', '200');
+    const userApis = await this.apiService.getUserApis(profileId);
+    return ZaLaResponse.Ok(userApis, 'OK', '200');
   }
 
   /**
    * @Get request that takes
-   * @Param {string} profileId and {string} apiId
+   * @Param {string} profileId as optional and {string} apiId as required
    * @returns a response from the api.service
    */
   @Get(':apiId')
   @ApiOperation({ summary: 'Get an API' })
-  async findOne(@Param('apiId') apiId: string): Promise<Ok<Api>> {
-    const api = await this.apiService.getAnApi(apiId);
+  @ApiQuery({
+    name: 'profileId',
+    required: false,
+    type: String,
+  })
+  async findOne(
+    @Param('apiId') apiId: string,
+    @Query('profileId') profileId: string,
+  ): Promise<Ok<Api>> {
+    const api = await this.apiService.getAnApi(apiId, profileId);
     return ZaLaResponse.Ok(api, 'Ok', '200');
   }
 
-  @Delete(':apiId/delete')
+  @Delete(':apiId')
   @ApiOperation({ summary: 'Delete an API' })
   async deleteApi(
     @Param('apiId') apiId: string,
@@ -62,7 +70,7 @@ export class ApiController {
   /* A put request that takes in an apiId, profileId, and a body and returns a promise of an
   UpdateResult. */
   @Patch(':apiId')
-  @ApiOperation({ summary: 'Update api' })
+  @ApiOperation({ summary: 'Update an API' })
   async update(
     @Param('apiId') apiId: string,
     @Query('profileId') profileId: string,
