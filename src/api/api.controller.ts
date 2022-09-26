@@ -15,6 +15,8 @@ import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { Api } from '../entities/api.entity';
 import { UpdateApiDto } from './dto/update-api.dto';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
+import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
+
 @ApiTags('Apis')
 @Controller('api')
 export class ApiController {
@@ -84,5 +86,11 @@ export class ApiController {
   ): Promise<Ok<Api>> {
     const api = await this.apiService.update(apiId, profileId, updateApiDto);
     return ZaLaResponse.Ok(api, 'Api Updated', '200');
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get or search all apis' })
+  async findAll(@Paginate() query: PaginateQuery): Promise<Paginated<Api>> {
+    return await this.apiService.findAll(query);
   }
 }

@@ -12,6 +12,12 @@ import { v4 as uuid } from 'uuid';
 import { UpdateApiDto } from './dto/update-api.dto';
 import { Category } from 'src/entities/category.entity';
 import { Analytics } from 'src/entities/analytics.entity';
+import {
+  FilterOperator,
+  PaginateQuery,
+  paginate,
+  Paginated,
+} from 'nestjs-paginate';
 
 @Injectable()
 export class ApiService {
@@ -266,6 +272,31 @@ export class ApiService {
     } catch (err) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', err.message, '500'),
+      );
+    }
+  }
+
+  /**
+   * It takes a query object, paginates it, and returns a paginated object
+   * @param {PaginateQuery} query - PaginateQuery - This is the query object that is passed to the
+   * controller method.
+   * @returns Paginated<Api>
+   */
+  async findAll(query: PaginateQuery): Promise<Paginated<Api>> {
+    try {
+      return paginate(query, this.apiRepo, {
+        sortableColumns: ['createdOn', 'name'],
+        searchableColumns: ['name', 'description', 'about'],
+        defaultSortBy: [['id', 'DESC']],
+        filterableColumns: {
+          category: [FilterOperator.IN],
+          status: [FilterOperator.IN],
+          rating: [FilterOperator.GTE, FilterOperator.LTE],
+        },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
       );
     }
   }
