@@ -311,7 +311,7 @@ export class ApiService {
    */
   async getDPD(profileId: string): Promise<any> {
     try {
-      const apis = (await this.apiRepo.find({ where: { id: profileId } })).map(
+      const apis = (await this.apiRepo.find({ where: { profileId } })).map(
         async (api) => ({
           ...api,
           endpoints: await (
