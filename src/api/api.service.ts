@@ -314,12 +314,16 @@ export class ApiService {
       const apis = (await this.apiRepo.find({ where: { id: profileId } })).map(
         async (api) => ({
           ...api,
-          endpoints: await this.endpointsRepo.find({
-            where: { apiId: api.id },
-          }),
+          endpoints: await (
+            await this.endpointsRepo.find({
+              where: { apiId: api.id },
+            })
+          ).map((endpoint) => ({
+            ...endpoint,
+            route: decodeURIComponent(endpoint.route),
+          })),
         }),
       );
-
       return await Promise.all(apis);
     } catch (error) {
       throw new BadRequestException(
