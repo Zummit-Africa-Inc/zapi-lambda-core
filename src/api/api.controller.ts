@@ -88,7 +88,7 @@ export class ApiController {
     return await this.apiService.findAll(query);
   }
 
-  @Get('/dpd/:profileId')
+  @Get('/dev-platform-data/:profileId')
   @ApiOperation({ summary: "Get Developer's Platform Data" })
   async getdpd(@Param('profileId') profileId: string): Promise<Ok<Api[]>> {
     const apis = await this.apiService.getDPD(profileId);
