@@ -24,6 +24,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 
 @ApiTags('Profile')
+@Controller('profile')
 export class ProfileController {
   constructor(
     private profileService: ProfileService,
