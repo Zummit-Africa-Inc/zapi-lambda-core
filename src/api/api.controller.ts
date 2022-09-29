@@ -97,7 +97,7 @@ export class ApiController {
   }
 
   @Get('/dev-platform-data/:profileId')
-  @IdCheck('apiId')
+  @IdCheck('profileId')
   @ApiOperation({ summary: "Get Developer's Platform Data" })
   async getdpd(@Param('profileId') profileId: string): Promise<Ok<Api[]>> {
     const apis = await this.apiService.getDPD(profileId);
