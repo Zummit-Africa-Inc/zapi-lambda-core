@@ -50,15 +50,7 @@ export class ProfileService {
       const profile = await this.profileRepo.findOne({
         where: { id: profileId },
       });
-      if (!profile) {
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            'Not Found',
-            'Profile does not exist',
-            '404',
-          ),
-        );
-      }
+
       return profile;
     } catch (err) {
       throw new BadRequestException(
@@ -79,24 +71,13 @@ export class ProfileService {
     updateProfileDto: UpdateProfileDto,
   ): Promise<Profile> {
     try {
-      const profile = await this.profileRepo.findOne({
+      await this.profileRepo.update(profileId, updateProfileDto);
+      const undatedProfile = await this.profileRepo.findOne({
         where: { id: profileId },
       });
-      if (profile) {
-        await this.profileRepo.update(profileId, updateProfileDto);
 
-        const undatedProfile = await this.profileRepo.findOne({
-          where: { id: profileId },
-        });
-        if (undatedProfile) {
-          return undatedProfile;
-        } else {
-          ZaLaResponse.NotFoundRequest(
-            'Not Found',
-            'Profile does not exist',
-            '404',
-          );
-        }
+      if (undatedProfile) {
+        return undatedProfile;
       }
     } catch (error) {
       throw new BadRequestException(
@@ -112,19 +93,7 @@ export class ProfileService {
    */
   async deleteProfile(profileId: string): Promise<void> {
     try {
-      const { id } = await this.profileRepo.findOne({
-        where: { id: profileId },
-      });
-      if (!id) {
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            'Not Found',
-            'Profile does not exist',
-            '404',
-          ),
-        );
-      }
-      await this.profileRepo.delete(id);
+      await this.profileRepo.delete(profileId);
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
