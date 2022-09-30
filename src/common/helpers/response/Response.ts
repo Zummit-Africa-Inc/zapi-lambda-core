@@ -13,7 +13,7 @@ export class ZaLaResponse {
     } as Ok<Type>;
   }
 
-  static OkFailue<Type>(
+  static OkFailure<Type>(
     data: Type,
     message = '',
     status?: string | number,
@@ -56,5 +56,16 @@ export class ZaLaResponse {
       message,
       errorCode,
     } as NotFound;
+  }
+  static Paginated<T>(array: T, message = '', status?: string | number): Ok<T> {
+    const { links, data, meta }: any = array;
+    return {
+      status,
+      success: true,
+      data,
+      meta,
+      links,
+      message,
+    } as Ok<T>;
   }
 }

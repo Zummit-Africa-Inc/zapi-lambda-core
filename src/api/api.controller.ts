@@ -52,8 +52,7 @@ export class ApiController {
    * @Param {string} profileId as optional and {string} apiId as required
    * @returns a response from the api.service
    */
-  
-  
+
   @Get('/findOne/:apiId')
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Get an API' })
@@ -113,8 +112,9 @@ export class ApiController {
 
   @Get()
   @ApiOperation({ summary: 'Get or search all apis' })
-  async findAll(@Paginate() query: PaginateQuery): Promise<Paginated<Api>> {
-    return await this.apiService.findAll(query);
+  async findAll(@Paginate() query: PaginateQuery): Promise<Ok<Paginated<Api>>> {
+    const apis = await this.apiService.findAll(query);
+    return ZaLaResponse.Paginated(apis, 'Ok', '200');
   }
 
   @Get('/dev-platform-data/:profileId')
