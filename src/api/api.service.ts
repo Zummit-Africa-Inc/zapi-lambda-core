@@ -13,6 +13,10 @@ import { UpdateApiDto } from './dto/update-api.dto';
 import { Category } from 'src/entities/category.entity';
 import { Analytics } from 'src/entities/analytics.entity';
 import {
+  deleteImage,
+  uploadImage,
+} from 'src/common/helpers/imageUploadService';
+import {
   FilterOperator,
   PaginateQuery,
   paginate,
@@ -279,6 +283,31 @@ export class ApiService {
     }
   }
 
+  async uploadLogo(file: Express.Multer.File, apiId: string): Promise<string> {
+    try {
+      const api = await this.apiRepo.findOne({
+        where: { id: apiId },
+      });
+      const folder = process.env.AWS_S3_LOGO_FOLDER;
+      let logo_url: string;
+
+      if (api.logo_url) {
+        const key = `${folder}${api.logo_url.split('/')[4]}`;
+        await deleteImage(key);
+        logo_url = await uploadImage(file, folder);
+      } else {
+        logo_url = await uploadImage(file, folder);
+      }
+      await this.apiRepo.update(apiId, { logo_url });
+      return logo_url;
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
+       );
+    }
+  }
+  
+  
   /**
    * It takes a query object, paginates it, and returns a paginated object
    * @param {PaginateQuery} query - PaginateQuery - This is the query object that is passed to the

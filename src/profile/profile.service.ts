@@ -12,6 +12,10 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client } from '../common/helpers/aws-lib';
 import { randomStrings } from 'src/common/helpers/randomString';
+import {
+  deleteImage,
+  uploadImage,
+} from 'src/common/helpers/imageUploadService';
 
 @Injectable()
 export class ProfileService {
@@ -133,92 +137,31 @@ export class ProfileService {
   }
 
   /**
-   * It uploads an image to AWS S3 and returns the URL of the image
-   * @param file - Express.Multer.File - This is the file that was uploaded.
-   * @param {string} profileId - The id of the profile whose picture is to be updated.
-   * @returns The return value is a promise.
+   * It uploads an image to AWS S3 and updates the profile picture in the database
+   * @param file - Express.Multer.File,
+   * @param {string} profileId - string - the id of the profile
+   * @returns The picture is being returned.
    */
-  async upload(file: Express.Multer.File, profileId: string): Promise<string> {
+  async uploadImage(
+    file: Express.Multer.File,
+    profileId: string,
+  ): Promise<string> {
     try {
       const profile = await this.profileRepo.findOne({
         where: { id: profileId },
       });
+      const folder = process.env.AWS_S3_DP_FOLDER;
+      let picture: string;
 
-      /* Generating a random string of characters to be prefixed to the name of the file. */
-      const fileName = randomStrings(file.originalname);
-      const dpFolder = process.env.AWS_S3_DP_FOLDER;
-
-      /* Creating an object that will be used to upload the image to the S3 bucket. */
-      const params = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: String(dpFolder + fileName),
-        Body: file.buffer,
-        ACL: 'public-read',
-        ContentType: file.mimetype,
-        ContentDisposition: 'inline',
-      };
-
-      /**
-       * It uploads an image to AWS S3 and returns the URL of the image.
-       * @returns The url of the image.
-       */
-      const uploadImage = async (): Promise<string> => {
-        try {
-          const url = `${process.env.AWS_IMAGE_URL}${fileName}`;
-          const results = await s3Client.send(new PutObjectCommand(params));
-          if (results.$metadata.httpStatusCode === 200) {
-            await this.profileRepo.update(profileId, { picture: url });
-            return url;
-          }
-          throw new BadRequestException(
-            ZaLaResponse.BadRequest(
-              'Internal Server Error',
-              'Something went wrong',
-              '500',
-            ),
-          );
-        } catch (error) {
-          throw new BadRequestException(
-            ZaLaResponse.BadRequest(
-              'Internal Server Error',
-              error.message,
-              '500',
-            ),
-          );
-        }
-      };
-
-      /**
-       * It deletes an image from an S3 bucket, then uploads a new image to the same bucket
-       * @param {string} key - The key of the image to be deleted.
-       * @returns The return value is a promise.
-       */
-      const deleteImage = async (key: string): Promise<string> => {
-        try {
-          await s3Client.send(
-            new DeleteObjectCommand({
-              Bucket: process.env.AWS_BUCKET_NAME,
-              Key: key,
-            }),
-          );
-          return uploadImage();
-        } catch (error) {
-          throw new BadRequestException(
-            ZaLaResponse.BadRequest(
-              'Internal Server Error',
-              error.message,
-              '500',
-            ),
-          );
-        }
-      };
-
-      if (!profile.picture) {
-        return uploadImage();
+      if (profile.picture) {
+        const key = `${folder}${profile.picture.split('/')[4]}`;
+        await deleteImage(key);
+        picture = await uploadImage(file, folder);
       } else {
-        const key = `${dpFolder}${profile.picture.split('/')[4]}`;
-        return deleteImage(key);
+        picture = await uploadImage(file, folder);
       }
+      await this.profileRepo.update(profileId, { picture });
+      return picture;
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),

@@ -64,6 +64,7 @@ export class ProfileController {
   }
 
   @Post('profile-image/:profileId')
+  @ApiOperation({ summary: 'Upload profile image' })
   @IdCheck('profileId')
   @ApiFile('image', true, { fileFilter: fileMimetypeFilter('image') })
   async upload(
@@ -75,7 +76,7 @@ export class ProfileController {
     )
     file: Express.Multer.File,
   ) {
-    const imageUrl = await this.profileService.upload(file, profileId);
+    const imageUrl = await this.profileService.uploadImage(file, profileId);
     return ZaLaResponse.Ok(imageUrl, 'Ok', 201);
   }
 
