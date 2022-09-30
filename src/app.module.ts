@@ -11,6 +11,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from 'ormconfig';
 import { ApiModule } from './api/api.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { Profile } from './entities/profile.entity';
+import { Api } from './entities/api.entity';
+import { Category } from './entities/category.entity';
+import { Endpoint } from './entities/endpoint.entity';
+import { Pricing } from './entities/pricing.entity';
+import { Subscription } from './entities/subscription.entity';
+import { APP_GUARD } from '@nestjs/core';
+import { IdCheckGuard } from './common/guards/idcheck.guard';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -36,16 +44,31 @@ const RabbitMQService = {
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forFeature([
+      Profile,
+      Api,
+      Category,
+      Endpoint,
+      Pricing,
+      Subscription,
+    ]),
     TypeOrmModule.forRoot(AppDataSource.options),
     EndpointsModule,
     SubscriptionModule,
     ProfileModule,
     ApiModule,
     CategoriesModule,
-    AnalyticsModule
+    AnalyticsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, RabbitMQService],
+  providers: [
+    AppService,
+    RabbitMQService,
+    {
+      provide: APP_GUARD,
+      useClass: IdCheckGuard,
+    },
+  ],
   exports: [RabbitMQService],
 })
 export class AppModule {}

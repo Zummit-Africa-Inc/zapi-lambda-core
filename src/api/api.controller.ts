@@ -19,12 +19,16 @@ import { Api } from '../entities/api.entity';
 import { UpdateApiDto } from './dto/update-api.dto';
 import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
+import { IdCheck } from 'src/common/decorators/idcheck.decorator';
+import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
+
 @ApiTags('Apis')
 @Controller('api')
 export class ApiController {
   constructor(private readonly apiService: ApiService) {}
 
   @Post('/new/:profileId')
+  @IdCheck('profileId')
   @ApiOperation({ summary: 'Create an API' })
   async createApi(
     @Body() body: CreateApiDto,
@@ -36,6 +40,7 @@ export class ApiController {
 
   // This is a get request that takes profileId and returns all api belonging to the user
   @Get('/user-apis/:profileId')
+  @IdCheck('profileId')
   @ApiOperation({ summary: 'Get all APIs belonging to a user' })
   async getUserApis(@Param('profileId') profileId: string): Promise<Ok<Api[]>> {
     const userApis = await this.apiService.getUserApis(profileId);
@@ -47,7 +52,10 @@ export class ApiController {
    * @Param {string} profileId as optional and {string} apiId as required
    * @returns a response from the api.service
    */
-  @Get(':apiId')
+  
+  
+  @Get('/findOne/:apiId')
+  @IdCheck('apiId')
   @ApiOperation({ summary: 'Get an API' })
   @ApiQuery({
     name: 'profileId',
@@ -63,6 +71,7 @@ export class ApiController {
   }
 
   @Delete(':apiId')
+  @IdCheck('apiId')
   @ApiOperation({ summary: 'Delete an API' })
   async deleteApi(
     @Param('apiId') apiId: string,
@@ -91,6 +100,7 @@ export class ApiController {
   /* A put request that takes in an apiId, profileId, and a body and returns a promise of an
   UpdateResult. */
   @Patch(':apiId')
+  @IdCheck('apiId')
   @ApiOperation({ summary: 'Update an API' })
   async update(
     @Param('apiId') apiId: string,
@@ -99,5 +109,19 @@ export class ApiController {
   ): Promise<Ok<Api>> {
     const api = await this.apiService.update(apiId, profileId, updateApiDto);
     return ZaLaResponse.Ok(api, 'Api Updated', '200');
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get or search all apis' })
+  async findAll(@Paginate() query: PaginateQuery): Promise<Paginated<Api>> {
+    return await this.apiService.findAll(query);
+  }
+
+  @Get('/dev-platform-data/:profileId')
+  @IdCheck('profileId')
+  @ApiOperation({ summary: "Get Developer's Platform Data" })
+  async getdpd(@Param('profileId') profileId: string): Promise<Ok<Api[]>> {
+    const apis = await this.apiService.getDPD(profileId);
+    return ZaLaResponse.Ok(apis, 'Ok', '200');
   }
 }

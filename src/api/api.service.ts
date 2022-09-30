@@ -16,6 +16,13 @@ import {
   deleteImage,
   uploadImage,
 } from 'src/common/helpers/imageUploadService';
+import {
+  FilterOperator,
+  PaginateQuery,
+  paginate,
+  Paginated,
+} from 'nestjs-paginate';
+import { Endpoint } from 'src/entities/endpoint.entity';
 
 @Injectable()
 export class ApiService {
@@ -26,6 +33,8 @@ export class ApiService {
     private readonly categoryRepo: Repository<Category>,
     @InjectRepository(Analytics)
     private readonly analyticsRepo: Repository<Analytics>,
+    @InjectRepository(Endpoint)
+    private readonly endpointsRepo: Repository<Endpoint>,
   ) {}
 
   /**
@@ -294,6 +303,60 @@ export class ApiService {
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
+       );
+    }
+  }
+  
+  
+  /**
+   * It takes a query object, paginates it, and returns a paginated object
+   * @param {PaginateQuery} query - PaginateQuery - This is the query object that is passed to the
+   * controller method.
+   * @returns Paginated<Api>
+   */
+  async findAll(query: PaginateQuery): Promise<Paginated<Api>> {
+    try {
+      return paginate(query, this.apiRepo, {
+        sortableColumns: ['createdOn', 'name'],
+        searchableColumns: ['name', 'description', 'about'],
+        defaultSortBy: [['id', 'DESC']],
+        filterableColumns: {
+          category: [FilterOperator.IN],
+          status: [FilterOperator.IN],
+          rating: [FilterOperator.GTE, FilterOperator.LTE],
+        },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+      );
+    }
+  }
+
+  /**
+   * It gets all the APIs and their endpoints from the database
+   * @param {string} profileId - string - the id of the profile
+   * @returns An array of objects.
+   */
+  async getDPD(profileId: string): Promise<any> {
+    try {
+      const apis = (await this.apiRepo.find({ where: { profileId } })).map(
+        async (api) => ({
+          ...api,
+          endpoints: await (
+            await this.endpointsRepo.find({
+              where: { apiId: api.id },
+            })
+          ).map((endpoint) => ({
+            ...endpoint,
+            route: decodeURIComponent(endpoint.route),
+          })),
+        }),
+      );
+      return await Promise.all(apis);
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
       );
     }
   }
