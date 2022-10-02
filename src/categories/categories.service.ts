@@ -57,10 +57,12 @@ export class CategoriesService {
   async getAllApis(categoryId: string){
     try {
       //check if category exists
-      const categoryExists = await this.categoryRepo.findOne({where:{id:categoryId}})
+      const category = await this.categoryRepo.findOne({
+        where:{id:categoryId},
+        relations:{api: true}})
      
       //return all apis in the category
-      return categoryExists.api
+      return category.api
       
     } catch (error) {
       throw new BadRequestException(
