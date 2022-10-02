@@ -233,4 +233,16 @@ export class SubscriptionService {
       }
     }
   }
+
+  /**
+   * It returns a list of all the APIs that a user is subscribed to
+   * @param {string} profileId - string - The id of the profile you want to get the subscriptions for
+   * @returns An array of Api objects.
+   */
+  async getUserSubscriptions(profileId: string): Promise<Api[]> {
+    const subscribedApis = (
+      await this.subscriptionRepo.find({ where: { profileId } })
+    ).map((sub) => this.apiRepo.find({ where: { id: sub.apiId } }));
+    return (await Promise.all(subscribedApis)).flatMap((api) => api);
+  }
 }
