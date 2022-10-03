@@ -42,7 +42,6 @@ export class CategoriesController {
   @IdCheck('categoryId')
   @ApiOperation({ summary: 'get all apis in a particular category' })
   findAllApis(@Param('categoryId') categoryId: string) {
-    const apis = this.categoryService.getAllApis(categoryId);
-    return ZaLaResponse.Ok(apis, 'OK', '200')
+    return this.categoryService.getAllApis(categoryId);
   }
 }
