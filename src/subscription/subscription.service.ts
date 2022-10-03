@@ -124,7 +124,7 @@ export class SubscriptionService {
 
     const uniqueApiSecurityKey = api.secretKey;
     const base_url = api.base_url;
-    const endRoute = decodeURIComponent(endpoint.route);
+    const endRoute = endpoint.route;
     const endMethod = endpoint.method.toLowerCase();
     const url = base_url + `${endRoute}`;
     const ref = this.httpService.axiosRef;
