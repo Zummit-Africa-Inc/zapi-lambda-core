@@ -1,5 +1,6 @@
 import { SharedEntity } from '../common/model/sharedEntity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
+import { Subscription } from './subscription.entity';
 
 @Entity()
 export class Profile extends SharedEntity {
@@ -14,4 +15,9 @@ export class Profile extends SharedEntity {
 
   @Column('text', { array: true, nullable: true, default: [] })
   subscriptions: string[];
+
+  @OneToMany(() => Subscription, (subscription) => subscription.profile, {
+    onDelete: 'CASCADE',
+  })
+  subscription: Subscription[];
 }
