@@ -59,7 +59,8 @@ export class CategoriesService {
       //check if category exists
       const category = await this.categoryRepo.findOne({
         where:{id:categoryId},
-        relations:{api: true}})
+        relations:{api: true}
+      })
      
       //return all apis in the category
       return category.api
