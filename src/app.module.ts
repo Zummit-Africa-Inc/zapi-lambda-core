@@ -19,6 +19,7 @@ import { Pricing } from './entities/pricing.entity';
 import { Subscription } from './entities/subscription.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { IdCheckGuard } from './common/guards/idcheck.guard';
+import { Logger } from './entities/logger.entity';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -51,6 +52,7 @@ const RabbitMQService = {
       Endpoint,
       Pricing,
       Subscription,
+      Logger
     ]),
     TypeOrmModule.forRoot(AppDataSource.options),
     EndpointsModule,

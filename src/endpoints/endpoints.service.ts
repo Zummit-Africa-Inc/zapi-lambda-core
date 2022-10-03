@@ -6,15 +6,25 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { ZaLaResponse } from 'src/common/helpers/response';
 import { Endpoint } from 'src/entities/endpoint.entity';
+import {Profile} from 'src/entities/profile.entity'
+import { Api } from '../entities/api.entity';
 import { Repository } from 'typeorm';
 import { CreateEndpointDto } from './dto/create-endpoint.dto';
+import { Logger } from 'src/entities/logger.entity';
 import { UpdateEndpointDto } from './dto/update-endpoint.dto';
+import { Action } from 'src/common/enums/actionLogger.enum';
 
 @Injectable()
 export class EndpointsService {
   constructor(
     @InjectRepository(Endpoint)
     private readonly endpointRepo: Repository<Endpoint>,
+    @InjectRepository(Api)
+    private readonly apiRepo: Repository<Api>,
+    @InjectRepository(Profile)
+    private readonly profileRepo: Repository<Profile>,    
+    @InjectRepository(Logger)
+    private readonly loggerRepo: Repository<Logger>,
   ) {}
 
   /**
@@ -113,6 +123,24 @@ export class EndpointsService {
             body.route.charAt(0) === '/' ? body.route : `/${body.route}`,
           ))
         : null;
+      /**
+       * 1. find the api that this endpoint belongs to
+       * 2. find the author of the api to use during
+       * the logger creation
+      */
+     let values = Object.keys(body)
+      const api = await this.apiRepo.findOne({
+        where:{id: endpoint.apiId}
+      })
+      const {email} = await this.profileRepo.findOne({
+        where: {id:api.profileId}
+      })
+
+      const previousValues = await this.endpointRepo
+        .createQueryBuilder()
+        .select(values)
+        .where('id = :enpointId', {endpointId})
+        .execute()
 
       const updatedEndpoint = await this.endpointRepo
         .createQueryBuilder()
@@ -121,7 +149,23 @@ export class EndpointsService {
         .where('id = :endpointId', { endpointId })
         .returning('*')
         .execute();
-
+      const newValues = await this.endpointRepo
+        .createQueryBuilder()
+        .select(values)
+        .where('id = :enpointId', {endpointId})
+        .execute()
+      //LOG THE UPDATE MADE
+      const logger = await this.loggerRepo.create({
+        entity_type: 'ENDPOINT',
+        identifier: endpointId,
+        action_type: Action.Update,
+        previous_values: previousValues,
+        new_values: newValues,
+        operated_by: email
+      })
+      await this.loggerRepo.save(logger)
+      console.log(logger);
+      
       return updatedEndpoint.raw[0];
     } catch (error) {
       throw new BadRequestException(
@@ -148,8 +192,26 @@ export class EndpointsService {
           ),
         );
       }
-
+        /**
+       * 1. find the api that this endpoint belongs to
+       * 2. find the author of the api to use during
+       * the logger creation
+      */
+      const api = await this.apiRepo.findOne({
+        where:{id: endpoint.apiId}
+      })
+      const {email} = await this.profileRepo.findOne({
+        where: {id:api.profileId}
+      })
       await this.endpointRepo.delete(endpointId);
+      const logger = await this.loggerRepo.create({
+        entity_type: 'ENDPOINT',
+        identifier: endpointId,
+        action_type: Action.Delete,
+        operated_by: email
+      })
+      await this.loggerRepo.save(logger)
+
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
