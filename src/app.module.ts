@@ -11,6 +11,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from 'ormconfig';
 import { ApiModule } from './api/api.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { IdGuard } from './common/guards/id-guard.guard';
+import { APP_GUARD } from '@nestjs/core';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -45,7 +47,14 @@ const RabbitMQService = {
     AnalyticsModule
   ],
   controllers: [AppController],
-  providers: [AppService, RabbitMQService],
+  providers: [
+    AppService,
+    RabbitMQService,
+    {
+      provide: APP_GUARD,
+      useClass: IdGuard
+    }
+  ],
   exports: [RabbitMQService],
 })
 export class AppModule {}
