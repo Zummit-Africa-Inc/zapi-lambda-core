@@ -28,6 +28,7 @@ export class SubscriptionController {
     const subToken = await this.subscriptionService.subscribe(createSubDto);
     return ZaLaResponse.Ok(subToken, 'User now subscribed to this API', '201');
   }
+  
   @Post('api-request')
   @ApiOperation({ summary: 'Request an api' })
   async verify(
