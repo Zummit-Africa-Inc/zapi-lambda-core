@@ -79,7 +79,7 @@ export class Api extends SharedEntity {
   @Column({ nullable: true })
   tutorialsId: string;
 
-  @ManyToOne(() => Profile, (profile) => profile.id, { onDelete: 'SET NULL' })
+  @ManyToOne(() => Profile, (profile) => profile.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'profileId' })
   profile: Profile;
 
