@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable,  } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ZaLaResponse } from 'src/common/helpers/response';
+import { Api } from 'src/entities/api.entity';
 import { Category } from 'src/entities/category.entity';
 import { Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -9,7 +10,9 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 export class CategoriesService {
   constructor(
     @InjectRepository(Category)
-    private readonly categoryRepo: Repository<Category>
+    private readonly categoryRepo: Repository<Category>,
+    @InjectRepository(Api)
+    private readonly apiRepo: Repository<Api>
   ) {}
 
   async createNewCategory(createCategoryDto: CreateCategoryDto):Promise<Category> {
@@ -56,11 +59,8 @@ export class CategoriesService {
 
   async getAllApis(categoryId: string){
     try {
-      //check if category exists
-      const categoryExists = await this.categoryRepo.findOne({where:{id:categoryId}})
-     
-      //return all apis in the category
-      return categoryExists.api
+      const apis = await this.apiRepo.find({where:{categoryId: categoryId}})     
+      return apis
       
     } catch (error) {
       throw new BadRequestException(
