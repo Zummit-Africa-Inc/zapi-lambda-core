@@ -6,6 +6,8 @@ import { Api } from '../entities/api.entity';
 import { ApiController } from './api.controller';
 import { ApiService } from './api.service';
 import { Endpoint } from 'src/entities/endpoint.entity';
+import { Logger } from 'src/entities/logger.entity';
+import { Profile } from 'src/entities/profile.entity';
 import { Subscription } from 'src/entities/subscription.entity';
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { Subscription } from 'src/entities/subscription.entity';
       Analytics,
       Category,
       Endpoint,
+      Logger,
+      Profile,
       Subscription,
     ]),
   ],

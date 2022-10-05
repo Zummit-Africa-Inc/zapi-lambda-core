@@ -7,6 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ZaLaResponse } from 'src/common/helpers/response';
 import { Repository } from 'typeorm';
 import { Api } from '../entities/api.entity';
+import { Profile } from 'src/entities/profile.entity';
+import { Logger } from 'src/entities/logger.entity';
 import { CreateApiDto } from './dto/create-api.dto';
 import { v4 as uuid } from 'uuid';
 import { UpdateApiDto } from './dto/update-api.dto';
@@ -24,6 +26,7 @@ import {
   Paginated,
 } from 'nestjs-paginate';
 import { Endpoint } from 'src/entities/endpoint.entity';
+import { Action } from 'src/common/enums/actionLogger.enum';
 
 @Injectable()
 export class ApiService {
@@ -36,6 +39,10 @@ export class ApiService {
     private readonly analyticsRepo: Repository<Analytics>,
     @InjectRepository(Endpoint)
     private readonly endpointsRepo: Repository<Endpoint>,
+    @InjectRepository(Logger)
+    private readonly loggerRepo: Repository<Logger>,
+    @InjectRepository(Profile)
+    private readonly profileRepo: Repository<Profile>,
     @InjectRepository(Subscription)
     private readonly subscriptionRepo: Repository<Subscription>,
   ) {}
@@ -185,6 +192,13 @@ export class ApiService {
             ZaLaResponse.BadRequest('Forbidden', 'Unauthorized action', '403'),
           );
         }
+        //Bring out previous values of the api before editing
+        let values = Object.keys(updateApiDto);
+        const apiPrevious = await this.apiRepo
+          .createQueryBuilder()
+          .select(values)
+          .where('id = :apiId', { apiId })
+          .execute();
 
         /* Checking if the user is also updating the Api name
          *  then check if the new updated API name already exist.
@@ -238,7 +252,18 @@ export class ApiService {
           .where('id = :apiId', { apiId })
           .returning('*')
           .execute();
-
+        const { email } = await this.profileRepo.findOne({
+          where: { id: profileId },
+        });
+        const logger = await this.loggerRepo.create({
+          entity_type: 'api',
+          identifier: api.id,
+          action_type: Action.Update,
+          previous_values: apiPrevious,
+          new_values: { ...updateApiDto },
+          operated_by: email,
+        });
+        await this.loggerRepo.save(logger);
         return updatedApi.raw[0];
       } else {
         throw new BadRequestException(
@@ -274,6 +299,17 @@ export class ApiService {
       }
 
       if (api && isOwner === true) {
+        const { email } = await this.profileRepo.findOne({
+          where: { id: profileId },
+        });
+        //LOG THE DELETE ACTION
+        const logger = await this.loggerRepo.create({
+          entity_type: 'api',
+          identifier: api.id,
+          action_type: Action.Delete,
+          operated_by: email,
+        });
+        await this.loggerRepo.save(logger);
         return await this.apiRepo.remove(api);
       }
       throw new NotFoundException(
@@ -301,7 +337,20 @@ export class ApiService {
       } else {
         logo_url = await uploadImage(file, folder);
       }
+      // fetch the email of the api author
+      const { email } = await this.profileRepo.findOne({
+        where: { id: api.profileId },
+      });
       await this.apiRepo.update(apiId, { logo_url });
+      const logger = await this.loggerRepo.create({
+        entity_type: 'api',
+        identifier: api.id,
+        action_type: Action.Update,
+        previous_values: { logo_url: api?.logo_url ? api.logo_url : null },
+        new_values: { logo_url },
+        operated_by: email,
+      });
+      await this.loggerRepo.save(logger);
       return logo_url;
     } catch (error) {
       throw new BadRequestException(
