@@ -10,9 +10,8 @@ import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Logger } from 'src/entities/logger.entity';
 import { SearchLogDto } from './dto/search-log.dto';
-import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 
-@ApiTags('CRUD Logs')
+@ApiTags('Activity Logs')
 @Controller('log')
 export class LoggerController {
   constructor(
