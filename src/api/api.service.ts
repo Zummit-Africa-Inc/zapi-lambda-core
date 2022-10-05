@@ -12,6 +12,7 @@ import { v4 as uuid } from 'uuid';
 import { UpdateApiDto } from './dto/update-api.dto';
 import { Category } from 'src/entities/category.entity';
 import { Analytics } from 'src/entities/analytics.entity';
+import { Subscription } from 'src/entities/subscription.entity';
 import {
   deleteImage,
   uploadImage,
@@ -35,6 +36,8 @@ export class ApiService {
     private readonly analyticsRepo: Repository<Analytics>,
     @InjectRepository(Endpoint)
     private readonly endpointsRepo: Repository<Endpoint>,
+    @InjectRepository(Subscription)
+    private readonly subscriptionRepo: Repository<Subscription>,
   ) {}
 
   /**
@@ -303,11 +306,10 @@ export class ApiService {
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
-       );
+      );
     }
   }
-  
-  
+
   /**
    * It takes a query object, paginates it, and returns a paginated object
    * @param {PaginateQuery} query - PaginateQuery - This is the query object that is passed to the
@@ -334,26 +336,38 @@ export class ApiService {
   }
 
   /**
-   * It gets all the APIs and their endpoints from the database
-   * @param {string} profileId - string - the id of the profile
-   * @returns An array of objects.
+   * It gets all the apis and endpoints for a profileId and then gets all the subscriptions for  that profileId and returns the apis and subscriptions.
+   * @param {string} profileId - string - the id of the profile that is requesting the data
+   * @returns An object with two properties: apis and userSubscriptions.
    */
   async getDPD(profileId: string): Promise<any> {
     try {
-      const apis = (await this.apiRepo.find({ where: { profileId } })).map(
+      const data = (await this.apiRepo.find({ where: { profileId } })).map(
         async (api) => ({
           ...api,
-          endpoints: await (
+          endpoints: (
             await this.endpointsRepo.find({
               where: { apiId: api.id },
             })
           ).map((endpoint) => ({
             ...endpoint,
-            route: decodeURIComponent(endpoint.route),
+            route: endpoint.route,
           })),
         }),
       );
-      return await Promise.all(apis);
+
+      const subs = (
+        await this.subscriptionRepo.find({
+          where: { profileId },
+        })
+      ).map(async (sub) => {
+        const { name } = await this.getAnApi(sub.apiId);
+        return { id: sub.id, name, token: sub.subscriptionToken };
+      });
+
+      const apis = await Promise.all(data);
+      const userSubscriptions = await Promise.all(subs);
+      return { apis, userSubscriptions };
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
