@@ -12,6 +12,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client } from '../common/helpers/aws-lib';
 import { randomStrings } from 'src/common/helpers/randomString';
+import { AnalyticsLogs } from './../entities/analyticsLogs.entity';
 import {
   deleteImage,
   uploadImage,
@@ -22,6 +23,8 @@ export class ProfileService {
   constructor(
     @InjectRepository(Profile)
     private profileRepo: Repository<Profile>,
+    @InjectRepository(AnalyticsLogs)
+    private analyticsLogRepo: Repository<AnalyticsLogs>,
   ) {}
 
   async createprofile(body: CreateProfileDto): Promise<Profile> {
@@ -97,6 +100,14 @@ export class ProfileService {
    */
   async deleteProfile(profileId: string): Promise<void> {
     try {
+      const profileAnalytics = await this.analyticsLogRepo.findOne({
+        where: { profileId },
+      });
+
+      if (profileAnalytics) {
+        await this.analyticsLogRepo.delete(profileAnalytics.id);
+      }
+
       await this.profileRepo.delete(profileId);
     } catch (error) {
       throw new BadRequestException(
