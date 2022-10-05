@@ -2,8 +2,7 @@ import { Visibility } from 'src/common/enums/visibility.enum';
 import { ReqBody } from 'src/endpoints/interface/endpoint.interface';
 import { HttpMethod } from '../enums/httpMethods.enum';
 
-
-export type LoggerJson = {
+export interface LoggerJson {
   name: string;
   description: string;
   base_url: string;
@@ -12,7 +11,7 @@ export type LoggerJson = {
   method: HttpMethod;
   route: string;
   requestBody: ReqBody;
-   headers: {
+  headers: {
     name: string;
     description: string;
     type: string;
@@ -24,4 +23,4 @@ export type LoggerJson = {
   term_of_use: string;
   read_me: string;
   visibility: Visibility;
-};
+}
