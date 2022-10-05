@@ -11,7 +11,6 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { ApiRequestDto } from './dto/make-request.dto';
 import { SubscriptionService } from './subscription.service';
-import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { Tokens } from 'src/common/interfaces/subscriptionToken.interface';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 
@@ -20,12 +19,14 @@ import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
 
-  @Post('subscribe')
+  @IdCheck('apiId','profileId')
+  @Post('subscribe/:apiId/:profileId')
   @ApiOperation({ summary: 'Subscribe to an API' })
   async subscribe(
-    @Body() createSubDto: CreateSubscriptionDto,
+    @Param('apiId') apiId: string,
+    @Param('profileId') profileId: string,
   ): Promise<Ok<Tokens>> {
-    const subToken = await this.subscriptionService.subscribe(createSubDto);
+    const subToken = await this.subscriptionService.subscribe(apiId, profileId);
     return ZaLaResponse.Ok(subToken, 'User now subscribed to this API', '201');
   }
   
