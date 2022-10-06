@@ -94,18 +94,18 @@ export class ProfileService {
   }
 
   /**
-   * It deletes a profile by id
+   * It deletes a profile and its relationships  (APIs, subscriptions,AnalyticsLogs)
    * @param {string} profileId - string - The id of the profile to be deleted
    * @returns The delete method returns a DeleteResult object.
    */
   async deleteProfile(profileId: string): Promise<void> {
     try {
-      const profileAnalytics = await this.analyticsLogRepo.findOne({
+      const profileAnalytics = await this.analyticsLogRepo.find({
         where: { profileId },
       });
 
       if (profileAnalytics) {
-        await this.analyticsLogRepo.delete(profileAnalytics.id);
+        await this.analyticsLogRepo.remove(profileAnalytics);
       }
 
       await this.profileRepo.delete(profileId);
