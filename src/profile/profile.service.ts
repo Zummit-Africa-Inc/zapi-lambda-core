@@ -104,7 +104,8 @@ export class ProfileService {
         where: { profileId },
       });
 
-      if (profileAnalytics) {
+      //  it deletes the entire array if the list is not empty
+      if (profileAnalytics.length !== 0) {
         await this.analyticsLogRepo.remove(profileAnalytics);
       }
 
