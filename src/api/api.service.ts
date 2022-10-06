@@ -7,13 +7,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ZaLaResponse } from 'src/common/helpers/response';
 import { Repository } from 'typeorm';
 import { Api } from '../entities/api.entity';
-import { Profile } from 'src/entities/profile.entity'
+import { Profile } from 'src/entities/profile.entity';
 import { Logger } from 'src/entities/logger.entity';
 import { CreateApiDto } from './dto/create-api.dto';
 import { v4 as uuid } from 'uuid';
 import { UpdateApiDto } from './dto/update-api.dto';
 import { Category } from 'src/entities/category.entity';
 import { Analytics } from 'src/entities/analytics.entity';
+import { Subscription } from 'src/entities/subscription.entity';
 import {
   deleteImage,
   uploadImage,
@@ -42,6 +43,8 @@ export class ApiService {
     private readonly loggerRepo: Repository<Logger>,
     @InjectRepository(Profile)
     private readonly profileRepo: Repository<Profile>,
+    @InjectRepository(Subscription)
+    private readonly subscriptionRepo: Repository<Subscription>,
   ) {}
 
   /**
@@ -190,12 +193,12 @@ export class ApiService {
           );
         }
         //Bring out previous values of the api before editing
-        let values = Object.keys(updateApiDto)
+        let values = Object.keys(updateApiDto);
         const apiPrevious = await this.apiRepo
           .createQueryBuilder()
           .select(values)
           .where('id = :apiId', { apiId })
-          .execute()
+          .execute();
 
         /* Checking if the user is also updating the Api name
          *  then check if the new updated API name already exist.
@@ -249,16 +252,18 @@ export class ApiService {
           .where('id = :apiId', { apiId })
           .returning('*')
           .execute();
-        const {email} = await this.profileRepo.findOne({where:{id: profileId}})
+        const { email } = await this.profileRepo.findOne({
+          where: { id: profileId },
+        });
         const logger = await this.loggerRepo.create({
           entity_type: 'api',
           identifier: api.id,
           action_type: Action.Update,
-          previous_values:apiPrevious,
-          new_values: {...updateApiDto},
-          operated_by: email
-        })
-        await this.loggerRepo.save(logger)
+          previous_values: apiPrevious,
+          new_values: { ...updateApiDto },
+          operated_by: email,
+        });
+        await this.loggerRepo.save(logger);
         return updatedApi.raw[0];
       } else {
         throw new BadRequestException(
@@ -294,15 +299,17 @@ export class ApiService {
       }
 
       if (api && isOwner === true) {
-        const {email} = await this.profileRepo.findOne({where:{id: profileId}})
+        const { email } = await this.profileRepo.findOne({
+          where: { id: profileId },
+        });
         //LOG THE DELETE ACTION
         const logger = await this.loggerRepo.create({
-          entity_type: "api",
+          entity_type: 'api',
           identifier: api.id,
           action_type: Action.Delete,
           operated_by: email,
-        })
-        await this.loggerRepo.save(logger)
+        });
+        await this.loggerRepo.save(logger);
         return await this.apiRepo.remove(api);
       }
       throw new NotFoundException(
@@ -330,29 +337,28 @@ export class ApiService {
       } else {
         logo_url = await uploadImage(file, folder);
       }
-       // fetch the email of the api author
-      const {email} = await this.profileRepo.findOne({ 
-        where:{id: api.profileId}
-      })
+      // fetch the email of the api author
+      const { email } = await this.profileRepo.findOne({
+        where: { id: api.profileId },
+      });
       await this.apiRepo.update(apiId, { logo_url });
       const logger = await this.loggerRepo.create({
         entity_type: 'api',
         identifier: api.id,
         action_type: Action.Update,
-        previous_values:{logo_url: api?.logo_url?api.logo_url:null},
-        new_values: {logo_url},
-        operated_by: email
-      })
-      await this.loggerRepo.save(logger)
+        previous_values: { logo_url: api?.logo_url ? api.logo_url : null },
+        new_values: { logo_url },
+        operated_by: email,
+      });
+      await this.loggerRepo.save(logger);
       return logo_url;
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
-       );
+      );
     }
   }
-  
-  
+
   /**
    * It takes a query object, paginates it, and returns a paginated object
    * @param {PaginateQuery} query - PaginateQuery - This is the query object that is passed to the
@@ -379,26 +385,38 @@ export class ApiService {
   }
 
   /**
-   * It gets all the APIs and their endpoints from the database
-   * @param {string} profileId - string - the id of the profile
-   * @returns An array of objects.
+   * It gets all the apis and endpoints for a profileId and then gets all the subscriptions for  that profileId and returns the apis and subscriptions.
+   * @param {string} profileId - string - the id of the profile that is requesting the data
+   * @returns An object with two properties: apis and userSubscriptions.
    */
   async getDPD(profileId: string): Promise<any> {
     try {
-      const apis = (await this.apiRepo.find({ where: { profileId } })).map(
+      const data = (await this.apiRepo.find({ where: { profileId } })).map(
         async (api) => ({
           ...api,
-          endpoints: await (
+          endpoints: (
             await this.endpointsRepo.find({
               where: { apiId: api.id },
             })
           ).map((endpoint) => ({
             ...endpoint,
-            route: decodeURIComponent(endpoint.route),
+            route: endpoint.route,
           })),
         }),
       );
-      return await Promise.all(apis);
+
+      const subs = (
+        await this.subscriptionRepo.find({
+          where: { profileId },
+        })
+      ).map(async (sub) => {
+        const { name } = await this.getAnApi(sub.apiId);
+        return { id: sub.id, name, token: sub.subscriptionToken };
+      });
+
+      const apis = await Promise.all(data);
+      const userSubscriptions = await Promise.all(subs);
+      return { apis, userSubscriptions };
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
