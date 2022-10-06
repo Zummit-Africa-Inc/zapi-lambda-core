@@ -61,7 +61,11 @@ export class EndpointsService {
       });
 
       const savedEndpoint = await this.endpointRepo.save(newEndpoint);
-      return savedEndpoint;
+       const result = await this.endpointRepo.findOne({
+         where: { id: savedEndpoint.id },
+       });
+
+       return result;
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),

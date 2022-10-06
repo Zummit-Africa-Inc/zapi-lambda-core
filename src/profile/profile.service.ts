@@ -12,6 +12,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client } from '../common/helpers/aws-lib';
 import { randomStrings } from 'src/common/helpers/randomString';
+import { AnalyticsLogs } from './../entities/analyticsLogs.entity';
 import {
   deleteImage,
   uploadImage,
@@ -22,6 +23,8 @@ export class ProfileService {
   constructor(
     @InjectRepository(Profile)
     private profileRepo: Repository<Profile>,
+    @InjectRepository(AnalyticsLogs)
+    private analyticsLogRepo: Repository<AnalyticsLogs>,
   ) {}
 
   async createprofile(body: CreateProfileDto): Promise<Profile> {
@@ -91,12 +94,21 @@ export class ProfileService {
   }
 
   /**
-   * It deletes a profile by id
+   * It deletes a profile and its relationships  (APIs, subscriptions,AnalyticsLogs)
    * @param {string} profileId - string - The id of the profile to be deleted
    * @returns The delete method returns a DeleteResult object.
    */
   async deleteProfile(profileId: string): Promise<void> {
     try {
+      const profileAnalytics = await this.analyticsLogRepo.find({
+        where: { profileId },
+      });
+
+      //  it deletes the entire array if the list is not empty
+      if (profileAnalytics.length !== 0) {
+        await this.analyticsLogRepo.remove(profileAnalytics);
+      }
+
       await this.profileRepo.delete(profileId);
     } catch (error) {
       throw new BadRequestException(
