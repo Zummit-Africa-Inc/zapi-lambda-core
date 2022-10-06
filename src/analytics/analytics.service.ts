@@ -32,16 +32,6 @@ export class AnalyticsService {
         where: { apiId },
       });
 
-      if (!analytic) {
-        throw new BadRequestException(
-          ZaLaResponse.NotFoundRequest(
-            'Not found',
-            'Analytics not found',
-            '404',
-          ),
-        );
-      }
-
       const totalLatency = analytic.totalLatency + Math.round(latency);
 
       /* Checks if there is an existing value for successful calls, if true, calculate the average latency, else save the new value */

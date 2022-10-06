@@ -1,5 +1,5 @@
 import { SharedEntity } from '../common/model/sharedEntity';
-import { BeforeInsert, Column, Entity } from 'typeorm';
+import { AfterLoad, BeforeInsert, Column, Entity } from 'typeorm';
 import { HttpMethod } from '../common/enums/httpMethods.enum';
 import { ReqBody } from '../endpoints/interface/endpoint.interface';
 
@@ -45,6 +45,13 @@ export class Endpoint extends SharedEntity {
     this.route = encodeURIComponent(
       this.route.charAt(0) === '/' ? this.route : `/${this.route}`,
     );
+    return this.route;
+  }
+
+  /* A hook that runs each time the entity is loaded. It is used to modify the route property of the entity. */
+  @AfterLoad()
+  public DecodeRoute() {
+    this.route = decodeURIComponent(this.route);
     return this.route;
   }
 }

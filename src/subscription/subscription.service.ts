@@ -10,9 +10,6 @@ import { Api } from '../entities/api.entity';
 import { Profile } from '../entities/profile.entity';
 import { Repository } from 'typeorm';
 import { Subscription } from '../entities/subscription.entity';
-import { CreateSubscriptionDto } from './dto/create-subscription.dto';
-import { configConstant } from '../common/constants/config.constant';
-import { ConfigService } from '@nestjs/config';
 import { Tokens } from 'src/common/interfaces/subscriptionToken.interface';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { HttpService } from '@nestjs/axios';
@@ -32,17 +29,16 @@ export class SubscriptionService {
     private readonly subscriptionRepo: Repository<Subscription>,
     private jwtService: JwtService,
     private httpService: HttpService,
-    private readonly configService: ConfigService,
     private readonly analyticsService: AnalyticsService,
   ) {}
 
   /**
-   * It takes in a CreateSubscriptionDto object, checks if the user is subscribed to the API, if not, it creates a subscription token, saves it to the database, and returns the token
-   * @param {CreateSubscriptionDto} createSubDto - CreateSubscriptionDto
+   * It takes in an apiId and a profileId, checks if the user is subscribed to the API, if not, it creates a subscription token, saves it to the database, and returns the token
+   * @param {apiId} string 
+   * @param {profileId} string 
    * @returns The subscriptionToken
    */
-  async subscribe(createSubDto: CreateSubscriptionDto): Promise<Tokens> {
-    const { profileId, apiId } = createSubDto;
+  async subscribe(apiId: string, profileId: string): Promise<Tokens> {
     try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
       const profile = await this.profileRepo.findOne({
@@ -124,7 +120,7 @@ export class SubscriptionService {
 
     const uniqueApiSecurityKey = api.secretKey;
     const base_url = api.base_url;
-    const endRoute = decodeURIComponent(endpoint.route);
+    const endRoute = endpoint.route;
     const endMethod = endpoint.method.toLowerCase();
     const url = base_url + `${endRoute}`;
     const ref = this.httpService.axiosRef;
@@ -232,5 +228,17 @@ export class SubscriptionService {
         );
       }
     }
+  }
+
+  /**
+   * It returns a list of all the APIs that a user is subscribed to
+   * @param {string} profileId - string - The id of the profile you want to get the subscriptions for
+   * @returns An array of Api objects.
+   */
+  async getUserSubscriptions(profileId: string): Promise<Api[]> {
+    const subscribedApis = (
+      await this.subscriptionRepo.find({ where: { profileId } })
+    ).map((sub) => this.apiRepo.find({ where: { id: sub.apiId } }));
+    return (await Promise.all(subscribedApis)).flatMap((api) => api);
   }
 }
