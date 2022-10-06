@@ -15,6 +15,9 @@ import { Endpoint } from 'src/entities/endpoint.entity';
 import { HttpService } from '@nestjs/axios';
 import { AnalyticsService } from 'src/analytics/analytics.service';
 import { ApiRequestDto } from './dto/make-request.dto';
+import { ConfigService } from '@nestjs/config';
+import { lastValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
 
 @Injectable()
 export class SubscriptionService {
@@ -30,8 +33,26 @@ export class SubscriptionService {
     private jwtService: JwtService,
     private httpService: HttpService,
     private readonly analyticsService: AnalyticsService,
+    private readonly configService : ConfigService
   ) {}
 
+  /**
+   * sends an axios post request to the notification service to notify user of new subscriptions
+   * @param apiId : string
+   * @param profileId : string 
+   * @param subscriberId : string
+   * @returns : Axios response object
+   */
+  async makeSubscriptionCall(apiId:string, profileId: string, subscriberId: string): Promise<AxiosResponse<any>>{
+    const url = `${this.configService.get('BASE_NOTIFICATION_URL')}/ws-notify/subscription-event`
+    const payload = {
+      apiId: apiId,
+      profileId: profileId,
+      subscriberId: subscriberId
+    }
+  
+    return await lastValueFrom(this.httpService.post(url, payload))
+  }
   /**
    * It takes in an apiId and a profileId, checks if the user is subscribed to the API, if not, it creates a subscription token, saves it to the database, and returns the token
    * @param {apiId} string 
@@ -41,7 +62,7 @@ export class SubscriptionService {
   async subscribe(apiId: string, profileId: string): Promise<Tokens> {
     try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
-      const profile = await this.profileRepo.findOne({
+      const profile = await this.profileRepo.findOne({  
         where: { id: profileId },
       });
       const isSubscribed = profile.subscriptions.includes(apiId);
@@ -62,6 +83,10 @@ export class SubscriptionService {
         const subToken: Tokens = {
           subscriptionToken: newSub.subscriptionToken,
         };
+
+        // make request to notification service to notify user of new subscription
+        await this.makeSubscriptionCall(apiId, api.profileId, profileId)
+
         await this.profileRepo.update(profile.id, {
           subscriptions: [...profile.subscriptions, api.id],
         });
