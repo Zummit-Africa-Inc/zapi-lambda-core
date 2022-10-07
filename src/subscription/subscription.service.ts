@@ -43,7 +43,7 @@ export class SubscriptionService {
    * @param subscriberId : string
    * @returns : Axios response object
    */
-  async makeSubscriptionCall(apiId:string, profileId: string, subscriberId: string): Promise<AxiosResponse<any>>{
+  async subscriptionNotification(apiId:string, profileId: string, subscriberId: string): Promise<AxiosResponse<any>>{
     const url = `${this.configService.get('NOTIFICATION_URL')}/ws-notify/subscription-event`
     const payload = {
       apiId: apiId,
@@ -85,7 +85,7 @@ export class SubscriptionService {
         };
 
         // make request to notification service to notify user of new subscription
-        await this.makeSubscriptionCall(apiId, api.profileId, profileId)
+        await this.subscriptionNotification(apiId, api.profileId, profileId)
 
         await this.profileRepo.update(profile.id, {
           subscriptions: [...profile.subscriptions, api.id],
