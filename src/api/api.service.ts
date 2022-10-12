@@ -423,4 +423,20 @@ export class ApiService {
       );
     }
   }
+  /**
+   * It returns an array of Api objects that have a profileId that matches the value of the environment
+   * variable FREE_REQUEST_ID
+   * @returns An array of Api objects.
+   */
+  async freeRequest(): Promise<Api[]> {
+    try {
+      return await this.apiRepo.find({
+        where: { profileId: process.env.FREE_REQUEST_ID },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+      );
+    }
+  }
 }
