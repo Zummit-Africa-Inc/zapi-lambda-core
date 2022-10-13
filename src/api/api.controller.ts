@@ -124,4 +124,11 @@ export class ApiController {
     const apis = await this.apiService.getDPD(profileId);
     return ZaLaResponse.Ok(apis, 'Ok', '200');
   }
+
+  @Get('/free-request')
+  @ApiOperation({ summary: 'Get free access APIs' })
+  async getAll(): Promise<Ok<Api[]>> {
+    const apis = await this.apiService.freeRequest();
+    return ZaLaResponse.Ok(apis, 'Ok', '200');
+  }
 }

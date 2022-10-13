@@ -19,7 +19,7 @@ import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
 
-  @IdCheck('apiId','profileId')
+  @IdCheck('apiId', 'profileId')
   @Post('subscribe/:apiId/:profileId')
   @ApiOperation({ summary: 'Subscribe to an API' })
   async subscribe(
@@ -29,14 +29,14 @@ export class SubscriptionController {
     const subToken = await this.subscriptionService.subscribe(apiId, profileId);
     return ZaLaResponse.Ok(subToken, 'User now subscribed to this API', '201');
   }
-  
+
   @Post('api-request')
   @ApiOperation({ summary: 'Request an api' })
-  async verify(
-    @Headers('X-ZAPI-AUTH-TOKEN') xZapiAuth: string,
+  async apiRequest(
     @Body() requestBody: ApiRequestDto,
+    @Headers('X-ZAPI-AUTH-TOKEN') token: string,
   ): Promise<Ok<any>> {
-    if (!xZapiAuth) {
+    if (!token) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(
           'Bad Request',
@@ -46,8 +46,33 @@ export class SubscriptionController {
       );
     }
     const request = await this.subscriptionService.apiRequest(
-      xZapiAuth,
+      token,
       requestBody,
+    );
+    return ZaLaResponse.Ok(request, 'Request Successful', '200');
+  }
+
+  @IdCheck('apiId')
+  @Post('/free-request/:apiId')
+  @ApiOperation({ summary: 'Free api request' })
+  async freeRequest(
+    @Headers('X-ZAPI-FREE-TOKEN') token: string,
+    @Param('apiId') apiId: string,
+    @Body() requestBody: ApiRequestDto,
+  ): Promise<Ok<any>> {
+    if (!token) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(
+          'Bad Request',
+          'Subscription token is required to make a request',
+          '403',
+        ),
+      );
+    }
+    const request = await this.subscriptionService.apiRequest(
+      token,
+      requestBody,
+      apiId,
     );
     return ZaLaResponse.Ok(request, 'Request Successful', '200');
   }
