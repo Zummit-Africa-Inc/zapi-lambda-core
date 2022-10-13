@@ -17,6 +17,8 @@ import { HttpService } from '@nestjs/axios';
 import { AnalyticsService } from 'src/analytics/analytics.service';
 import { ApiRequestDto } from './dto/make-request.dto';
 import { ConfigService } from '@nestjs/config';
+import { lastValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
 import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
@@ -38,6 +40,7 @@ export class SubscriptionService {
   ) {}
 
   /**
+   * it makes a request to the notification service about a new subscription
    * @param apiId : string
    * @param profileId : string
    * @param subscriberId : string 
@@ -57,6 +60,27 @@ export class SubscriptionService {
           ZaLaResponse.BadRequest('Internal Server Error', error.message, '500')
         )
     }
+  }
+
+  /**
+   * sends an axios post request to the notification service to notify user of new subscriptions
+   * @param apiId : string
+   * @param profileId : string
+   * @param subscriberId : string
+   * @returns : Axios response object
+   */
+   async subscriptionNotification(apiId: string, profileId: string, subscriberId: string,
+    ): Promise<AxiosResponse<any>> {
+    const url = `${this.configService.get(
+      'NOTIFICATION_URL',
+    )}/ws-notify/subscription-event`;
+    const payload = {
+      apiId: apiId,
+      profileId: profileId,
+      subscriberId: subscriberId,
+    };
+
+    return await lastValueFrom(this.httpService.post(url, payload));
   }
 
   /**
