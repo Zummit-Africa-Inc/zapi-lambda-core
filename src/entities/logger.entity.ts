@@ -21,11 +21,11 @@ export class Logger extends SharedEntity {
 
   @Column({
     type: 'json',
-    
+    nullable: true
    })
   previous_values: LoggerJson ;
 
-  @Column({type:'json' })
+  @Column({type:'json',nullable: true })
   new_values: LoggerJson ;
 
   @Column()
