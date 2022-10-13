@@ -76,14 +76,14 @@ export class CategoriesService {
 
   async deleteCategory(categoryId: string, generalCateroryId: string){
     try {
-      await this.categoryRepo.delete(categoryId)
-
       //move all apis in this category to a general category section
       await this.apiRepo.createQueryBuilder()
         .update()
         .set({categoryId: generalCateroryId})
         .where('categoryId = :categoryId', {categoryId})
         .execute()
+
+      await this.categoryRepo.delete(categoryId)
       
     } catch (error) {
       throw new BadRequestException(
