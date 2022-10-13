@@ -48,11 +48,11 @@ export class CategoriesController {
   @Delete('/:categoryId/:generalCategoryId')
   @IdCheck('categoryId')
   @ApiOperation({summary: "delete a category"})
-  deleteCategory(
+  async deleteCategory(
     @Param('categoryId') categoryId: string,
     @Param('generalCategoryId') generalCategoryId: string 
   ){
-    this.categoryService.deleteCategory(categoryId, generalCategoryId)
+    await this.categoryService.deleteCategory(categoryId, generalCategoryId)
     return ZaLaResponse.Ok('Category deleted', 'OK', '200')
   }
 }
