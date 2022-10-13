@@ -44,4 +44,15 @@ export class CategoriesController {
   findAllApis(@Param('categoryId') categoryId: string) {
     return this.categoryService.getAllApis(categoryId);
   }
+
+  @Delete('/:categoryId/:generalCategoryId')
+  @IdCheck('categoryId')
+  @ApiOperation({summary: "delete a category"})
+  deleteCategory(
+    @Param('categoryId') categoryId: string,
+    @Param('generalCategoryId') generalCategoryId: string 
+  ){
+    this.categoryService.deleteCategory(categoryId, generalCategoryId)
+    return ZaLaResponse.Ok('Category deleted', 'OK', '200')
+  }
 }
