@@ -9,6 +9,7 @@ import { Api } from 'src/entities/api.entity';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { Profile } from 'src/entities/profile.entity';
 import { Subscription } from 'src/entities/subscription.entity';
+import { HttpCallService } from './httpCall.service';
 import { SubscriptionController } from './subscription.controller';
 import { SubscriptionService } from './subscription.service';
 
@@ -27,6 +28,6 @@ import { SubscriptionService } from './subscription.service';
     HttpModule,
   ],
   controllers: [SubscriptionController],
-  providers: [SubscriptionService, AnalyticsService],
+  providers: [SubscriptionService, AnalyticsService, HttpCallService],
 })
 export class SubscriptionModule {}
