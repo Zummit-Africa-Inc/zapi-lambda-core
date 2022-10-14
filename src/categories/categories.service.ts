@@ -6,13 +6,14 @@ import { Category } from 'src/entities/category.entity';
 import { Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 
+
 @Injectable()
 export class CategoriesService {
   constructor(
     @InjectRepository(Category)
     private readonly categoryRepo: Repository<Category>,
     @InjectRepository(Api)
-    private readonly apiRepo: Repository<Api>
+    private readonly apiRepo: Repository<Api>,
   ) {}
 
   async createNewCategory(createCategoryDto: CreateCategoryDto):Promise<Category> {
@@ -61,6 +62,28 @@ export class CategoriesService {
     try {
       const apis = await this.apiRepo.find({where:{categoryId: categoryId}})     
       return apis
+      
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(
+          error.name,
+          error.message,
+          error.status
+        )
+      )
+    }
+  }
+
+  async deleteCategory(categoryId: string, generalCateroryId: string){
+    try {
+      //move all apis in this category to a general category section
+      await this.apiRepo.createQueryBuilder()
+        .update()
+        .set({categoryId: generalCateroryId})
+        .where('categoryId = :categoryId', {categoryId})
+        .execute()
+
+      await this.categoryRepo.delete(categoryId)
       
     } catch (error) {
       throw new BadRequestException(
