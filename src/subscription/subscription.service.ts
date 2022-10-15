@@ -150,10 +150,13 @@ export class SubscriptionService {
       }
 
       const requestProps = {
-        api,
-        endpoint,
+        apiId: api.id,
         payload: body.payload,
         profileId: profile.id,
+        base_url: api.base_url,
+        endpoint: endpoint.route,
+        secretKey: api.secretKey,
+        method: endpoint.method.toLowerCase(),
       };
 
       return await this.httpCallService.call(requestProps);
@@ -180,12 +183,15 @@ export class SubscriptionService {
       const secret = process.env.JWT_SUBSCRIPTION_SECRET;
       const { profileId } = await this.jwtService.verify(token, { secret });
       const api = FreeApis.find((api) => api.id === apiId);
-      const endpoint = api.endpoint;
+
       const requestProps = {
-        api,
-        profileId,
-        endpoint,
         payload,
+        profileId,
+        apiId: api.id,
+        endpoint: api.route,
+        base_url: api.base_url,
+        secretKey: api.secretKey,
+        method: api.method.toLowerCase(),
       };
       return await this.httpCallService.call(requestProps);
     } catch (error) {
