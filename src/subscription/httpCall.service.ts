@@ -48,16 +48,19 @@ export class HttpCallService {
         status: axiosResponse.status,
         latency: Math.round(totalTimeInMs),
         profileId,
-        apiId: apiId,
+        apiId,
         endpoint,
         method,
       });
 
       return data;
     } catch (error) {
-      this.analyticsService.updateAnalytics(error.response.status, apiId);
+      this.analyticsService.updateAnalytics(
+        error.response.status ?? 'Unknown error',
+        apiId,
+      );
       this.analyticsService.analyticLogs({
-        status: error.response.status,
+        status: error.response.status ?? 'Unknown error',
         errorMessage: error.response.statusText,
         profileId,
         apiId,

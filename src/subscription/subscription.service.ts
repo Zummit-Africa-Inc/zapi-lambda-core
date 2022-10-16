@@ -174,21 +174,17 @@ export class SubscriptionService {
    * @param {string} apiId - the id of the api you want to call
    * @returns The response from the API call.
    */
-  async freeApiRequest(
-    token: string,
-    payload: any,
-    apiId: string,
-  ): Promise<any> {
+  async freeApiRequest(token: string, body: any, apiId: string): Promise<any> {
     try {
       const secret = process.env.JWT_SUBSCRIPTION_SECRET;
       const { profileId } = await this.jwtService.verify(token, { secret });
       const api = FreeApis.find((api) => api.id === apiId);
 
       const requestProps = {
-        payload,
         profileId,
         apiId: api.id,
         endpoint: api.route,
+        payload: body.payload,
         base_url: api.base_url,
         secretKey: api.secretKey,
         method: api.method.toLowerCase(),
