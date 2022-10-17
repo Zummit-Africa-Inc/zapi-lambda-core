@@ -82,7 +82,18 @@ export class SubscriptionService {
           ),
         );
       }
+
       if (api && profile) {
+        if (profileId === api.profileId) {
+          throw new BadRequestException(
+            ZaLaResponse.BadRequest(
+              'Bad request',
+              "You can't subscribe to your own api",
+              '400',
+            ),
+          );
+        }
+
         const subscriptionToken = await this.setTokens(apiId, profileId);
         const subPayload = { apiId, profileId, subscriptionToken };
         const userSubscription = this.subscriptionRepo.create(subPayload);
@@ -91,9 +102,6 @@ export class SubscriptionService {
           subscriptionToken: newSub.subscriptionToken,
         };
 
-        // make request to notification service to notify user of new subscription
-        await this.subscriptionNotification(apiId, api.profileId, profileId);
-
         await this.profileRepo.update(profile.id, {
           subscriptions: [...profile.subscriptions, api.id],
         });
@@ -101,6 +109,9 @@ export class SubscriptionService {
         await this.apiRepo.update(api.id, {
           subscriptions: [...api.subscriptions, profile.id],
         });
+
+        // make request to notification service to notify user of new subscription
+        this.subscriptionNotification(apiId, api.profileId, profileId);
 
         return subToken;
       }
