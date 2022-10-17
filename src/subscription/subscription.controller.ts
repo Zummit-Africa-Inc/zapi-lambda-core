@@ -14,6 +14,7 @@ import { SubscriptionService } from './subscription.service';
 import { Tokens } from 'src/common/interfaces/subscriptionToken.interface';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { FreeRequestDto } from './dto/make-request.dto';
+import { response } from 'express';
 
 @ApiTags('Subscription')
 @Controller('subscription')
@@ -74,7 +75,12 @@ export class SubscriptionController {
       requestBody,
       apiId,
     );
-    return ZaLaResponse.Ok(request, 'Request Successful', '200');
+    const data = Array.isArray(request) ? request[0] : request;
+    let response = Object.values(data);
+
+    for (let value of response) {
+      return ZaLaResponse.Ok(value, 'Request Successful', '200');
+    }
   }
 
   @Get('/user-subscriptions/:profileId')
