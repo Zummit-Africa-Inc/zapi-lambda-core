@@ -27,6 +27,7 @@ import {
 } from 'nestjs-paginate';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { Action } from 'src/common/enums/actionLogger.enum';
+import { FreeApis } from 'src/subscription/apis';
 
 @Injectable()
 export class ApiService {
@@ -428,11 +429,11 @@ export class ApiService {
    * variable FREE_REQUEST_ID
    * @returns An array of Api objects.
    */
-  async freeRequest(): Promise<Api[]> {
+  async freeRequest() {
     try {
-      return await this.apiRepo.find({
-        where: { profileId: process.env.FREE_REQUEST_ID },
-      });
+      return FreeApis.filter(
+        (api) => api.profileId === process.env.FREE_REQUEST_ID,
+      );
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
