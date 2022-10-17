@@ -127,7 +127,7 @@ export class ApiController {
 
   @Get('/free-request')
   @ApiOperation({ summary: 'Get free access APIs' })
-  async getAll(): Promise<Ok<Api[]>> {
+  async getAll() {
     const apis = await this.apiService.freeRequest();
     return ZaLaResponse.Ok(apis, 'Ok', '200');
   }
