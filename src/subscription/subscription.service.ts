@@ -10,14 +10,15 @@ import { Api } from '../entities/api.entity';
 import { Profile } from '../entities/profile.entity';
 import { Repository } from 'typeorm';
 import { Subscription } from '../entities/subscription.entity';
-import { CreateSubscriptionDto } from './dto/create-subscription.dto';
-import { configConstant } from '../common/constants/config.constant';
-import { ConfigService } from '@nestjs/config';
 import { Tokens } from 'src/common/interfaces/subscriptionToken.interface';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { HttpService } from '@nestjs/axios';
-import { AnalyticsService } from 'src/analytics/analytics.service';
 import { ApiRequestDto } from './dto/make-request.dto';
+import { ConfigService } from '@nestjs/config';
+import { lastValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
+import { HttpCallService } from './httpCall.service';
+import { FreeApis } from './apis';
 
 @Injectable()
 export class SubscriptionService {
@@ -32,17 +33,40 @@ export class SubscriptionService {
     private readonly subscriptionRepo: Repository<Subscription>,
     private jwtService: JwtService,
     private httpService: HttpService,
+    private readonly httpCallService: HttpCallService,
     private readonly configService: ConfigService,
-    private readonly analyticsService: AnalyticsService,
   ) {}
 
   /**
-   * It takes in a CreateSubscriptionDto object, checks if the user is subscribed to the API, if not, it creates a subscription token, saves it to the database, and returns the token
-   * @param {CreateSubscriptionDto} createSubDto - CreateSubscriptionDto
+   * sends an axios post request to the notification service to notify user of new subscriptions
+   * @param apiId : string
+   * @param profileId : string
+   * @param subscriberId : string
+   * @returns : Axios response object
+   */
+  async subscriptionNotification(
+    apiId: string,
+    profileId: string,
+    subscriberId: string,
+  ): Promise<AxiosResponse<any>> {
+    const url = `${this.configService.get(
+      'NOTIFICATION_URL',
+    )}/ws-notify/subscription-event`;
+    const payload = {
+      apiId: apiId,
+      profileId: profileId,
+      subscriberId: subscriberId,
+    };
+
+    return await lastValueFrom(this.httpService.post(url, payload));
+  }
+  /**
+   * It takes in an apiId and a profileId, checks if the user is subscribed to the API, if not, it creates a subscription token, saves it to the database, and returns the token
+   * @param {apiId} string
+   * @param {profileId} string
    * @returns The subscriptionToken
    */
-  async subscribe(createSubDto: CreateSubscriptionDto): Promise<Tokens> {
-    const { profileId, apiId } = createSubDto;
+  async subscribe(apiId: string, profileId: string): Promise<Tokens> {
     try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
       const profile = await this.profileRepo.findOne({
@@ -58,7 +82,18 @@ export class SubscriptionService {
           ),
         );
       }
+
       if (api && profile) {
+        if (profileId === api.profileId) {
+          throw new BadRequestException(
+            ZaLaResponse.BadRequest(
+              'Bad request',
+              "You can't subscribe to your own api",
+              '400',
+            ),
+          );
+        }
+
         const subscriptionToken = await this.setTokens(apiId, profileId);
         const subPayload = { apiId, profileId, subscriptionToken };
         const userSubscription = this.subscriptionRepo.create(subPayload);
@@ -66,6 +101,7 @@ export class SubscriptionService {
         const subToken: Tokens = {
           subscriptionToken: newSub.subscriptionToken,
         };
+
         await this.profileRepo.update(profile.id, {
           subscriptions: [...profile.subscriptions, api.id],
         });
@@ -73,6 +109,9 @@ export class SubscriptionService {
         await this.apiRepo.update(api.id, {
           subscriptions: [...api.subscriptions, profile.id],
         });
+
+        // make request to notification service to notify user of new subscription
+        this.subscriptionNotification(apiId, api.profileId, profileId);
 
         return subToken;
       }
@@ -104,83 +143,64 @@ export class SubscriptionService {
   }
 
   async apiRequest(token: string, body: ApiRequestDto): Promise<any> {
-    const { api, profile } = await this.verifySub(token);
-    const encodedRoute = encodeURIComponent(body.route);
-    const endpoint = await this.endpointRepository.findOne({
-      where: {
-        apiId: api.id,
-        method: body.method,
-        route: encodedRoute,
-      },
-    });
-
-    if (!endpoint) {
-      throw new BadRequestException(
-        ZaLaResponse.BadRequest('Server Error', 'Wrong Endpoint', '400'),
-      );
-    }
-    // we need to check that the name, data type and requirements for each property in the
-    //endpoints.payload are met explicitly
-
-    const uniqueApiSecurityKey = api.secretKey;
-    const base_url = api.base_url;
-    const endRoute = decodeURIComponent(endpoint.route);
-    const endMethod = endpoint.method.toLowerCase();
-    const url = base_url + `${endRoute}`;
-    const ref = this.httpService.axiosRef;
     try {
-      try {
-        /* Getting the current time in nanoseconds. */
-        const startTime = process.hrtime();
-
-        /* Making a request to the api with the payload and the secret key. */
-        const axiosResponse = await ref({
-          method: endMethod,
-          url: url,
-          data: body.payload,
-          headers: { 'X-Zapi-Proxy-Secret': uniqueApiSecurityKey },
-        });
-
-        /* Calculating the time it takes to make a request to the api. */
-        const totalTime = process.hrtime(startTime);
-        const totalTimeInMs = totalTime[0] * 1000 + totalTime[1] / 1e6;
-
-        const data = axiosResponse.data;
-
-        this.analyticsService.updateAnalytics(
-          axiosResponse.status,
-          api.id,
-          totalTimeInMs,
-        );
-        this.analyticsService.analyticLogs({
-          status: axiosResponse.status,
-          latency: Math.round(totalTimeInMs),
-          profileId: profile.id,
+      const { api, profile } = await this.verifySub(token);
+      const encodedRoute = encodeURIComponent(body.route);
+      const endpoint = await this.endpointRepository.findOne({
+        where: {
           apiId: api.id,
-          endpoint: endRoute,
-          method: endMethod,
-        });
+          method: body.method,
+          route: encodedRoute,
+        },
+      });
 
-        return data;
-      } catch (error) {
-        this.analyticsService.updateAnalytics(error.response.status, api.id);
-        this.analyticsService.analyticLogs({
-          status: error.response.status,
-          errorMessage: error.response.statusText,
-          profileId: profile.id,
-          apiId: api.id,
-          endpoint: endRoute,
-          method: endMethod,
-        });
-
+      if (!endpoint) {
         throw new BadRequestException(
-          ZaLaResponse.BadRequest(
-            'External server error',
-            `Message from external server: '${error.message}'`,
-            '500',
-          ),
+          ZaLaResponse.BadRequest('Server Error', 'Wrong Endpoint', '400'),
         );
       }
+
+      const requestProps = {
+        apiId: api.id,
+        payload: body.payload,
+        profileId: profile.id,
+        base_url: api.base_url,
+        endpoint: endpoint.route,
+        secretKey: api.secretKey,
+        method: endpoint.method.toLowerCase(),
+      };
+
+      return await this.httpCallService.call(requestProps);
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal server error', error.message, '500'),
+      );
+    }
+  }
+
+  /**
+   * It takes a token, payload, and apiId as arguments, and returns a promise of an object
+   * @param {string} token - the token that was generated by the jwtService.sign() method
+   * @param {any} payload - any
+   * @param {string} apiId - the id of the api you want to call
+   * @returns The response from the API call.
+   */
+  async freeApiRequest(token: string, body: any, apiId: string): Promise<any> {
+    try {
+      const secret = process.env.JWT_SUBSCRIPTION_SECRET;
+      const { profileId } = await this.jwtService.verify(token, { secret });
+      const api = FreeApis.find((api) => api.id === apiId);
+
+      const requestProps = {
+        profileId,
+        apiId: api.id,
+        endpoint: api.route,
+        payload: body.payload,
+        base_url: api.base_url,
+        secretKey: api.secretKey,
+        method: api.method.toLowerCase(),
+      };
+      return await this.httpCallService.call(requestProps);
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal server error', error.message, '500'),
@@ -193,15 +213,14 @@ export class SubscriptionService {
    * @param {string} token - the token generated by the user when they subscribe to the api
    * @returns The api and profile are being returned.
    */
-  async verifySub(token: string) {
-    const secret = process.env.JWT_SUBSCRIPTION_SECRET;
+  async verifySub(token: string): Promise<any> {
     try {
+      const secret = process.env.JWT_SUBSCRIPTION_SECRET;
       const { apiId, profileId } = this.jwtService.verify(token, { secret });
-      // both the API and the profile are fetched from the database
       const api = await this.apiRepo.findOneBy({ id: apiId });
       const profile = await this.profileRepo.findOneBy({ id: profileId });
-      // the api's subscriptions column is checked if it includes this current user through its profileId
 
+      /* Checking if the user is subscribed to the api. */
       const subscribed = api.subscriptions.includes(profile.id);
       if (!subscribed) {
         throw new UnauthorizedException(
@@ -232,5 +251,17 @@ export class SubscriptionService {
         );
       }
     }
+  }
+
+  /**
+   * It returns a list of all the APIs that a user is subscribed to
+   * @param {string} profileId - string - The id of the profile you want to get the subscriptions for
+   * @returns An array of Api objects.
+   */
+  async getUserSubscriptions(profileId: string): Promise<Api[]> {
+    const subscribedApis = (
+      await this.subscriptionRepo.find({ where: { profileId } })
+    ).map((sub) => this.apiRepo.find({ where: { id: sub.apiId } }));
+    return (await Promise.all(subscribedApis)).flatMap((api) => api);
   }
 }

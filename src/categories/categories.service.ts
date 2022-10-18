@@ -1,16 +1,19 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable,  } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ZaLaResponse } from 'src/common/helpers/response';
+import { Api } from 'src/entities/api.entity';
 import { Category } from 'src/entities/category.entity';
 import { Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+
 
 @Injectable()
 export class CategoriesService {
   constructor(
     @InjectRepository(Category)
-    private readonly categoryRepo: Repository<Category>
+    private readonly categoryRepo: Repository<Category>,
+    @InjectRepository(Api)
+    private readonly apiRepo: Repository<Api>,
   ) {}
 
   async createNewCategory(createCategoryDto: CreateCategoryDto):Promise<Category> {
@@ -54,33 +57,33 @@ export class CategoriesService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
-  }
-
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} category`;
-  }
 
   async getAllApis(categoryId: string){
     try {
-      //check if category exists
-      const categoryExists = await this.categoryRepo.findOne({where:{id:categoryId}})
-      if(!categoryExists){
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            "Not found",
-            "Category not found",
-            "404"
+      const apis = await this.apiRepo.find({where:{categoryId: categoryId}})     
+      return apis
+      
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(
+          error.name,
+          error.message,
+          error.status
         )
-      ) 
+      )
     }
-      //return all apis in the category
-      return categoryExists.api
+  }
+
+  async deleteCategory(categoryId: string, generalCateroryId: string){
+    try {
+      //move all apis in this category to a general category section
+      await this.apiRepo.createQueryBuilder()
+        .update()
+        .set({categoryId: generalCateroryId})
+        .where('categoryId = :categoryId', {categoryId})
+        .execute()
+
+      await this.categoryRepo.delete(categoryId)
       
     } catch (error) {
       throw new BadRequestException(

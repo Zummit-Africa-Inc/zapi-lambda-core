@@ -79,7 +79,7 @@ export class Api extends SharedEntity {
   @Column({ nullable: true })
   tutorialsId: string;
 
-  @ManyToOne(() => Profile, (profile) => profile.id, { onDelete: 'SET NULL' })
+  @ManyToOne(() => Profile, (profile) => profile.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'profileId' })
   profile: Profile;
 
@@ -93,10 +93,9 @@ export class Api extends SharedEntity {
   @JoinColumn({ name: 'subscriptions' })
   subscription: Subscription[];
 
-  /* A function that is called before the entity is inserted into the database. It is used to modify
-  the base_url property of the entity. */
+  /* A lifecycle hook that is called before the entity is inserted into the database. */
   @BeforeInsert()
-  public modifyUrl() {
+  public onInsert() {
     this.base_url =
       this.base_url.slice(-1) === '/'
         ? this.base_url.slice(0, -1)

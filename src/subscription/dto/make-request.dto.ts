@@ -16,3 +16,8 @@ export class ApiRequestDto {
   @ApiPropertyOptional()
   headers: string;
 }
+
+export class FreeRequestDto {
+  @ApiPropertyOptional()
+  payload: any;
+}

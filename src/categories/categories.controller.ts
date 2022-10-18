@@ -13,6 +13,7 @@ import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from '../entities/category.entity';
+import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 
 @ApiTags('Categories')
 @Controller('categories')
@@ -38,8 +39,20 @@ export class CategoriesController {
   }
 
   @Get(':categoryId/apis')
+  @IdCheck('categoryId')
   @ApiOperation({ summary: 'get all apis in a particular category' })
   findAllApis(@Param('categoryId') categoryId: string) {
     return this.categoryService.getAllApis(categoryId);
+  }
+
+  @Delete('/:categoryId/:generalCategoryId')
+  @IdCheck('categoryId')
+  @ApiOperation({summary: "delete a category"})
+  async deleteCategory(
+    @Param('categoryId') categoryId: string,
+    @Param('generalCategoryId') generalCategoryId: string 
+  ){
+    await this.categoryService.deleteCategory(categoryId, generalCategoryId)
+    return ZaLaResponse.Ok('Category deleted', 'OK', '200')
   }
 }

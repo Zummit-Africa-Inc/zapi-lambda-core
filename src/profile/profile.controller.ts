@@ -22,6 +22,7 @@ import { TestDto } from 'src/test.dto';
 import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ApiFile } from 'src/common/decorators/swaggerUploadField';
+import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 
 @ApiTags('Profile')
 @Controller('profile')
@@ -38,29 +39,33 @@ export class ProfileController {
     return ZaLaResponse.Ok(userProfile, 'Profile created', 201);
   }
 
-  @Get('/:id')
+  @Get('/:profileId')
+  @IdCheck('profileId')
   @ApiOperation({ summary: 'Get a profile' })
   async getOne(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('profileId', new ParseUUIDPipe()) profileId: string,
   ): Promise<Ok<Profile>> {
-    const profile = await this.profileService.getone(id);
+    const profile = await this.profileService.getone(profileId);
     return ZaLaResponse.Ok(profile, 'Ok', 200);
   }
 
-  @Patch(':id')
+  @Patch(':profileId')
+  @IdCheck('profileId')
   @ApiOperation({ summary: 'Update an existing profile' })
   async updateProfile(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('profileId', ParseUUIDPipe) profileId: string,
     @Body() updateProfileDto: UpdateProfileDto,
   ): Promise<Ok<Profile>> {
     const profile = await this.profileService.updateProfile(
-      id,
+      profileId,
       updateProfileDto,
     );
     return ZaLaResponse.Ok(profile, 'Ok', 200);
   }
 
   @Post('profile-image/:profileId')
+  @ApiOperation({ summary: 'Upload profile image' })
+  @IdCheck('profileId')
   @ApiFile('image', true, { fileFilter: fileMimetypeFilter('image') })
   async upload(
     @Param('profileId') profileId: string,
@@ -71,16 +76,17 @@ export class ProfileController {
     )
     file: Express.Multer.File,
   ) {
-    const imageUrl = await this.profileService.upload(file, profileId);
+    const imageUrl = await this.profileService.uploadImage(file, profileId);
     return ZaLaResponse.Ok(imageUrl, 'Ok', 201);
   }
 
-  @Delete('/:id')
+  @Delete('/:profileId')
+  @IdCheck('profileId')
   @ApiOperation({ summary: 'Delete a profile' })
   async deleteOne(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('profileId', new ParseUUIDPipe()) profileId: string,
   ): Promise<Ok<string>> {
-    await this.profileService.deleteProfile(id);
+    await this.profileService.deleteProfile(profileId);
     return ZaLaResponse.Ok('Profile deleted successfully', 'Ok', 200);
   }
 
