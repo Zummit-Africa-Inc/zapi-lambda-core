@@ -74,7 +74,12 @@ export class SubscriptionController {
       requestBody,
       apiId,
     );
-    return ZaLaResponse.Ok(request, 'Request Successful', '200');
+    const data = Array.isArray(request) ? request[0] : request;
+    let response = Object.values(data);
+
+    for (let value of response) {
+      return ZaLaResponse.Ok(value, 'Request Successful', '200');
+    }
   }
 
   @Get('/user-subscriptions/:profileId')
