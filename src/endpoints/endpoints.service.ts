@@ -112,15 +112,7 @@ export class EndpointsService {
       const endpoint = await this.endpointRepo.findOne({
         where: { id: endpointId },
       });
-      if (!endpoint) {
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            'Not Found',
-            'Endpoint does not exist',
-            '404',
-          ),
-        );
-      }
+     
 
       body.route
         ? (body.route = encodeURIComponent(
@@ -138,12 +130,6 @@ export class EndpointsService {
       const {email} = await this.profileRepo.findOne({
         where: {id:api.profileId}
       })
-
-      // const previousValues = await this.endpointRepo
-      //   .createQueryBuilder()
-      //   .select(values)
-      //   .where('id = :enpointId', {endpointId})
-      //   .execute()
 
        const previousValues = await this.endpointRepo.findOne({
          where: { id: endpointId },
@@ -163,12 +149,6 @@ export class EndpointsService {
         .where('id = :endpointId', { endpointId })
         .returning('*')
         .execute();
-      
-      // const newValues = await this.endpointRepo
-      //   .createQueryBuilder()
-      //   .select(values)
-      //   .where('id = :enpointId', {endpointId})
-      //   .execute()
 
          const newValues = await this.endpointRepo.findOne({
            where: { id: endpointId },
@@ -210,15 +190,7 @@ export class EndpointsService {
       const endpoint = await this.endpointRepo.findOne({
         where: { id: endpointId },
       });
-      if (!endpoint) {
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            'Not Found',
-            'Endpoint does not exist',
-            '404',
-          ),
-        );
-      }
+     
       /**
        * 1. find the api that this endpoint belongs to
        * 2. find the author of the api to use during

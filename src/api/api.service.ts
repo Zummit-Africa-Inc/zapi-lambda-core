@@ -75,15 +75,6 @@ export class ApiService {
     try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
 
-      if (!api) {
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            'Not found',
-            'The api does not exist',
-            '404',
-          ),
-        );
-      }
       if (profileId && (await this.verify(apiId, profileId))) {
         return api;
       } else {
@@ -120,6 +111,7 @@ export class ApiService {
           ZaLaResponse.BadRequest(
             'Existing values',
             'An api with with this name already exist... try another name',
+            '403',
           ),
         );
       }
@@ -134,8 +126,13 @@ export class ApiService {
       this.analyticsRepo.save(analytics);
       return savedApi;
     } catch (err) {
+      
       throw new BadRequestException(
-        ZaLaResponse.BadRequest('Internal Server error', err.message, '500'),
+        ZaLaResponse.BadRequest(
+          err.response.error,
+          err.response.message,
+          err.response.errorCode,
+        ),
       );
     }
   }
