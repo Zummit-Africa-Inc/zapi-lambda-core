@@ -139,9 +139,6 @@ export class SubscriptionService {
           subscriptions: [...api.subscriptions, profile.id],
         });
 
-        // make request to notification service to notify user of new subscription
-        this.subscriptionNotification(apiId, api.profileId, profileId);
-
         return subToken;
       }
     } catch (error) {
