@@ -19,7 +19,7 @@ export class AccessTokenGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     try {
       const request = context.switchToHttp().getRequest();
-      const authHeader = request.headers.Zapi_Auth_token;
+      const authHeader = request.headers.zapi_auth_token;
       const isPublic = this.reflector.get<boolean>(
         'isPublic',
         context.getHandler(),
