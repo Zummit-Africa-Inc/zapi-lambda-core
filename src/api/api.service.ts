@@ -126,7 +126,6 @@ export class ApiService {
       this.analyticsRepo.save(analytics);
       return savedApi;
     } catch (err) {
-      
       throw new BadRequestException(
         ZaLaResponse.BadRequest(
           err.response.error,
@@ -408,8 +407,13 @@ export class ApiService {
           where: { profileId },
         })
       ).map(async (sub) => {
-        const { name } = await this.getAnApi(sub.apiId);
-        return { id: sub.id, name, token: sub.subscriptionToken };
+        const { name, id } = await this.getAnApi(sub.apiId);
+        return {
+          id: sub.id,
+          apiId: id,
+          name,
+          token: sub.subscriptionToken,
+        };
       });
 
       const apis = await Promise.all(data);
