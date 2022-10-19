@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { ApiRequestDto } from './dto/make-request.dto';
 import { ConfigService } from '@nestjs/config';
 import { lastValueFrom } from 'rxjs';
 import { AxiosResponse } from 'axios';
+import { ClientProxy } from '@nestjs/microservices';
 import { HttpCallService } from './httpCall.service';
 import { FreeApis } from './apis';
 
@@ -35,7 +37,31 @@ export class SubscriptionService {
     private httpService: HttpService,
     private readonly httpCallService: HttpCallService,
     private readonly configService: ConfigService,
+    @Inject('NOTIFY_SERVICE') private readonly n_client: ClientProxy
   ) {}
+
+  /**
+   * it makes a request to the notification service about a new subscription
+   * @param apiId : string
+   * @param profileId : string
+   * @param subscriberId : string 
+   */ 
+   async subNotification(apiId:string, profileId: string, subscriberId: string){
+    try {
+        const payload = {
+          apiId: apiId,
+          profileId: profileId,
+          subscriberId: subscriberId
+        }
+  
+        this.n_client.emit('subscription', payload)
+        
+    } catch (error) {
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest('Internal Server Error', error.message, '500')
+        )
+    }
+  }
 
   /**
    * sends an axios post request to the notification service to notify user of new subscriptions
@@ -101,6 +127,9 @@ export class SubscriptionService {
         const subToken: Tokens = {
           subscriptionToken: newSub.subscriptionToken,
         };
+
+        // make request to notification service to notify user of new subscription
+        await this.subNotification(apiId, api.profileId, profileId)
 
         await this.profileRepo.update(profile.id, {
           subscriptions: [...profile.subscriptions, api.id],
