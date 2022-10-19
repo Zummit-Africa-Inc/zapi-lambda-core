@@ -112,15 +112,7 @@ export class EndpointsService {
       const endpoint = await this.endpointRepo.findOne({
         where: { id: endpointId },
       });
-      if (!endpoint) {
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            'Not Found',
-            'Endpoint does not exist',
-            '404',
-          ),
-        );
-      }
+     
 
       body.route
         ? (body.route = encodeURIComponent(
@@ -132,7 +124,6 @@ export class EndpointsService {
        * 2. find the author of the api to use during
        * the logger creation
       */
-     let values = Object.keys(body)
       const api = await this.apiRepo.findOne({
         where:{id: endpoint.apiId}
       })
@@ -140,24 +131,37 @@ export class EndpointsService {
         where: {id:api.profileId}
       })
 
-      const previousValues = await this.endpointRepo
-        .createQueryBuilder()
-        .select(values)
-        .where('id = :enpointId', {endpointId})
-        .execute()
-
-      const updatedEndpoint = await this.endpointRepo
+       const previousValues = await this.endpointRepo.findOne({
+         where: { id: endpointId },
+         select: [
+           'name',
+           'description',
+           'method',
+           'route',
+           'headers',
+           'requestBody',
+         ],
+       });
+       await this.endpointRepo
         .createQueryBuilder()
         .update(Endpoint)
         .set(body)
         .where('id = :endpointId', { endpointId })
         .returning('*')
         .execute();
-      const newValues = await this.endpointRepo
-        .createQueryBuilder()
-        .select(values)
-        .where('id = :enpointId', {endpointId})
-        .execute()
+
+         const newValues = await this.endpointRepo.findOne({
+           where: { id: endpointId },
+           select: [
+             'name',
+             'description',
+             'method',
+             'route',
+             'headers',
+             'requestBody',
+           ],
+         });
+      
       //LOG THE UPDATE MADE
       const logger = await this.loggerRepo.create({
         entity_type: 'endpoint',
@@ -169,7 +173,7 @@ export class EndpointsService {
       })
       await this.loggerRepo.save(logger)
 
-      return updatedEndpoint.raw[0];
+      return newValues;
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
@@ -186,15 +190,7 @@ export class EndpointsService {
       const endpoint = await this.endpointRepo.findOne({
         where: { id: endpointId },
       });
-      if (!endpoint) {
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            'Not Found',
-            'Endpoint does not exist',
-            '404',
-          ),
-        );
-      }
+     
       /**
        * 1. find the api that this endpoint belongs to
        * 2. find the author of the api to use during

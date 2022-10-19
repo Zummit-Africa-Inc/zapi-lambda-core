@@ -14,12 +14,13 @@ import { Subscription } from '../entities/subscription.entity';
 import { Tokens } from 'src/common/interfaces/subscriptionToken.interface';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { HttpService } from '@nestjs/axios';
-import { AnalyticsService } from 'src/analytics/analytics.service';
 import { ApiRequestDto } from './dto/make-request.dto';
 import { ConfigService } from '@nestjs/config';
 import { lastValueFrom } from 'rxjs';
 import { AxiosResponse } from 'axios';
 import { ClientProxy } from '@nestjs/microservices';
+import { HttpCallService } from './httpCall.service';
+import { FreeApis } from './apis';
 
 @Injectable()
 export class SubscriptionService {
@@ -34,7 +35,7 @@ export class SubscriptionService {
     private readonly subscriptionRepo: Repository<Subscription>,
     private jwtService: JwtService,
     private httpService: HttpService,
-    private readonly analyticsService: AnalyticsService,
+    private readonly httpCallService: HttpCallService,
     private readonly configService: ConfigService,
     @Inject('NOTIFY_SERVICE') private readonly n_client: ClientProxy
   ) {}
@@ -107,7 +108,18 @@ export class SubscriptionService {
           ),
         );
       }
+
       if (api && profile) {
+        if (profileId === api.profileId) {
+          throw new BadRequestException(
+            ZaLaResponse.BadRequest(
+              'Bad request',
+              "You can't subscribe to your own api",
+              '400',
+            ),
+          );
+        }
+
         const subscriptionToken = await this.setTokens(apiId, profileId);
         const subPayload = { apiId, profileId, subscriptionToken };
         const userSubscription = this.subscriptionRepo.create(subPayload);
@@ -126,6 +138,9 @@ export class SubscriptionService {
         await this.apiRepo.update(api.id, {
           subscriptions: [...api.subscriptions, profile.id],
         });
+
+        // make request to notification service to notify user of new subscription
+        this.subscriptionNotification(apiId, api.profileId, profileId);
 
         return subToken;
       }
@@ -156,88 +171,65 @@ export class SubscriptionService {
     return subscriptionToken;
   }
 
-  async apiRequest(
-    token: string,
-    body: ApiRequestDto,
-    api_id?: string,
-  ): Promise<any> {
-    const { api, profile } = await this.verifySub(token, api_id);
-    const encodedRoute = encodeURIComponent(body.route);
-    const endpoint = await this.endpointRepository.findOne({
-      where: {
-        apiId: api.id,
-        method: body.method,
-        route: encodedRoute,
-      },
-    });
-
-    if (!endpoint) {
-      throw new BadRequestException(
-        ZaLaResponse.BadRequest('Server Error', 'Wrong Endpoint', '400'),
-      );
-    }
-    // we need to check that the name, data type and requirements for each property in the
-    //endpoints.payload are met explicitly
-
-    const uniqueApiSecurityKey = api.secretKey;
-    const base_url = api.base_url;
-    const endRoute = endpoint.route;
-    const endMethod = endpoint.method.toLowerCase();
-    const url = base_url + `${endRoute}`;
-    const ref = this.httpService.axiosRef;
+  async apiRequest(token: string, body: ApiRequestDto): Promise<any> {
     try {
-      try {
-        /* Getting the current time in nanoseconds. */
-        const startTime = process.hrtime();
-
-        /* Making a request to the api with the payload and the secret key. */
-        const axiosResponse = await ref({
-          method: endMethod,
-          url: url,
-          data: body.payload,
-          headers: { 'X-Zapi-Proxy-Secret': uniqueApiSecurityKey },
-        });
-
-        /* Calculating the time it takes to make a request to the api. */
-        const totalTime = process.hrtime(startTime);
-        const totalTimeInMs = totalTime[0] * 1000 + totalTime[1] / 1e6;
-
-        const data = axiosResponse.data;
-
-        this.analyticsService.updateAnalytics(
-          axiosResponse.status,
-          api.id,
-          totalTimeInMs,
-        );
-        this.analyticsService.analyticLogs({
-          status: axiosResponse.status,
-          latency: Math.round(totalTimeInMs),
-          profileId: profile.id,
+      const { api, profile } = await this.verifySub(token);
+      const encodedRoute = encodeURIComponent(body.route);
+      const endpoint = await this.endpointRepository.findOne({
+        where: {
           apiId: api.id,
-          endpoint: endRoute,
-          method: endMethod,
-        });
+          method: body.method,
+          route: encodedRoute,
+        },
+      });
 
-        return data;
-      } catch (error) {
-        this.analyticsService.updateAnalytics(error.response.status, api.id);
-        this.analyticsService.analyticLogs({
-          status: error.response.status,
-          errorMessage: error.response.statusText,
-          profileId: profile.id,
-          apiId: api.id,
-          endpoint: endRoute,
-          method: endMethod,
-        });
-
+      if (!endpoint) {
         throw new BadRequestException(
-          ZaLaResponse.BadRequest(
-            'External server error',
-            `Message from external server: '${error.message}'`,
-            '500',
-          ),
+          ZaLaResponse.BadRequest('Server Error', 'Wrong Endpoint', '400'),
         );
       }
+
+      const requestProps = {
+        apiId: api.id,
+        payload: body.payload,
+        profileId: profile.id,
+        base_url: api.base_url,
+        endpoint: endpoint.route,
+        secretKey: api.secretKey,
+        method: endpoint.method.toLowerCase(),
+      };
+
+      return await this.httpCallService.call(requestProps);
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal server error', error.message, '500'),
+      );
+    }
+  }
+
+  /**
+   * It takes a token, payload, and apiId as arguments, and returns a promise of an object
+   * @param {string} token - the token that was generated by the jwtService.sign() method
+   * @param {any} payload - any
+   * @param {string} apiId - the id of the api you want to call
+   * @returns The response from the API call.
+   */
+  async freeApiRequest(token: string, body: any, apiId: string): Promise<any> {
+    try {
+      const secret = process.env.JWT_SUBSCRIPTION_SECRET;
+      const { profileId } = await this.jwtService.verify(token, { secret });
+      const api = FreeApis.find((api) => api.id === apiId);
+
+      const requestProps = {
+        profileId,
+        apiId: api.id,
+        endpoint: api.route,
+        payload: body.payload,
+        base_url: api.base_url,
+        secretKey: api.secretKey,
+        method: api.method.toLowerCase(),
+      };
+      return await this.httpCallService.call(requestProps);
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal server error', error.message, '500'),
@@ -250,35 +242,14 @@ export class SubscriptionService {
    * @param {string} token - the token generated by the user when they subscribe to the api
    * @returns The api and profile are being returned.
    */
-  async verifySub(token: string, api_id?: string) {
+  async verifySub(token: string): Promise<any> {
     try {
       const secret = process.env.JWT_SUBSCRIPTION_SECRET;
-      if (api_id) {
-        const api = await this.apiRepo.findOneBy({ id: api_id });
-        const { profileId } = await this.jwtService.verify(token, { secret });
-        if (profileId === process.env.FREE_REQUEST_ID) {
-          const profile = await this.profileRepo.findOneBy({
-            id: profileId,
-          });
-
-          return { api, profile };
-        } else {
-          throw new UnauthorizedException(
-            ZaLaResponse.BadRequest(
-              'Unauthorized',
-              'Unauthorized request',
-              '401',
-            ),
-          );
-        }
-      }
-
       const { apiId, profileId } = this.jwtService.verify(token, { secret });
-      // both the API and the profile are fetched from the database
       const api = await this.apiRepo.findOneBy({ id: apiId });
       const profile = await this.profileRepo.findOneBy({ id: profileId });
-      // the api's subscriptions column is checked if it includes this current user through its profileId
 
+      /* Checking if the user is subscribed to the api. */
       const subscribed = api.subscriptions.includes(profile.id);
       if (!subscribed) {
         throw new UnauthorizedException(

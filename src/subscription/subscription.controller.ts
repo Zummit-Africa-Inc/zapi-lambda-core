@@ -13,6 +13,7 @@ import { ApiRequestDto } from './dto/make-request.dto';
 import { SubscriptionService } from './subscription.service';
 import { Tokens } from 'src/common/interfaces/subscriptionToken.interface';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
+import { FreeRequestDto } from './dto/make-request.dto';
 
 @ApiTags('Subscription')
 @Controller('subscription')
@@ -52,13 +53,12 @@ export class SubscriptionController {
     return ZaLaResponse.Ok(request, 'Request Successful', '200');
   }
 
-  @IdCheck('apiId')
   @Post('/free-request/:apiId')
   @ApiOperation({ summary: 'Free api request' })
   async freeRequest(
     @Headers('X-ZAPI-FREE-TOKEN') token: string,
     @Param('apiId') apiId: string,
-    @Body() requestBody: ApiRequestDto,
+    @Body() requestBody: FreeRequestDto,
   ): Promise<Ok<any>> {
     if (!token) {
       throw new BadRequestException(
@@ -69,12 +69,17 @@ export class SubscriptionController {
         ),
       );
     }
-    const request = await this.subscriptionService.apiRequest(
+    const request = await this.subscriptionService.freeApiRequest(
       token,
       requestBody,
       apiId,
     );
-    return ZaLaResponse.Ok(request, 'Request Successful', '200');
+    const data = Array.isArray(request) ? request[0] : request;
+    let response = Object.values(data);
+
+    for (let value of response) {
+      return ZaLaResponse.Ok(value, 'Request Successful', '200');
+    }
   }
 
   @Get('/user-subscriptions/:profileId')

@@ -27,6 +27,7 @@ import {
 } from 'nestjs-paginate';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { Action } from 'src/common/enums/actionLogger.enum';
+import { FreeApis } from 'src/subscription/apis';
 
 @Injectable()
 export class ApiService {
@@ -74,15 +75,6 @@ export class ApiService {
     try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
 
-      if (!api) {
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            'Not found',
-            'The api does not exist',
-            '404',
-          ),
-        );
-      }
       if (profileId && (await this.verify(apiId, profileId))) {
         return api;
       } else {
@@ -119,6 +111,7 @@ export class ApiService {
           ZaLaResponse.BadRequest(
             'Existing values',
             'An api with with this name already exist... try another name',
+            '403',
           ),
         );
       }
@@ -134,7 +127,11 @@ export class ApiService {
       return savedApi;
     } catch (err) {
       throw new BadRequestException(
-        ZaLaResponse.BadRequest('Internal Server error', err.message, '500'),
+        ZaLaResponse.BadRequest(
+          err.response.error,
+          err.response.message,
+          err.response.errorCode,
+        ),
       );
     }
   }
@@ -193,12 +190,21 @@ export class ApiService {
           );
         }
         //Bring out previous values of the api before editing
-        let values = Object.keys(updateApiDto);
-        const apiPrevious = await this.apiRepo
-          .createQueryBuilder()
-          .select(values)
-          .where('id = :apiId', { apiId })
-          .execute();
+        const previousValues = await this.apiRepo.findOne({
+          where: { id: apiId },
+          select: [
+            'name',
+            'description',
+            'base_url',
+            'about',
+            'categoryId',
+            'logo_url',
+            'api_website',
+            'term_of_use',
+            'read_me',
+            'visibility',
+          ],
+        });
 
         /* Checking if the user is also updating the Api name
          *  then check if the new updated API name already exist.
@@ -259,7 +265,7 @@ export class ApiService {
           entity_type: 'api',
           identifier: api.id,
           action_type: Action.Update,
-          previous_values: apiPrevious,
+          previous_values: previousValues,
           new_values: { ...updateApiDto },
           operated_by: email,
         });
@@ -428,11 +434,11 @@ export class ApiService {
    * variable FREE_REQUEST_ID
    * @returns An array of Api objects.
    */
-  async freeRequest(): Promise<Api[]> {
+  async freeRequest() {
     try {
-      return await this.apiRepo.find({
-        where: { profileId: process.env.FREE_REQUEST_ID },
-      });
+      return FreeApis.filter(
+        (api) => api.profileId === process.env.FREE_REQUEST_ID,
+      );
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),

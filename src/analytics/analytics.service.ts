@@ -28,9 +28,20 @@ export class AnalyticsService {
     latency = 0,
   ): Promise<void> {
     try {
-      const analytic = await this.analyticsRepository.findOne({
-        where: { apiId },
-      });
+      const a = async (): Promise<Analytics> => {
+        const analytic = await this.analyticsRepository.findOne({
+          where: { apiId },
+        });
+
+        if (analytic) {
+          return analytic;
+        } else {
+          const newAnalytic = this.analyticsRepository.create({ apiId });
+          return await this.analyticsRepository.save(newAnalytic);
+        }
+      };
+
+      const analytic = await a();
 
       const totalLatency = analytic.totalLatency + Math.round(latency);
 
