@@ -126,7 +126,6 @@ export class ApiService {
       this.analyticsRepo.save(analytics);
       return savedApi;
     } catch (err) {
-      
       throw new BadRequestException(
         ZaLaResponse.BadRequest(
           err.response.error,
@@ -191,12 +190,21 @@ export class ApiService {
           );
         }
         //Bring out previous values of the api before editing
-        let values = Object.keys(updateApiDto);
-        const apiPrevious = await this.apiRepo
-          .createQueryBuilder()
-          .select(values)
-          .where('id = :apiId', { apiId })
-          .execute();
+        const previousValues = await this.apiRepo.findOne({
+          where: { id: apiId },
+          select: [
+            'name',
+            'description',
+            'base_url',
+            'about',
+            'categoryId',
+            'logo_url',
+            'api_website',
+            'term_of_use',
+            'read_me',
+            'visibility',
+          ],
+        });
 
         /* Checking if the user is also updating the Api name
          *  then check if the new updated API name already exist.
@@ -257,7 +265,7 @@ export class ApiService {
           entity_type: 'api',
           identifier: api.id,
           action_type: Action.Update,
-          previous_values: apiPrevious,
+          previous_values: previousValues,
           new_values: { ...updateApiDto },
           operated_by: email,
         });
