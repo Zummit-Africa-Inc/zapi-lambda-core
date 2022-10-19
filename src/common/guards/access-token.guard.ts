@@ -19,7 +19,7 @@ export class AccessTokenGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     try {
       const request = context.switchToHttp().getRequest();
-      const authHeader = request.headers.zapi_auth_token;
+      const authHeader = request.headers.Zapi_Auth_token;
       const isPublic = this.reflector.get<boolean>(
         'isPublic',
         context.getHandler(),
@@ -32,8 +32,8 @@ export class AccessTokenGuard implements CanActivate {
       if (!authHeader) {
         throw new UnauthorizedException(
           ZaLaResponse.BadRequest(
-            'Unauthorized',
-            'You are not authorized to make this request',
+            'Authentication Error',
+            'Authentication required to make this request',
             '401',
           ),
         );
@@ -46,8 +46,8 @@ export class AccessTokenGuard implements CanActivate {
       if (!decodedToken) {
         throw new UnauthorizedException(
           ZaLaResponse.BadRequest(
-            'Unauthorized',
-            'Wrong or invalid token',
+            'Authorization Error',
+            'You are not authorized to make this request',
             '401',
           ),
         );
