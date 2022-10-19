@@ -10,9 +10,15 @@ import {
   UploadedFile,
   ParseFilePipe,
   MaxFileSizeValidator,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiService } from './api.service';
-import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CreateApiDto } from './dto/create-api.dto';
 import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { Api } from '../entities/api.entity';
@@ -21,8 +27,10 @@ import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
+import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
 
 @ApiTags('Apis')
+@ApiBearerAuth('access-token')
 @Controller('api')
 export class ApiController {
   constructor(private readonly apiService: ApiService) {}
@@ -70,6 +78,7 @@ export class ApiController {
   }
 
   @Delete(':apiId')
+  @UseGuards(AccessTokenGuard)
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Delete an API' })
   async deleteApi(
@@ -100,6 +109,7 @@ export class ApiController {
   UpdateResult. */
   @Patch(':apiId')
   @IdCheck('apiId')
+  @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Update an API' })
   async update(
     @Param('apiId') apiId: string,

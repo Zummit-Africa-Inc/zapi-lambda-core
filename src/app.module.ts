@@ -10,6 +10,7 @@ import { ProfileModule } from './profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from 'ormconfig';
 import { ApiModule } from './api/api.module';
+import { JwtService } from '@nestjs/jwt';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { Profile } from './entities/profile.entity';
 import { Api } from './entities/api.entity';
@@ -19,8 +20,8 @@ import { Pricing } from './entities/pricing.entity';
 import { Subscription } from './entities/subscription.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { IdCheckGuard } from './common/guards/idcheck.guard';
-import { Logger } from './entities/logger.entity';
-import { LoggerModule } from './logger/logger.module';
+import { Logger } from 'src/entities/logger.entity';
+import { LoggerModule } from 'src/logger/logger.module';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -53,7 +54,7 @@ const RabbitMQService = {
       Endpoint,
       Pricing,
       Subscription,
-      Logger
+      Logger,
     ]),
     TypeOrmModule.forRoot(AppDataSource.options),
     EndpointsModule,
@@ -62,17 +63,18 @@ const RabbitMQService = {
     ApiModule,
     CategoriesModule,
     AnalyticsModule,
-    LoggerModule
+    LoggerModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     RabbitMQService,
+    JwtService,
     {
       provide: APP_GUARD,
       useClass: IdCheckGuard,
     },
   ],
-  exports: [RabbitMQService],
+  exports: [RabbitMQService, JwtService],
 })
 export class AppModule {}

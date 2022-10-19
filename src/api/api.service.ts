@@ -416,8 +416,13 @@ export class ApiService {
           where: { profileId },
         })
       ).map(async (sub) => {
-        const { name } = await this.getAnApi(sub.apiId);
-        return { id: sub.id, name, token: sub.subscriptionToken };
+        const { name, id } = await this.getAnApi(sub.apiId);
+        return {
+          id: sub.id,
+          apiId: id,
+          name,
+          token: sub.subscriptionToken,
+        };
       });
 
       const apis = await Promise.all(data);

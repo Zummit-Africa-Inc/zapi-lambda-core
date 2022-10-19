@@ -20,8 +20,8 @@ import { ClientProxy, EventPattern } from '@nestjs/microservices';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TestDto } from 'src/test.dto';
 import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
-import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 
 @ApiTags('Profile')
