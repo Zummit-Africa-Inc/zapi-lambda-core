@@ -19,10 +19,7 @@ export class AccessTokenGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     try {
       const request = context.switchToHttp().getRequest();
-      const authHeader = request.headers.zapi_auth_token;
-      console.log("authHeader-->", authHeader);
-      console.log("request headers", request.headers);
-      console.log("zapi_auth_token", request.headers.Zapi_Auth_token);
+      const authHeader = request.headers["x-zapi-auth-token"];
       const isPublic = this.reflector.get<boolean>(
         'isPublic',
         context.getHandler(),
@@ -42,12 +39,9 @@ export class AccessTokenGuard implements CanActivate {
         );
       }
       const token = authHeader.split(' ')[1];
-      console.log("token-->", token);
       const decodedToken = await this.jwtService.verify(token, {
         secret: process.env.ACCESS_SECRET,
       });
-      console.log("ACCESS_SECRET", process.env.ACCESS_SECRET);
-      
 
       if (!decodedToken) {
         throw new UnauthorizedException(
