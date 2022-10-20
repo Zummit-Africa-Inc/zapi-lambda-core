@@ -49,6 +49,22 @@ export class ApiService {
   ) {}
 
   /**
+   * ensures user cannot add an api to the popular, trending and recommended apis category
+   * @param categoryId - string - id of the category that the api is being added to
+   */
+  async isCategoryValid(categoryId: string):Promise<void>{
+    const category = await this.categoryRepo.findOne({where:{id : categoryId}})
+      if(category.name == 'Popular APIs' || 'Trending APIs'|| 'Recommended APIs'){
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            'Bad Request',
+            'You cannot add an api to this category',
+            '400',
+          ),
+        );
+      }
+  }
+  /**
    * It gets all the apis for a user
    * @param {string} profileId - string - this is the id of the user whose apis we are fetching
    * @returns An array of Api objects.
@@ -102,6 +118,9 @@ export class ApiService {
    */
   async createApi(createApiDto: CreateApiDto, profileId: string): Promise<Api> {
     try {
+      // ensures user cannot add api to popular, trending and recommended categories
+      await this.isCategoryValid(createApiDto.categoryId)
+
       const apiExist = await this.apiRepo.findOne({
         where: { name: createApiDto.name },
       });
@@ -180,6 +199,9 @@ export class ApiService {
     updateApiDto: UpdateApiDto,
   ): Promise<Api> {
     try {
+      // ensures user cannot add api to popular, trending and recommended categories
+      await this.isCategoryValid(updateApiDto.categoryId)
+
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
       if (api) {
         /* Checking if the user is the owner of the api. */
