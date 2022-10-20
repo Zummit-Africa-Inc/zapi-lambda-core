@@ -12,7 +12,7 @@ export class Subscription extends SharedEntity {
   profileId: string;
 
   @ManyToOne(() => Api, (api) => api.subscription, {
-    onDelete: 'SET NULL',
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'apiId' })
   api: Api;
