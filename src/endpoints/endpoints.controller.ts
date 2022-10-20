@@ -71,6 +71,6 @@ export class EndpointsController {
     @Param('endpointId') endpointId: string,
   ): Promise<Ok<string>> {
     await this.endpointsService.delete(endpointId);
-    return ZaLaResponse.Ok('success', 'Ok', 200);
+    return ZaLaResponse.Ok('success', 'Endpoint Deleted', 203);
   }
 }
