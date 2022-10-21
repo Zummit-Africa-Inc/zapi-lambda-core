@@ -11,20 +11,26 @@ import {
   UploadedFile,
   MaxFileSizeValidator,
   ParseFilePipe,
+  UseGuards,
+  Query,
 } from '@nestjs/common';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { ProfileService } from './profile.service';
 import { Profile } from '../entities/profile.entity';
 import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { ClientProxy, EventPattern } from '@nestjs/microservices';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TestDto } from 'src/test.dto';
 import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
+import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
+import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 
 @ApiTags('Profile')
+@ApiBearerAuth('access-token')
+@UseGuards(AccessTokenGuard)
 @Controller('profile')
 export class ProfileController {
   constructor(
@@ -51,10 +57,12 @@ export class ProfileController {
 
   @Patch(':profileId')
   @IdCheck('profileId')
+  @UseGuards(AuthorizationGuard)
   @ApiOperation({ summary: 'Update an existing profile' })
   async updateProfile(
     @Param('profileId', ParseUUIDPipe) profileId: string,
     @Body() updateProfileDto: UpdateProfileDto,
+    @Query('profileId') user_profile_id: string,
   ): Promise<Ok<Profile>> {
     const profile = await this.profileService.updateProfile(
       profileId,
@@ -64,8 +72,8 @@ export class ProfileController {
   }
 
   @Post('profile-image/:profileId')
-  @ApiOperation({ summary: 'Upload profile image' })
   @IdCheck('profileId')
+  @ApiOperation({ summary: 'Upload profile image' })
   @ApiFile('image', true, { fileFilter: fileMimetypeFilter('image') })
   async upload(
     @Param('profileId') profileId: string,
@@ -82,9 +90,11 @@ export class ProfileController {
 
   @Delete('/:profileId')
   @IdCheck('profileId')
+  @UseGuards(AuthorizationGuard)
   @ApiOperation({ summary: 'Delete a profile' })
   async deleteOne(
     @Param('profileId', new ParseUUIDPipe()) profileId: string,
+    @Query('profileId') user_profile_id: string,
   ): Promise<Ok<string>> {
     await this.profileService.deleteProfile(profileId);
     return ZaLaResponse.Ok('Profile deleted successfully', 'Ok', 200);

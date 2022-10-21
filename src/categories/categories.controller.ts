@@ -6,16 +6,21 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from '../entities/category.entity';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
+import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
+import { Public } from 'src/common/decorators/publicRoute.decorator';
 
 @ApiTags('Categories')
+@ApiBearerAuth('access-token')
+@UseGuards(AccessTokenGuard)
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoryService: CategoriesService) {}
@@ -32,6 +37,7 @@ export class CategoriesController {
   }
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Get all available category' })
   async findAll(): Promise<Ok<Category[]>> {
     const allCategories = await this.categoryService.findAllCategory();
@@ -47,12 +53,12 @@ export class CategoriesController {
 
   @Delete('/:categoryId/:generalCategoryId')
   @IdCheck('categoryId')
-  @ApiOperation({summary: "delete a category"})
+  @ApiOperation({ summary: 'delete a category' })
   async deleteCategory(
     @Param('categoryId') categoryId: string,
-    @Param('generalCategoryId') generalCategoryId: string 
-  ){
-    await this.categoryService.deleteCategory(categoryId, generalCategoryId)
-    return ZaLaResponse.Ok('Category deleted', 'OK', '200')
+    @Param('generalCategoryId') generalCategoryId: string,
+  ) {
+    await this.categoryService.deleteCategory(categoryId, generalCategoryId);
+    return ZaLaResponse.Ok('Category deleted', 'OK', '200');
   }
 }

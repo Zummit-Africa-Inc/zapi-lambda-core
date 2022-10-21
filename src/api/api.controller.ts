@@ -28,8 +28,11 @@ import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
 import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
+import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { Public } from 'src/common/decorators/publicRoute.decorator';
 
 @ApiTags('Apis')
+@UseGuards(AccessTokenGuard)
 @ApiBearerAuth('access-token')
 @Controller('api')
 export class ApiController {
@@ -55,12 +58,6 @@ export class ApiController {
     return ZaLaResponse.Ok(userApis, 'OK', '200');
   }
 
-  /**
-   * @Get request that takes
-   * @Param {string} profileId as optional and {string} apiId as required
-   * @returns a response from the api.service
-   */
-
   @Get('/findOne/:apiId')
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Get an API' })
@@ -78,7 +75,7 @@ export class ApiController {
   }
 
   @Delete(':apiId')
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(AuthorizationGuard)
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Delete an API' })
   async deleteApi(
@@ -108,14 +105,14 @@ export class ApiController {
   /* A put request that takes in an apiId, profileId, and a body and returns a promise of an
   UpdateResult. */
   @Patch(':apiId')
+  @UseGuards(AuthorizationGuard)
   @IdCheck('apiId')
-  @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Update an API' })
   async update(
     @Param('apiId') apiId: string,
     @Query('profileId') profileId: string,
     @Body() updateApiDto: UpdateApiDto,
-  ): Promise<Ok<Api>> {
+  ): Promise<Ok<any>> {
     const api = await this.apiService.update(apiId, profileId, updateApiDto);
     return ZaLaResponse.Ok(api, 'Api Updated', '200');
   }
@@ -135,6 +132,7 @@ export class ApiController {
     return ZaLaResponse.Ok(apis, 'Ok', '200');
   }
 
+  @Public()
   @Get('/free-request')
   @ApiOperation({ summary: 'Get free access APIs' })
   async getAll() {
