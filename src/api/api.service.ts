@@ -453,7 +453,7 @@ export class ApiService {
 
   async getPopularAPis(){
     try {
-      const apis = await this.apiRepo.query('SELECT * FROM Api ORDER BY cardinality(subscriptions) DESC') 
+      const apis = await this.apiRepo.query(`SELECT * FROM Api ORDER BY cardinality(subscriptions) DESC LIMIT 20`) 
       return apis
     } catch (error) {
       throw new BadRequestException(
