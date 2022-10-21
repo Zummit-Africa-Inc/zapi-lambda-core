@@ -118,6 +118,7 @@ export class ApiController {
   }
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Get or search all apis' })
   async findAll(@Paginate() query: PaginateQuery): Promise<Ok<Paginated<Api>>> {
     const apis = await this.apiService.findAll(query);
