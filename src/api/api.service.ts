@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ZaLaResponse } from 'src/common/helpers/response';
-import { Repository } from 'typeorm';
+import { Connection, EntityManager, Repository } from 'typeorm';
 import { Api } from '../entities/api.entity';
 import { Profile } from 'src/entities/profile.entity';
 import { Logger } from 'src/entities/logger.entity';
@@ -448,6 +448,16 @@ export class ApiService {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
       );
+    }
+  }
+
+  async getPopularAPis(){
+    try {
+      return await this.apiRepo.query('SELECT * FROM Api ORDER BY cardinality(subscriptions) DESC')
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+      ); 
     }
   }
 }

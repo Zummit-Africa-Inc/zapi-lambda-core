@@ -141,4 +141,11 @@ export class ApiController {
     const apis = await this.apiService.freeRequest();
     return ZaLaResponse.Ok(apis, 'Ok', '200');
   }
+
+  @Get('/popular-apis')
+  @ApiOperation({ summary: 'Get most popular apis based on user subscriptions'})
+  async getPopularApis(): Promise<Ok<Api[]>>{
+    const apis = await this.apiService.getPopularAPis()
+    return ZaLaResponse.Ok(apis, 'OK', '200')
+  }
 }
