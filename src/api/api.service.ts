@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ZaLaResponse } from 'src/common/helpers/response';
-import { Connection, EntityManager, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Api } from '../entities/api.entity';
 import { Profile } from 'src/entities/profile.entity';
 import { Logger } from 'src/entities/logger.entity';
