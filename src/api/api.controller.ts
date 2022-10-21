@@ -126,12 +126,8 @@ export class ApiController {
 
   @Get('/dev-platform-data/:profileId')
   @IdCheck('profileId')
-  @UseGuards(AuthorizationGuard)
   @ApiOperation({ summary: "Get Developer's Platform Data" })
-  async getdpd(
-    @Param('profileId') profileId: string,
-    @Query('profileId') profile_id: string,
-  ): Promise<Ok<Api[]>> {
+  async getdpd(@Param('profileId') profileId: string): Promise<Ok<Api[]>> {
     const apis = await this.apiService.getDPD(profileId);
     return ZaLaResponse.Ok(apis, 'Ok', '200');
   }
