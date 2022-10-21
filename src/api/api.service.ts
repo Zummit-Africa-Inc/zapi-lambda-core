@@ -453,7 +453,8 @@ export class ApiService {
 
   async getPopularAPis(){
     try {
-      return await this.apiRepo.query('SELECT * FROM Api ORDER BY cardinality(subscriptions) DESC')
+      const apis = await this.apiRepo.query('SELECT * FROM Api ORDER BY cardinality(subscriptions) DESC') 
+      return apis
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
