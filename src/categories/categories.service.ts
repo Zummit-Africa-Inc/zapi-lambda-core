@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable,  } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { InvalidCategories } from 'src/common/enums/invalidCategories.enum';
 import { ZaLaResponse } from 'src/common/helpers/response';
 import { Api } from 'src/entities/api.entity';
 import { Category } from 'src/entities/category.entity';
@@ -92,6 +93,34 @@ export class CategoriesService {
           error.message,
           error.status
         )
+      )
+    }
+  }
+
+  /**
+   * it gets a list of all the categories that apis can be added to
+   * @returns a lis of categories
+   */
+  async getAllValidCategories(): Promise<Category[]>{
+    try{
+      const categories = await this.categoryRepo.find()
+      const invalidCategories = Object.values(InvalidCategories)
+      
+      // loop through categories list and invalid categories list
+      invalidCategories.forEach(invalidCategory=>{
+        categories.forEach(category=>{
+          // remove category if it can be found in the invalid categories enum 
+          if(invalidCategory === category.name){
+            const index = categories.indexOf(category)
+            categories.splice(index, 1)
+          }
+        })
+      })
+      return categories
+    }
+    catch(err){
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(err.name, err.message, err.status)
       )
     }
   }

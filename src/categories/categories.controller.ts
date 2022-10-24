@@ -51,14 +51,21 @@ export class CategoriesController {
     return this.categoryService.getAllApis(categoryId);
   }
 
-  @Delete('/:categoryId/:generalCategoryId')
-  @IdCheck('categoryId')
-  @ApiOperation({ summary: 'delete a category' })
-  async deleteCategory(
-    @Param('categoryId') categoryId: string,
-    @Param('generalCategoryId') generalCategoryId: string,
-  ) {
-    await this.categoryService.deleteCategory(categoryId, generalCategoryId);
-    return ZaLaResponse.Ok('Category deleted', 'OK', '200');
+  @Get('/valid-categories')
+  @ApiOperation({summary:'get all valid categories that an api can be added to'})
+  async getAllValidCategories(): Promise<Ok<Category[]>>{
+    const validCategories = await this.categoryService.getAllValidCategories()
+    return ZaLaResponse.Ok(validCategories, 'Ok', '200')
   }
+
+  // @Delete('/:categoryId/:generalCategoryId')
+  // @IdCheck('categoryId')
+  // @ApiOperation({summary: "delete a category"})
+  // async deleteCategory(
+  //   @Param('categoryId') categoryId: string,
+  //   @Param('generalCategoryId') generalCategoryId: string 
+  // ){
+  //   await this.categoryService.deleteCategory(categoryId, generalCategoryId)
+  //   return ZaLaResponse.Ok('Category deleted', 'OK', '200')
+  // }
 }
