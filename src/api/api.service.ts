@@ -75,7 +75,7 @@ export class ApiService {
     try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
 
-      if (profileId && (await this.verify(apiId, profileId))) {
+      if (api.profileId === profileId) {
         return api;
       } else {
         delete api.base_url;
@@ -137,35 +137,6 @@ export class ApiService {
   }
 
   /**
-   * It checks if the profileId of the api is the same as the profileId of the user.
-   * </code>
-   * @param {string} apiId - the id of the api
-   * @param {string} profileId - The id of the profile that is being verified
-   * @returns a boolean value.
-   */
-  async verify(apiId: string, profileId: string): Promise<boolean> {
-    try {
-      const api = await this.apiRepo.findOne({ where: { id: apiId } });
-      if (!api) {
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            'Not found',
-            'The api does not exist',
-            '404',
-          ),
-        );
-      } else {
-        const status = api.profileId === profileId ? true : false;
-        return status;
-      }
-    } catch (err) {
-      throw new BadRequestException(
-        ZaLaResponse.BadRequest('Internal Server error', err.message, '500'),
-      );
-    }
-  }
-
-  /**
    * It checks if the user is the owner of the api, if yes, it updates the api.
    * </code>
    * @param {string} apiId - The id of the api to be updated.
@@ -182,13 +153,6 @@ export class ApiService {
     try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
       if (api) {
-        /* Checking if the user is the owner of the api. */
-        const verified = await this.verify(apiId, profileId);
-        if (verified === false) {
-          throw new BadRequestException(
-            ZaLaResponse.BadRequest('Forbidden', 'Unauthorized action', '403'),
-          );
-        }
         //Bring out previous values of the api before editing
         const previousValues = await this.apiRepo.findOne({
           where: { id: apiId },
@@ -251,17 +215,15 @@ export class ApiService {
             : updateApiDto.base_url
           : null;
 
-        const updatedApi = await this.apiRepo
-          .createQueryBuilder()
-          .update(Api)
-          .set(updateApiDto)
-          .where('id = :apiId', { apiId })
-          .returning('*')
-          .execute();
+        const updatedApi = await this.apiRepo.save({
+          ...api,
+          ...updateApiDto,
+        });
+
         const { email } = await this.profileRepo.findOne({
           where: { id: profileId },
         });
-        const logger = await this.loggerRepo.create({
+        const logger = this.loggerRepo.create({
           entity_type: 'api',
           identifier: api.id,
           action_type: Action.Update,
@@ -270,7 +232,7 @@ export class ApiService {
           operated_by: email,
         });
         await this.loggerRepo.save(logger);
-        return updatedApi.raw[0];
+        return updatedApi;
       } else {
         throw new BadRequestException(
           ZaLaResponse.NotFoundRequest(
@@ -296,20 +258,13 @@ export class ApiService {
   async deleteApi(apiId: string, profileId: string) {
     try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
-      const isOwner = await this.verify(apiId, profileId);
 
-      if (isOwner === false) {
-        throw new NotFoundException(
-          ZaLaResponse.BadRequest('Forbidden', 'Unauthorized action', '403'),
-        );
-      }
-
-      if (api && isOwner === true) {
+      if (api) {
         const { email } = await this.profileRepo.findOne({
           where: { id: profileId },
         });
         //LOG THE DELETE ACTION
-        const logger = await this.loggerRepo.create({
+        const logger = this.loggerRepo.create({
           entity_type: 'api',
           identifier: api.id,
           action_type: Action.Delete,

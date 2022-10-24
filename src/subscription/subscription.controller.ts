@@ -6,16 +6,21 @@ import {
   BadRequestException,
   Get,
   Param,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { ApiRequestDto } from './dto/make-request.dto';
 import { SubscriptionService } from './subscription.service';
 import { Tokens } from 'src/common/interfaces/subscriptionToken.interface';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { FreeRequestDto } from './dto/make-request.dto';
+import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
+import { Public } from 'src/common/decorators/publicRoute.decorator';
 
 @ApiTags('Subscription')
+@ApiBearerAuth('access-token')
+@UseGuards(AccessTokenGuard)
 @Controller('subscription')
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
@@ -54,6 +59,7 @@ export class SubscriptionController {
   }
 
   @Post('/free-request/:apiId')
+  @Public()
   @ApiOperation({ summary: 'Free api request' })
   async freeRequest(
     @Headers('X-ZAPI-FREE-TOKEN') token: string,

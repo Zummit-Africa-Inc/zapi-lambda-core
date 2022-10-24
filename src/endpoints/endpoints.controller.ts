@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -16,9 +17,11 @@ import { CreateEndpointDto } from './dto/create-endpoint.dto';
 import { UpdateEndpointDto } from './dto/update-endpoint.dto';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
+import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 
 @ApiTags('endpoints')
 @ApiBearerAuth('access-token')
+@UseGuards(AccessTokenGuard)
 @Controller('endpoints')
 export class EndpointsController {
   constructor(private readonly endpointsService: EndpointsService) {}
@@ -50,11 +53,12 @@ export class EndpointsController {
 
   @Patch(':endpointId')
   @IdCheck('endpointId')
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(AuthorizationGuard)
   @ApiOperation({ summary: 'Update an endpoint' })
   async updateEndpoint(
     @Param('endpointId') endpointId: string,
     @Body() body: UpdateEndpointDto,
+    @Query('profileId') profileId: string,
   ): Promise<Ok<Endpoint>> {
     const updatedEndpoint = await this.endpointsService.update(
       endpointId,
@@ -65,10 +69,11 @@ export class EndpointsController {
 
   @Delete(':endpointId')
   @IdCheck('endpointId')
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(AuthorizationGuard)
   @ApiOperation({ summary: 'Delete an endpoint' })
   async deleteEndpoint(
     @Param('endpointId') endpointId: string,
+    @Query('profileId') profileId: string,
   ): Promise<Ok<string>> {
     await this.endpointsService.delete(endpointId);
     return ZaLaResponse.Ok('success', 'Endpoint Deleted', 203);

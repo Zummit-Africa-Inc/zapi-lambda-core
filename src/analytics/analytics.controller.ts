@@ -1,13 +1,16 @@
-import { Controller, Get, Param } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AnalyticsService } from './analytics.service';
 import { Analytics } from 'src/entities/analytics.entity';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
 import { AnalyticsLogs } from 'src/entities/analyticsLogs.entity';
+import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
 
 @ApiTags('Analytics')
+@ApiBearerAuth('access-token')
+@UseGuards(AccessTokenGuard)
 @Controller('analytics')
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}

@@ -19,7 +19,8 @@ export class AccessTokenGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     try {
       const request = context.switchToHttp().getRequest();
-      const authHeader = request.headers["x-zapi-auth-token"];
+      const authHeader = request.headers['x-zapi-auth-token'];
+
       const isPublic = this.reflector.get<boolean>(
         'isPublic',
         context.getHandler(),
@@ -52,6 +53,7 @@ export class AccessTokenGuard implements CanActivate {
           ),
         );
       }
+      request.profileId = decodedToken.profileId;
       return true;
     } catch (error) {
       throw new BadRequestException(
