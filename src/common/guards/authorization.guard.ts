@@ -14,9 +14,6 @@ export class AuthorizationGuard implements CanActivate {
       const request = context.switchToHttp().getRequest();
       const requestProfileId = request.query['profileId'];
       const profileId = request.profileId;
-      console.log(requestProfileId);
-      console.log(profileId);
-      
 
       if (requestProfileId !== profileId) {
         throw new ForbiddenException(
