@@ -405,4 +405,19 @@ export class ApiService {
       );
     }
   }
+
+  /**
+   * It returns the top 20 most subscribed apis in the system 
+   * @returns an array of api objects 
+   */
+  async getPopularAPis(){
+    try {
+      const apis = await this.apiRepo.query(`SELECT * FROM Api ORDER BY cardinality(subscriptions) DESC LIMIT 20`) 
+      return apis
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+      ); 
+    }
+  }
 }
