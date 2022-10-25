@@ -7,7 +7,14 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { request } from 'express';
 import { ZaLaResponse } from '../helpers/response';
+
+declare module 'express-serve-static-core' {
+  interface Request {
+    profileId?: string;
+  }
+}
 
 @Injectable()
 export class AccessTokenGuard implements CanActivate {
@@ -18,8 +25,8 @@ export class AccessTokenGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext) {
     try {
-      const request = context.switchToHttp().getRequest();
-      const authHeader = request.headers['x-zapi-auth-token'];
+      const req = context.switchToHttp().getRequest();
+      const authHeader = req.headers['x-zapi-auth-token'];
 
       const isPublic = this.reflector.get<boolean>(
         'isPublic',
@@ -54,6 +61,7 @@ export class AccessTokenGuard implements CanActivate {
         );
       }
       request.profileId = decodedToken.profileId;
+      req.profileId = decodedToken.profileId;
       return true;
     } catch (error) {
       throw new BadRequestException(

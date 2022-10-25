@@ -37,29 +37,32 @@ export class SubscriptionService {
     private httpService: HttpService,
     private readonly httpCallService: HttpCallService,
     private readonly configService: ConfigService,
-    @Inject('NOTIFY_SERVICE') private readonly n_client: ClientProxy
+    @Inject('NOTIFY_SERVICE') private readonly n_client: ClientProxy,
   ) {}
 
   /**
    * it makes a request to the notification service about a new subscription
    * @param apiId : string
    * @param profileId : string
-   * @param subscriberId : string 
-   */ 
-   async subNotification(apiId:string, profileId: string, subscriberId: string){
+   * @param subscriberId : string
+   */
+  async subNotification(
+    apiId: string,
+    profileId: string,
+    subscriberId: string,
+  ) {
     try {
-        const payload = {
-          apiId: apiId,
-          profileId: profileId,
-          subscriberId: subscriberId
-        }
-  
-        this.n_client.emit('subscription', payload)
-        
+      const payload = {
+        apiId: apiId,
+        profileId: profileId,
+        subscriberId: subscriberId,
+      };
+
+      this.n_client.emit('subscription', payload);
     } catch (error) {
-        throw new BadRequestException(
-          ZaLaResponse.BadRequest('Internal Server Error', error.message, '500')
-        )
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
+      );
     }
   }
 
@@ -128,9 +131,6 @@ export class SubscriptionService {
           subscriptionToken: newSub.subscriptionToken,
         };
 
-        // make request to notification service to notify user of new subscription
-        await this.subNotification(apiId, api.profileId, profileId)
-
         await this.profileRepo.update(profile.id, {
           subscriptions: [...profile.subscriptions, api.id],
         });
@@ -139,8 +139,96 @@ export class SubscriptionService {
           subscriptions: [...api.subscriptions, profile.id],
         });
 
+        // make request to notification service to notify user of new subscription
+        this.subNotification(apiId, api.profileId, profileId);
+
         return subToken;
       }
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(error.name, error.message, error.errorCode),
+      );
+    }
+  }
+  /**
+   * It takes an apiId and a profileId, finds the api and profile, checks if the profile is subscribed to
+   * the api, if not, it throws an error, if so, it removes the apiId from the profile's subscriptions
+   * and the profileId from the api's subscriptions, and then deletes the subscription.
+   * @param {string} apiId - string, profileId: string
+   * @param {string} profileId - The id of the profile that is subscribing to the API
+   */
+  async unsubscribe(apiId: string, profileId: string): Promise<void> {
+    try {
+      const api = await this.apiRepo.findOne({ where: { id: apiId } });
+      const profile = await this.profileRepo.findOne({
+        where: { id: profileId },
+      });
+      const isSubscribed = profile.subscriptions.includes(apiId);
+
+      if (!isSubscribed) {
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            'In Subscription',
+            'User is not currently subscribed to this API',
+            '400',
+          ),
+        );
+      }
+
+      await this.profileRepo.update(profile.id, {
+        subscriptions: profile.subscriptions.filter((sub) => sub !== api.id),
+      });
+
+      await this.apiRepo.update(api.id, {
+        subscriptions: api.subscriptions.filter((api) => api !== profile.id),
+      });
+      const sub = await this.subscriptionRepo.findOne({
+        where: {
+          apiId,
+        },
+      });
+
+      await this.subscriptionRepo.delete(sub.id);
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(error.name, error.message, error.errorCode),
+      );
+    }
+  }
+
+  /**
+   * It takes an apiId and profileId, finds the api and subscription, then updates the subscription
+   * with a new token
+   * @param {string} apiId - string, profileId: string
+   * @param {string} profileId - string
+   * @returns The subscriptionToken is being returned.
+   */
+  async revokeToken(apiId: string, profileId: string): Promise<Tokens> {
+    try {
+      const api = await this.apiRepo.findOne({ where: { id: apiId } });
+      const subscription = await this.subscriptionRepo.findOneBy({
+        apiId,
+        profileId,
+      });
+
+      if (!api) {
+        throw new BadRequestException(
+          ZaLaResponse.NotFoundRequest(
+            'Not Found',
+            'Api does not exixt',
+            '404',
+          ),
+        );
+      }
+
+      const subscriptionToken = await this.setTokens(apiId, profileId);
+      await this.subscriptionRepo.update(subscription.id, {
+        ...subscription,
+        subscriptionToken,
+      });
+      return {
+        subscriptionToken,
+      };
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.errorCode),

@@ -7,6 +7,7 @@ import {
   Get,
   Param,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
@@ -17,6 +18,7 @@ import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { FreeRequestDto } from './dto/make-request.dto';
 import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
+import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 
 @ApiTags('Subscription')
 @ApiBearerAuth('access-token')
@@ -25,15 +27,43 @@ import { Public } from 'src/common/decorators/publicRoute.decorator';
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
 
-  @IdCheck('apiId', 'profileId')
-  @Post('subscribe/:apiId/:profileId')
+  @IdCheck('apiId')
+  @UseGuards(AuthorizationGuard)
+  @Post('subscribe/:apiId')
   @ApiOperation({ summary: 'Subscribe to an API' })
   async subscribe(
     @Param('apiId') apiId: string,
-    @Param('profileId') profileId: string,
+    @Query('profileId') profileId: string,
   ): Promise<Ok<Tokens>> {
     const subToken = await this.subscriptionService.subscribe(apiId, profileId);
-    return ZaLaResponse.Ok(subToken, 'User now subscribed to this API', '201');
+    return ZaLaResponse.Ok(subToken, 'Subscription successful', '200');
+  }
+
+  @IdCheck('apiId')
+  @UseGuards(AuthorizationGuard)
+  @Post('unsubscribe/:apiId')
+  @ApiOperation({ summary: 'Unsubscribe from an API' })
+  async unsubscribe(
+    @Param('apiId') apiId: string,
+    @Query('profileId') profileId: string,
+  ): Promise<Ok<string>> {
+    await this.subscriptionService.unsubscribe(apiId, profileId);
+    return ZaLaResponse.Ok('Successful', 'Unsubscription successful', '200');
+  }
+
+  @IdCheck('apiId')
+  @UseGuards(AuthorizationGuard)
+  @Post('revoke/:apiId')
+  @ApiOperation({ summary: 'Revoke a subscription token' })
+  async revokeToken(
+    @Param('apiId') apiId: string,
+    @Query('profileId') profileId: string,
+  ): Promise<Ok<Tokens>> {
+    const subToken = await this.subscriptionService.revokeToken(
+      apiId,
+      profileId,
+    );
+    return ZaLaResponse.Ok(subToken, 'Access key revoked', '200');
   }
 
   @Post('api-request')
