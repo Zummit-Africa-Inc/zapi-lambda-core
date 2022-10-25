@@ -27,12 +27,12 @@ import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
-import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
+import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 
 @ApiTags('Apis')
-@UseGuards(AccessTokenGuard)
+@UseGuards(AuthenticationGuard)
 @ApiBearerAuth('access-token')
 @Controller('api')
 export class ApiController {
@@ -142,9 +142,11 @@ export class ApiController {
   }
 
   @Get('/popular-apis')
-  @ApiOperation({ summary: 'Get most popular apis based on user subscriptions'})
-  async getPopularApis(): Promise<Ok<Api[]>>{
-    const apis = await this.apiService.getPopularAPis()
-    return ZaLaResponse.Ok(apis, 'OK', '200')
+  @ApiOperation({
+    summary: 'Get most popular apis based on user subscriptions',
+  })
+  async getPopularApis(): Promise<Ok<Api[]>> {
+    const apis = await this.apiService.getPopularAPis();
+    return ZaLaResponse.Ok(apis, 'OK', '200');
   }
 }

@@ -15,12 +15,12 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from '../entities/category.entity';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
-import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
+import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 
 @ApiTags('Categories')
 @ApiBearerAuth('access-token')
-@UseGuards(AccessTokenGuard)
+@UseGuards(AuthenticationGuard)
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoryService: CategoriesService) {}
@@ -52,10 +52,12 @@ export class CategoriesController {
   }
 
   @Get('/valid-categories')
-  @ApiOperation({summary:'get all valid categories that an api can be added to'})
-  async getAllValidCategories(): Promise<Ok<Category[]>>{
-    const validCategories = await this.categoryService.getAllValidCategories()
-    return ZaLaResponse.Ok(validCategories, 'Ok', '200')
+  @ApiOperation({
+    summary: 'get all valid categories that an api can be added to',
+  })
+  async getAllValidCategories(): Promise<Ok<Category[]>> {
+    const validCategories = await this.categoryService.getAllValidCategories();
+    return ZaLaResponse.Ok(validCategories, 'Ok', '200');
   }
 
   // @Delete('/:categoryId/:generalCategoryId')
@@ -63,7 +65,7 @@ export class CategoriesController {
   // @ApiOperation({summary: "delete a category"})
   // async deleteCategory(
   //   @Param('categoryId') categoryId: string,
-  //   @Param('generalCategoryId') generalCategoryId: string 
+  //   @Param('generalCategoryId') generalCategoryId: string
   // ){
   //   await this.categoryService.deleteCategory(categoryId, generalCategoryId)
   //   return ZaLaResponse.Ok('Category deleted', 'OK', '200')

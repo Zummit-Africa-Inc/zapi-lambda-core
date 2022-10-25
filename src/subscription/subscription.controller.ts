@@ -16,13 +16,13 @@ import { SubscriptionService } from './subscription.service';
 import { Tokens } from 'src/common/interfaces/subscriptionToken.interface';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { FreeRequestDto } from './dto/make-request.dto';
-import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
+import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 
 @ApiTags('Subscription')
 @ApiBearerAuth('access-token')
-@UseGuards(AccessTokenGuard)
+@UseGuards(AuthenticationGuard)
 @Controller('subscription')
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
