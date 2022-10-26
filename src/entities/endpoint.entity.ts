@@ -1,7 +1,7 @@
 import { SharedEntity } from '../common/model/sharedEntity';
 import { AfterLoad, BeforeInsert, Column, Entity } from 'typeorm';
 import { HttpMethod } from '../common/enums/httpMethods.enum';
-import { ReqBody } from '../endpoints/interface/endpoint.interface';
+import { HeaderType, ReqBody } from 'src/common/interfaces/endpoint.interface';
 
 @Entity()
 export class Endpoint extends SharedEntity {
@@ -25,19 +25,21 @@ export class Endpoint extends SharedEntity {
   @Column()
   description: string;
 
-  @Column('text', {
-    array: true,
-    nullable: true,
-  })
-  headers: object[];
-
-  @Column({
-    type: 'jsonb',
-    array: false,
+  @Column('jsonb', {
     default: () => "'[]'",
     nullable: false,
   })
-  requestBody: ReqBody[];
+  headers: HeaderType[];
+
+  @Column('jsonb', {
+    default: () => "'[]'",
+  })
+  query: HeaderType[];
+
+  @Column('jsonb', {
+    default: () => "'[]'",
+  })
+  body: ReqBody[];
 
   /* A hook that runs before the entity is inserted into the database. It is used to modify the route property of the entity. */
   @BeforeInsert()

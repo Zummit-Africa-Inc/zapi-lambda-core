@@ -1,8 +1,9 @@
 import { Visibility } from 'src/common/enums/visibility.enum';
-import { ReqBody } from 'src/endpoints/interface/endpoint.interface';
 import { HttpMethod } from '../enums/httpMethods.enum';
 import { PartialType } from '@nestjs/swagger';
 import { Endpoint } from '../../entities/endpoint.entity';
+import { HeaderType, ReqBody } from './endpoint.interface';
+import { EndpointHeaderType } from '../enums/endpointHeaderType.enum';
 
 export class LoggerJson extends PartialType(Endpoint) {
   name: string;
@@ -12,14 +13,8 @@ export class LoggerJson extends PartialType(Endpoint) {
   categoryId: string;
   method: HttpMethod;
   route: string;
-  requestBody: ReqBody[];
-  headers: {
-    name: string;
-    description: string;
-    type: string;
-    value: string;
-    required: boolean;
-  }[];
+  body: ReqBody[];
+  headers: HeaderType[];
   logo_url: string;
   api_website: string;
   term_of_use: string;

@@ -1,8 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsString } from 'class-validator';
 import { HttpMethod } from 'src/common/enums/httpMethods.enum';
-import { ReqBody } from '../interface/endpoint.interface';
+import { HeaderType, ReqBody } from 'src/common/interfaces/endpoint.interface';
 import { CreateEndpointDto } from './create-endpoint.dto';
 
 export class UpdateEndpointDto extends PartialType(CreateEndpointDto) {
@@ -18,17 +17,12 @@ export class UpdateEndpointDto extends PartialType(CreateEndpointDto) {
   @ApiPropertyOptional()
   route: string;
 
-  @IsArray()
   @ApiPropertyOptional()
-  headers: {
-    name: string;
-    description: string;
-    type: string;
-    value: string;
-    required: boolean;
-  }[];
+  headers: HeaderType[];
 
-  @IsArray()
   @ApiPropertyOptional()
-  requestBody: ReqBody[];
+  query: HeaderType[];
+
+  @ApiPropertyOptional()
+  body: ReqBody[];
 }
