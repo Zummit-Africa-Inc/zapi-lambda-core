@@ -368,4 +368,27 @@ export class SubscriptionService {
     ).map((sub) => this.apiRepo.find({ where: { id: sub.apiId } }));
     return (await Promise.all(subscribedApis)).flatMap((api) => api);
   }
+
+  /**
+   * it removes all subscriptions from a particular api
+   * @param apiId - string - the id of the api 
+   */
+  async removeAllApiSubscriptions(apiId: string): Promise<void>{
+    try {
+      const api = await this.apiRepo.findOne({where:{id:apiId}})
+      const subscriptionProfiles = api.subscriptions
+  
+      await this.apiRepo.update(apiId,{subscriptions: []})
+      
+      //delete subscriptions
+      for (let i = 0; i <= subscriptionProfiles.length - 1; i++){
+        await this.subscriptionRepo.delete({profileId: subscriptionProfiles[i]})
+      }
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(error.name, error.message, error.errorCode),
+      );
+    }
+
+  }
 }
