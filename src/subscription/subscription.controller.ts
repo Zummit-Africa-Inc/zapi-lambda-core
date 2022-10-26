@@ -127,4 +127,14 @@ export class SubscriptionController {
     );
     return ZaLaResponse.Ok(subscriptions, 'Ok', '200');
   }
+
+  @Post('/remove-all-api-subscriptions/:apiId')
+  @IdCheck('apiId')
+  @ApiOperation({ summary: 'Remove all subscriptions from an api' })
+  async removeAllApiSubscriptions(
+    @Param('apiId') apiId: string
+  ):Promise<Ok<string>>{
+    await this.subscriptionService.removeAllApiSubscriptions(apiId)
+    return ZaLaResponse.Ok("Unsubscriptions complete", 'Ok', '200')
+  }
 }
