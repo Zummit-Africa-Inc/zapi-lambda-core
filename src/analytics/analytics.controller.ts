@@ -6,11 +6,11 @@ import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
 import { AnalyticsLogs } from 'src/entities/analyticsLogs.entity';
-import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
+import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 
 @ApiTags('Analytics')
 @ApiBearerAuth('access-token')
-@UseGuards(AccessTokenGuard)
+@UseGuards(AuthenticationGuard)
 @Controller('analytics')
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}

@@ -16,12 +16,12 @@ import { Endpoint } from 'src/entities/endpoint.entity';
 import { CreateEndpointDto } from './dto/create-endpoint.dto';
 import { UpdateEndpointDto } from './dto/update-endpoint.dto';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
-import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
+import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 
 @ApiTags('endpoints')
 @ApiBearerAuth('access-token')
-@UseGuards(AccessTokenGuard)
+@UseGuards(AuthenticationGuard)
 @Controller('endpoints')
 export class EndpointsController {
   constructor(private readonly endpointsService: EndpointsService) {}

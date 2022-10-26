@@ -25,12 +25,12 @@ import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
-import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
+import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 
 @ApiTags('Profile')
 @ApiBearerAuth('access-token')
-@UseGuards(AccessTokenGuard)
+@UseGuards(AuthenticationGuard)
 @Controller('profile')
 export class ProfileController {
   constructor(
