@@ -10,7 +10,7 @@ import { Repository } from 'typeorm';
 import { CreateEndpointDto } from './dto/create-endpoint.dto';
 import { UpdateEndpointDto } from './dto/update-endpoint.dto';
 import { Action } from 'src/common/enums/actionLogger.enum';
-import { Profile } from 'src/entities/profile.entity'
+import { Profile } from 'src/entities/profile.entity';
 import { Logger } from 'src/entities/logger.entity';
 import { Api } from '../entities/api.entity';
 
@@ -22,7 +22,7 @@ export class EndpointsService {
     @InjectRepository(Api)
     private readonly apiRepo: Repository<Api>,
     @InjectRepository(Profile)
-    private readonly profileRepo: Repository<Profile>,    
+    private readonly profileRepo: Repository<Profile>,
     @InjectRepository(Logger)
     private readonly loggerRepo: Repository<Logger>,
   ) {}
@@ -61,11 +61,11 @@ export class EndpointsService {
       });
 
       const savedEndpoint = await this.endpointRepo.save(newEndpoint);
-       const result = await this.endpointRepo.findOne({
-         where: { id: savedEndpoint.id },
-       });
+      const result = await this.endpointRepo.findOne({
+        where: { id: savedEndpoint.id },
+      });
 
-       return result;
+      return result;
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
@@ -112,7 +112,6 @@ export class EndpointsService {
       const endpoint = await this.endpointRepo.findOne({
         where: { id: endpointId },
       });
-     
 
       body.route
         ? (body.route = encodeURIComponent(
@@ -123,26 +122,19 @@ export class EndpointsService {
        * 1. find the api that this endpoint belongs to
        * 2. find the author of the api to use during
        * the logger creation
-      */
+       */
       const api = await this.apiRepo.findOne({
-        where:{id: endpoint.apiId}
-      })
-      const {email} = await this.profileRepo.findOne({
-        where: {id:api.profileId}
-      })
+        where: { id: endpoint.apiId },
+      });
+      const { email } = await this.profileRepo.findOne({
+        where: { id: api.profileId },
+      });
 
-       const previousValues = await this.endpointRepo.findOne({
-         where: { id: endpointId },
-         select: [
-           'name',
-           'description',
-           'method',
-           'route',
-           'headers',
-           'requestBody',
-         ],
-       });
-       await this.endpointRepo
+      const previousValues = await this.endpointRepo.findOne({
+        where: { id: endpointId },
+        select: ['name', 'description', 'method', 'route', 'headers', 'body'],
+      });
+      await this.endpointRepo
         .createQueryBuilder()
         .update(Endpoint)
         .set(body)
@@ -150,18 +142,11 @@ export class EndpointsService {
         .returning('*')
         .execute();
 
-         const newValues = await this.endpointRepo.findOne({
-           where: { id: endpointId },
-           select: [
-             'name',
-             'description',
-             'method',
-             'route',
-             'headers',
-             'requestBody',
-           ],
-         });
-      
+      const newValues = await this.endpointRepo.findOne({
+        where: { id: endpointId },
+        select: ['name', 'description', 'method', 'route', 'headers', 'body'],
+      });
+
       //LOG THE UPDATE MADE
       const logger = await this.loggerRepo.create({
         entity_type: 'endpoint',
@@ -169,9 +154,9 @@ export class EndpointsService {
         action_type: Action.Update,
         previous_values: previousValues,
         new_values: newValues,
-        operated_by: email
-      })
-      await this.loggerRepo.save(logger)
+        operated_by: email,
+      });
+      await this.loggerRepo.save(logger);
 
       return newValues;
     } catch (error) {
@@ -190,27 +175,27 @@ export class EndpointsService {
       const endpoint = await this.endpointRepo.findOne({
         where: { id: endpointId },
       });
-     
+
       /**
        * 1. find the api that this endpoint belongs to
        * 2. find the author of the api to use during
        * the logger creation
-      */
+       */
       const api = await this.apiRepo.findOne({
-        where:{id: endpoint.apiId}
-      })
-      const {email} = await this.profileRepo.findOne({
-        where: {id:api.profileId}
-      })
-      
+        where: { id: endpoint.apiId },
+      });
+      const { email } = await this.profileRepo.findOne({
+        where: { id: api.profileId },
+      });
+
       await this.endpointRepo.delete(endpointId);
       const logger = await this.loggerRepo.create({
         entity_type: 'endpoint',
         identifier: endpointId,
         action_type: Action.Delete,
-        operated_by: email
-      })
-      await this.loggerRepo.save(logger)
+        operated_by: email,
+      });
+      await this.loggerRepo.save(logger);
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),

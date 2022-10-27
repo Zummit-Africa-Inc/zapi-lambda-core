@@ -1,7 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsString } from 'class-validator';
+import { IsString } from 'class-validator';
+import {
+  HeaderType,
+  QueryType,
+  ReqBody,
+} from 'src/common/interfaces/endpoint.interface';
 import { HttpMethod } from '../../common/enums/httpMethods.enum';
-import { ReqBody } from '../interface/endpoint.interface';
 
 export class CreateEndpointDto {
   @IsString()
@@ -19,17 +23,12 @@ export class CreateEndpointDto {
   @ApiProperty()
   route: string;
 
-  @IsArray()
-  @ApiProperty()
-  headers: {
-    name: string;
-    description: string;
-    type: string;
-    value: string;
-    required: boolean;
-  }[];
-
-  @IsArray()
   @ApiPropertyOptional()
-  requestBody: ReqBody[];
+  headers: HeaderType[];
+
+  @ApiPropertyOptional()
+  query: QueryType[];
+
+  @ApiPropertyOptional()
+  body: ReqBody[];
 }
