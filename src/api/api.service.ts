@@ -28,6 +28,7 @@ import {
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { Action } from 'src/common/enums/actionLogger.enum';
 import { FreeApis } from 'src/subscription/apis';
+import { Visibility } from 'src/common/enums/visibility.enum';
 
 @Injectable()
 export class ApiService {
@@ -329,13 +330,14 @@ export class ApiService {
   async findAll(query: PaginateQuery): Promise<Paginated<Api>> {
     try {
       return paginate(query, this.apiRepo, {
-        sortableColumns: ['createdOn', 'name'],
-        searchableColumns: ['name', 'description', 'about'],
+        sortableColumns: ['createdOn', 'name', 'visibility'],
+        searchableColumns: ['name', 'description', 'about', 'visibility'],
         defaultSortBy: [['id', 'DESC']],
+        where:{visibility: Visibility.Public},
         filterableColumns: {
           category: [FilterOperator.IN],
           status: [FilterOperator.IN],
-          rating: [FilterOperator.GTE, FilterOperator.LTE],
+          rating: [FilterOperator.GTE, FilterOperator.LTE]
         },
       });
     } catch (error) {
