@@ -1,7 +1,11 @@
 import { SharedEntity } from '../common/model/sharedEntity';
 import { AfterLoad, BeforeInsert, Column, Entity } from 'typeorm';
 import { HttpMethod } from '../common/enums/httpMethods.enum';
-import { HeaderType, ReqBody } from 'src/common/interfaces/endpoint.interface';
+import {
+  HeaderType,
+  QueryType,
+  ReqBody,
+} from 'src/common/interfaces/endpoint.interface';
 
 @Entity()
 export class Endpoint extends SharedEntity {
@@ -34,7 +38,7 @@ export class Endpoint extends SharedEntity {
   @Column('jsonb', {
     default: () => "'[]'",
   })
-  query: HeaderType[];
+  query: QueryType[];
 
   @Column('jsonb', {
     default: () => "'[]'",

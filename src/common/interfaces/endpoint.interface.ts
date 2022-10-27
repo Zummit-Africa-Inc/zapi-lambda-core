@@ -15,3 +15,10 @@ export interface HeaderType {
   value: ReqBody['value'];
   required: boolean;
 }
+
+export interface QueryType {
+  name: string;
+  type: EndpointHeaderType;
+  value: ReqBody['value'];
+  required: boolean;
+}

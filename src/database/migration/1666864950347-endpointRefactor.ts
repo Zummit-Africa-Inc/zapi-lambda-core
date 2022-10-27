@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class endpointRefactor1666817301630 implements MigrationInterface {
-  name = 'endpointRefactor1666817301630';
+export class endpointRefactor1666864950347 implements MigrationInterface {
+  name = 'endpointRefactor1666864950347';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
