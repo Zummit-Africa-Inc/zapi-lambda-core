@@ -60,14 +60,26 @@ export class CategoriesController {
     return ZaLaResponse.Ok(validCategories, 'Ok', '200');
   }
 
-  // @Delete('/:categoryId/:generalCategoryId')
-  // @IdCheck('categoryId')
-  // @ApiOperation({summary: "delete a category"})
-  // async deleteCategory(
-  //   @Param('categoryId') categoryId: string,
-  //   @Param('generalCategoryId') generalCategoryId: string
-  // ){
-  //   await this.categoryService.deleteCategory(categoryId, generalCategoryId)
-  //   return ZaLaResponse.Ok('Category deleted', 'OK', '200')
-  // }
+  @Delete('/:categoryId/:generalCategoryId')
+  @IdCheck('categoryId')
+  @ApiOperation({summary: "delete a category"})
+  async deleteCategory(
+    @Param('categoryId') categoryId: string,
+    @Param('generalCategoryId') generalCategoryId: string
+  ){
+    await this.categoryService.deleteCategory(categoryId, generalCategoryId)
+    return ZaLaResponse.Ok('Category deleted', 'OK', '200')
+  }
+
+  @Patch('/:categoryId')
+  @IdCheck('categoryId')
+  @ApiOperation({summary: "Update category name or description"})
+  async updateCategory(
+    @Param('categoryId') categoryId: string,
+    @Body() dto: UpdateCategoryDto
+  ){
+    await this.categoryService.updateCategory(categoryId, dto)
+    return ZaLaResponse.Ok('Category updated', 'OK', '200')
+  }
+
 }
