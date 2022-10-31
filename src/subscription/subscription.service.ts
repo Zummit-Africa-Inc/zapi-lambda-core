@@ -97,7 +97,9 @@ export class SubscriptionService {
    */
   async subscribe(apiId: string, profileId: string): Promise<Tokens> {
     try {
-      const sub = await this.subscriptionRepo.findOne({ where: { apiId } });
+      const sub = await this.subscriptionRepo.findOne({
+        where: { apiId, profileId },
+      });
       if (sub) {
         throw new BadRequestException(
           ZaLaResponse.BadRequest(
@@ -371,24 +373,25 @@ export class SubscriptionService {
 
   /**
    * it removes all subscriptions from a particular api
-   * @param apiId - string - the id of the api 
+   * @param apiId - string - the id of the api
    */
-  async removeAllApiSubscriptions(apiId: string): Promise<void>{
+  async removeAllApiSubscriptions(apiId: string): Promise<void> {
     try {
-      const api = await this.apiRepo.findOne({where:{id:apiId}})
-      const subscriptionProfiles = api.subscriptions
-  
-      await this.apiRepo.update(apiId,{subscriptions: []})
-      
+      const api = await this.apiRepo.findOne({ where: { id: apiId } });
+      const subscriptionProfiles = api.subscriptions;
+
+      await this.apiRepo.update(apiId, { subscriptions: [] });
+
       //delete subscriptions
-      for (let i = 0; i <= subscriptionProfiles.length - 1; i++){
-        await this.subscriptionRepo.delete({profileId: subscriptionProfiles[i]})
+      for (let i = 0; i <= subscriptionProfiles.length - 1; i++) {
+        await this.subscriptionRepo.delete({
+          profileId: subscriptionProfiles[i],
+        });
       }
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.errorCode),
       );
     }
-
   }
 }
