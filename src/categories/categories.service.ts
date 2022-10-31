@@ -6,6 +6,7 @@ import { Api } from 'src/entities/api.entity';
 import { Category } from 'src/entities/category.entity';
 import { Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 
 @Injectable()
@@ -121,6 +122,21 @@ export class CategoriesService {
     catch(err){
       throw new BadRequestException(
         ZaLaResponse.BadRequest(err.name, err.message, err.status)
+      )
+    }
+  }
+
+  /**
+   * 
+   * @param categoryId - category id to be updated
+   * @param dto - update category dto
+   */
+  async updateCategory(categoryId: string, dto : UpdateCategoryDto): Promise<void>{
+    try {
+      await this.categoryRepo.update(categoryId, dto)
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(error.name, error.message, error.status)
       )
     }
   }
