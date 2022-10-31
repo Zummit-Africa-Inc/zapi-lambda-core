@@ -70,7 +70,7 @@ export class SubscriptionController {
   @ApiOperation({ summary: 'Request an api' })
   async apiRequest(
     @Body() requestBody: ApiRequestDto,
-    @Headers('X-ZAPI-AUTH-TOKEN') token: string,
+    @Headers('x-zapi-request-token') token: string,
   ): Promise<Ok<any>> {
     if (!token) {
       throw new BadRequestException(
@@ -132,9 +132,9 @@ export class SubscriptionController {
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Remove all subscriptions from an api' })
   async removeAllApiSubscriptions(
-    @Param('apiId') apiId: string
-  ):Promise<Ok<string>>{
-    await this.subscriptionService.removeAllApiSubscriptions(apiId)
-    return ZaLaResponse.Ok("Unsubscriptions complete", 'Ok', '200')
+    @Param('apiId') apiId: string,
+  ): Promise<Ok<string>> {
+    await this.subscriptionService.removeAllApiSubscriptions(apiId);
+    return ZaLaResponse.Ok('Unsubscriptions complete', 'Ok', '200');
   }
 }
