@@ -19,4 +19,7 @@ export class Discussion extends SharedEntity{
     @OneToMany(()=> Comments, (comments) => {comments.id}, {onDelete: 'CASCADE'})
     @JoinColumn({name : 'comment_ids'})
     comments: Comments[];
+
+    @Column()
+    profile_id: string
 }

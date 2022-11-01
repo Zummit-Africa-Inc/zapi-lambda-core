@@ -18,4 +18,7 @@ export class Comments extends SharedEntity{
 
     @ManyToOne(()=>Discussion, (discussion)=>discussion.id)
     discussion: Discussion
+
+    @Column()
+    profile_id: string
 }
