@@ -4,7 +4,9 @@ import { ZaLaResponse } from 'src/common/helpers/response';
 import { Comments } from 'src/entities/comments.entity';
 import { Discussion } from 'src/entities/discussion.entity';
 import { Repository } from 'typeorm';
+import { CreateCommentDto } from './dto/add-parent-comment.dto';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
+import { UpdateCommentDto } from './dto/update-comment.dto';
 
 @Injectable()
 export class DiscussionService {
@@ -45,11 +47,72 @@ export class DiscussionService {
         }
     }
 
-    async addParentComment(){}
+    async addParentComment(profileId : string, dto: CreateCommentDto){
+        try {
+            const parentComment = await this.commentRepo.create({
+                ...dto,
+                is_parent: true,
+                profile_id: profileId,
+            })
 
-    async addChildComment(){}
+            return await this.commentRepo.save(parentComment)
+            
+        } catch (error) {
+            throw new BadRequestException(
+                ZaLaResponse.BadRequest(error.name, error.message, error.status)
+            )
+        }
+    }
 
-    async editComment(){}
+    async addChildComment(profileId: string, parentCommentId: string, dto: CreateCommentDto){
+        try {
+            //check if comment is a parent comment
+            const isParentComment = await this.commentRepo.findOne({where:{id: parentCommentId}})
+            if(isParentComment.is_parent != true){
+                throw new BadRequestException(
+                    ZaLaResponse.BadRequest('You cannot only add a comment to a parent comment', '400')
+                )
+            }
+
+            const childCommentObj = await this.commentRepo.create({
+                ...dto,
+                profile_id: profileId 
+            })
+            
+            const childComment = await this.commentRepo.save(childCommentObj) 
+
+            //update parent comment
+            await this.commentRepo.update(parentCommentId, 
+                {})
+
+        } catch (error) {
+            throw new BadRequestException(
+                ZaLaResponse.BadRequest(error.name, error.message, error.status)
+            )
+        }
+    }
+
+    async editComment(profileId: string, commentId: string, dto: UpdateCommentDto){
+        try {
+            const comment = await this.commentRepo.findOne({where:{id: commentId}})
+            console.log(comment)
+            console.log(profileId)
+            if(profileId !== comment.profile_id){
+                throw new BadRequestException(
+                    ZaLaResponse.BadRequest(
+                        'Unauthorized request',
+                        'You can only edit a comment that belongs to you', 
+                        '401')
+                )
+            }
+            await this.commentRepo.update(commentId, dto)
+            
+        } catch (error) {
+            throw new BadRequestException(
+                ZaLaResponse.BadRequest(error.name, error.message, error.status)
+            )
+        }
+    }
 
     async getParentComment(){}
 }

@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { Discussion } from 'src/entities/discussion.entity';
 import { DiscussionService } from './discussion.service';
+import { CreateCommentDto } from './dto/add-parent-comment.dto';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
+import { UpdateCommentDto } from './dto/update-comment.dto';
 
 @ApiTags('Discussion')
 @Controller('discussion')
@@ -34,5 +36,26 @@ export class DiscussionController {
     : Promise<Ok<Discussion[]>>{
         const discussions = await this.discussionService.getAllDiscusions()
         return ZaLaResponse.Ok(discussions, '200')
+    }
+
+    @Post('comment/:profileId')
+    @ApiOperation({summary: 'Create a parent comment'})
+    async addParentDiscussion(
+        @Param('profileId') profileId: string,
+        @Body() dto: CreateCommentDto
+    ){
+        const parentComment= await this.discussionService.addParentComment(profileId, dto)
+        return ZaLaResponse.Ok(parentComment, 'Comment added', '201')
+    }
+
+    @Patch('/:profileId/:commentId')
+    @ApiOperation({summary: 'Edit a comment'})
+    async editComment(
+        @Param('profileId') profileId: string,
+        @Param('commentId') commentId: string,
+        @Body() dto: UpdateCommentDto
+    ){
+        await this.discussionService.editComment(profileId, commentId, dto)
+        return {message: 'Comment edited'}
     }
 }
