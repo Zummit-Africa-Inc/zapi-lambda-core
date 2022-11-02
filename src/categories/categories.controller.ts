@@ -26,7 +26,6 @@ export class CategoriesController {
   constructor(private readonly categoryService: CategoriesService) {}
 
   @Post('/create')
-  @Public()
   @ApiOperation({ summary: 'Create a new category' })
   async create(
     @Body() createCategoryDto: CreateCategoryDto,
@@ -47,6 +46,7 @@ export class CategoriesController {
 
   @Get(':categoryId/apis')
   @IdCheck('categoryId')
+  @Public()
   @ApiOperation({ summary: 'get all apis in a particular category' })
   findAllApis(@Param('categoryId') categoryId: string) {
     return this.categoryService.getAllApis(categoryId);
