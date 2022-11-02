@@ -19,8 +19,8 @@ import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 
 @ApiTags('Categories')
-@ApiBearerAuth('access-token')
-@UseGuards(AuthenticationGuard)
+// @ApiBearerAuth('access-token')
+// @UseGuards(AuthenticationGuard)
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoryService: CategoriesService) {}
