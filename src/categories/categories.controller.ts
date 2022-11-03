@@ -19,8 +19,8 @@ import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 
 @ApiTags('Categories')
-// @ApiBearerAuth('access-token')
-// @UseGuards(AuthenticationGuard)
+@ApiBearerAuth('access-token')
+@UseGuards(AuthenticationGuard)
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoryService: CategoriesService) {}
@@ -47,7 +47,7 @@ export class CategoriesController {
 
   @Get(':categoryId/apis')
   @IdCheck('categoryId')
-  @ApiOperation({ summary: 'get all apis in a particular category' })
+  @ApiOperation({ summary: 'get all public apis in a particular category' })
   findAllApis(@Param('categoryId') categoryId: string) {
     return this.categoryService.getAllApis(categoryId);
   }

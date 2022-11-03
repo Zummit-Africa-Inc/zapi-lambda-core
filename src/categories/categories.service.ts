@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable,  } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InvalidCategories } from 'src/common/enums/invalidCategories.enum';
+import { Visibility } from 'src/common/enums/visibility.enum';
 import { ZaLaResponse } from 'src/common/helpers/response';
 import { Api } from 'src/entities/api.entity';
 import { Category } from 'src/entities/category.entity';
@@ -61,7 +62,7 @@ export class CategoriesService {
 
   async getAllApis(categoryId: string){
     try {
-      const apis = await this.apiRepo.find({where:{categoryId: categoryId}})     
+      const apis = await this.apiRepo.find({where:{categoryId: categoryId, visibility: Visibility.Public}})     
       return apis
       
     } catch (error) {
