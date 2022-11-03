@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { Discussion } from 'src/entities/discussion.entity';
 import { DiscussionService } from './discussion.service';
@@ -22,6 +23,7 @@ export class DiscussionController {
         return ZaLaResponse.Ok(discussion, "Discussion started", "201")
     }
 
+    @IdCheck('discussionId')
     @Get('/:discussionId')
     @ApiOperation({summary: 'Get a single discussion'})
     async getSingleDiscussion(
@@ -39,6 +41,7 @@ export class DiscussionController {
         return ZaLaResponse.Ok(discussions, 'Ok', '200')
     }
 
+    @IdCheck('profileId')
     @Post('comment/:profileId')
     @ApiOperation({summary: 'Create a parent comment'})
     async addParentDiscussion(
@@ -49,6 +52,7 @@ export class DiscussionController {
         return ZaLaResponse.Ok(parentComment, 'Comment added', '201')
     }
 
+    @IdCheck('profileId','commentId')
     @Patch('/:profileId/:commentId')
     @ApiOperation({summary: 'Edit a comment'})
     async editComment(
@@ -60,23 +64,25 @@ export class DiscussionController {
         return ZaLaResponse.Ok('Comment updated', 'Ok','200')
     }
 
-    @Post('/child-comment/:profileId/:parentCommentId')
+    @IdCheck('profileId','commentId')
+    @Post('/child-comment/:profileId/:commentId')
     @ApiOperation({summary:'Add a child comment to a parent comment'})
     async addChildComment(
         @Param('profileId') profileId: string,
-        @Param('parentCommentId') parentCommentId: string,
+        @Param('commentId') commentId: string,
         @Body() dto: CreateChildCommentDto
     ){
-        const childComment = await this.discussionService.addChildComment(profileId, parentCommentId, dto)
+        const childComment = await this.discussionService.addChildComment(profileId, commentId, dto)
         return ZaLaResponse.Ok(childComment, 'Ok', '201')
     }
 
-    @Get('comments/:parentCommentId')
+    @IdCheck('commentId')
+    @Get('comments/:commentId')
     @ApiOperation({summary: 'Get a parent comment and all its child comments'})
     async getParentComment(
-        @Param('parentCommentId') parentCommentId: string
+        @Param('commentId') commentId: string
     ){
-        const comments = await this.discussionService.getParentAndChildComments(parentCommentId)
+        const comments = await this.discussionService.getParentAndChildComments(commentId)
         return ZaLaResponse.Ok(comments, 'Ok','200')
     }
 }
