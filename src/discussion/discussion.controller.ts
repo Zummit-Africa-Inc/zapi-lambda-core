@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
+import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { Discussion } from 'src/entities/discussion.entity';
 import { DiscussionService } from './discussion.service';
@@ -9,6 +10,8 @@ import { CreateParentCommentDto } from './dto/add-parent-comment.dto';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 
+@ApiBearerAuth('access-token')
+@UseGuards(AuthenticationGuard)
 @ApiTags('Discussions')
 @Controller('discussion')
 export class DiscussionController {
