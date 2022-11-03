@@ -3,7 +3,7 @@ import { Column, Entity, ManyToOne } from "typeorm";
 import { Discussion } from "./discussion.entity";
 
 @Entity()
-export class Comments extends SharedEntity{
+export class Comment extends SharedEntity{
     @Column()
     discussion_id: string; 
 
@@ -13,10 +13,10 @@ export class Comments extends SharedEntity{
     @Column({default: false})
     is_parent: boolean;
 
-    @Column('text',{array: true, nullable: true})
+    @Column('text',{array: true, nullable: true, default: []})
     child_comment_ids: string[] 
 
-    @ManyToOne(()=>Discussion, (discussion)=>discussion.id)
+    @ManyToOne(()=>Discussion, (discussion)=>discussion.id, { onDelete: 'CASCADE' })
     discussion: Discussion
 
     @Column()
