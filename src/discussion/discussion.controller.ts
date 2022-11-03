@@ -8,7 +8,7 @@ import { CreateParentCommentDto } from './dto/add-parent-comment.dto';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 
-@ApiTags('Discussion')
+@ApiTags('Discussions')
 @Controller('discussion')
 export class DiscussionController {
     constructor(private readonly discussionService: DiscussionService){}
