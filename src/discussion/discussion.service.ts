@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Console } from 'console';
 import { ZaLaResponse } from 'src/common/helpers/response';
 import { Comment } from 'src/entities/comments.entity';
 import { Discussion } from 'src/entities/discussion.entity';
@@ -83,7 +84,7 @@ export class DiscussionService {
             const childComment = await this.commentRepo.save(childCommentObj) 
 
             //update parent comment
-            await this.commentRepo.update(parentCommentId, 
+            this.commentRepo.update(parentCommentId, 
                 {child_comment_ids:[childComment.id]})
 
             return childComment
@@ -117,22 +118,19 @@ export class DiscussionService {
         }
     }
 
-    async getParentComment(parentCommentId: string){
+    async getParentAndChildComments(parentCommentId: string){
         try {
             const comments = []
             const parentComment = await this.commentRepo.findOne({where:{id:parentCommentId}})
-            
             comments.push(parentComment)
 
-            if(parentComment.child_comment_ids != null){
-                parentComment.child_comment_ids.forEach((comment)=>{
-                    const childComment = this.commentRepo.findOne({where:{id: comment}})
-                    comments.push(childComment)
-                })
-                
-                return comments
-            }
+            const childComments = parentComment.child_comment_ids
 
+            for(let comment = 0; comment <= childComments.length - 1; comment++){
+                const childComment = await this.commentRepo.findOne({where:{id: childComments[comment]}})
+                comments.push(childComment)
+            }
+            
             return comments
         } catch (error) {
             throw new BadRequestException(

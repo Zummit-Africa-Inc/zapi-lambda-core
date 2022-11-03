@@ -60,11 +60,11 @@ export class DiscussionController {
         return ZaLaResponse.Ok('Comment updated', 'Ok','200')
     }
 
-    @Post('/child-comment/:profileId/:parentComentId')
+    @Post('/child-comment/:profileId/:parentCommentId')
     @ApiOperation({summary:'Add a child comment to a parent comment'})
     async addChildComment(
         @Param('profileId') profileId: string,
-        @Param('parantCommentId') parentCommentId: string,
+        @Param('parentCommentId') parentCommentId: string,
         @Body() dto: CreateChildCommentDto
     ){
         const childComment = await this.discussionService.addChildComment(profileId, parentCommentId, dto)
@@ -76,7 +76,7 @@ export class DiscussionController {
     async getParentComment(
         @Param('parentCommentId') parentCommentId: string
     ){
-        const comments = await this.discussionService.getParentComment(parentCommentId)
+        const comments = await this.discussionService.getParentAndChildComments(parentCommentId)
         return ZaLaResponse.Ok(comments, 'Ok','200')
     }
 }
