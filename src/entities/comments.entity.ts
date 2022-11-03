@@ -4,7 +4,7 @@ import { Discussion } from "./discussion.entity";
 
 @Entity()
 export class Comment extends SharedEntity{
-    @Column()
+    @Column({nullable: true})
     discussion_id: string; 
 
     @Column()
