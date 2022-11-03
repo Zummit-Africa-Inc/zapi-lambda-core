@@ -84,9 +84,9 @@ export class DiscussionService {
             const childComment = await this.commentRepo.save(childCommentObj) 
 
             //update parent comment
-            this.commentRepo.update(parentCommentId, 
-                {child_comment_ids:[childComment.id]})
-
+            isParentComment.child_comment_ids.push(childComment.id)
+            await this.commentRepo.save(isParentComment)
+            
             return childComment
 
         } catch (error) {
