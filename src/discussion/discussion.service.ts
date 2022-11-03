@@ -49,7 +49,7 @@ export class DiscussionService {
         }
     }
 
-    async addParentComment(profileId : string, dto: CreateParentCommentDto){
+    async addParentComment(profileId : string, dto: CreateParentCommentDto): Promise<Comment>{
         try {
             const parentComment = await this.commentRepo.create({
                 ...dto,
@@ -66,7 +66,7 @@ export class DiscussionService {
         }
     }
 
-    async addChildComment(profileId: string, parentCommentId: string, dto: CreateChildCommentDto){
+    async addChildComment(profileId: string, parentCommentId: string, dto: CreateChildCommentDto): Promise<Comment>{
         try {
             //check if comment is a parent comment
             const isParentComment = await this.commentRepo.findOne({where:{id: parentCommentId}})
@@ -96,7 +96,7 @@ export class DiscussionService {
         }
     }
 
-    async editComment(profileId: string, commentId: string, dto: UpdateCommentDto){
+    async editComment(profileId: string, commentId: string, dto: UpdateCommentDto): Promise<void>{
         try {
             const comment = await this.commentRepo.findOne({where:{id: commentId}})
             if(profileId !== comment.profile_id){
@@ -116,7 +116,7 @@ export class DiscussionService {
         }
     }
 
-    async getParentAndChildComments(parentCommentId: string){
+    async getParentAndChildComments(parentCommentId: string):Promise<Comment[]>{
         try {
             const comments = []
             const parentComment = await this.commentRepo.findOne({where:{id:parentCommentId}})

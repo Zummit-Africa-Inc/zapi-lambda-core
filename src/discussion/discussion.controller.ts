@@ -49,7 +49,7 @@ export class DiscussionController {
         @Body() dto: CreateParentCommentDto
     ){
         const parentComment= await this.discussionService.addParentComment(profileId, dto)
-        return ZaLaResponse.Ok(parentComment, 'Comment added', '201')
+        return ZaLaResponse.Ok(parentComment, 'Ok', '201')
     }
 
     @IdCheck('profileId','commentId')
@@ -59,7 +59,7 @@ export class DiscussionController {
         @Param('profileId') profileId: string,
         @Param('commentId') commentId: string,
         @Body() dto: UpdateCommentDto
-    ){
+    ):Promise<Ok<string>>{
         await this.discussionService.editComment(profileId, commentId, dto)
         return ZaLaResponse.Ok('Comment updated', 'Ok','200')
     }
