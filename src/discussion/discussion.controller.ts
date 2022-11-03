@@ -36,11 +36,14 @@ export class DiscussionController {
         return ZaLaResponse.Ok(discussion,'Ok','200')
     }
 
-    @Get('')
-    @ApiOperation({summary:'Get all discussions'})
-    async getAllDiscussions()
+    @IdCheck('apiId')
+    @Get('/api/:apiId')
+    @ApiOperation({summary:'Get all discussions of an api'})
+    async getAllDiscussions(
+        @Param('apiId') apiId: string
+    )
     : Promise<Ok<Discussion[]>>{
-        const discussions = await this.discussionService.getAllDiscusions()
+        const discussions = await this.discussionService.getAllDiscusionsOfAnApi(apiId)
         return ZaLaResponse.Ok(discussions, 'Ok', '200')
     }
 
