@@ -1,10 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ZaLaResponse } from 'src/common/helpers/response';
-import { Comments } from 'src/entities/comments.entity';
+import { Comment } from 'src/entities/comments.entity';
 import { Discussion } from 'src/entities/discussion.entity';
 import { Repository } from 'typeorm';
-import { CreateCommentDto } from './dto/add-parent-comment.dto';
+import { CreateChildCommentDto } from './dto/add-child-comment.dto';
+import { CreateParentCommentDto } from './dto/add-parent-comment.dto';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 
@@ -13,8 +14,8 @@ export class DiscussionService {
     constructor(
         @InjectRepository(Discussion)
         private readonly discussionRepo: Repository<Discussion>,
-        @InjectRepository(Comments)
-        private readonly commentRepo: Repository<Comments>
+        @InjectRepository(Comment)
+        private readonly commentRepo: Repository<Comment>
     ){}
 
     async startDiscussion(dto: CreateDiscussionDto): Promise<Discussion>{
@@ -47,7 +48,7 @@ export class DiscussionService {
         }
     }
 
-    async addParentComment(profileId : string, dto: CreateCommentDto){
+    async addParentComment(profileId : string, dto: CreateParentCommentDto){
         try {
             const parentComment = await this.commentRepo.create({
                 ...dto,
@@ -64,7 +65,7 @@ export class DiscussionService {
         }
     }
 
-    async addChildComment(profileId: string, parentCommentId: string, dto: CreateCommentDto){
+    async addChildComment(profileId: string, parentCommentId: string, dto: CreateChildCommentDto){
         try {
             //check if comment is a parent comment
             const isParentComment = await this.commentRepo.findOne({where:{id: parentCommentId}})
@@ -76,14 +77,16 @@ export class DiscussionService {
 
             const childCommentObj = await this.commentRepo.create({
                 ...dto,
-                profile_id: profileId 
+                profile_id: profileId   
             })
             
             const childComment = await this.commentRepo.save(childCommentObj) 
 
             //update parent comment
             await this.commentRepo.update(parentCommentId, 
-                {})
+                {child_comment_ids:[childComment.id]})
+
+            return childComment
 
         } catch (error) {
             throw new BadRequestException(
@@ -114,5 +117,27 @@ export class DiscussionService {
         }
     }
 
-    async getParentComment(){}
+    async getParentComment(parentCommentId: string){
+        try {
+            const comments = []
+            const parentComment = await this.commentRepo.findOne({where:{id:parentCommentId}})
+            
+            comments.push(parentComment)
+
+            if(parentComment.child_comment_ids != null){
+                parentComment.child_comment_ids.forEach((comment)=>{
+                    const childComment = this.commentRepo.findOne({where:{id: comment}})
+                    comments.push(childComment)
+                })
+                
+                return comments
+            }
+
+            return comments
+        } catch (error) {
+            throw new BadRequestException(
+                ZaLaResponse.BadRequest(error.name, error.message, error.status)
+            )   
+        }
+    }
 }

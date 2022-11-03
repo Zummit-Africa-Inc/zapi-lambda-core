@@ -3,7 +3,8 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { Discussion } from 'src/entities/discussion.entity';
 import { DiscussionService } from './discussion.service';
-import { CreateCommentDto } from './dto/add-parent-comment.dto';
+import { CreateChildCommentDto } from './dto/add-child-comment.dto';
+import { CreateParentCommentDto } from './dto/add-parent-comment.dto';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 
@@ -27,7 +28,7 @@ export class DiscussionController {
         @Param('discussionId') discussionId: string
     ): Promise<Ok<Discussion>>{
         const discussion = await this.discussionService.getSingleDisussion(discussionId) 
-        return ZaLaResponse.Ok(discussion, '200')
+        return ZaLaResponse.Ok(discussion,'Ok','200')
     }
 
     @Get('')
@@ -35,14 +36,14 @@ export class DiscussionController {
     async getAllDiscussions()
     : Promise<Ok<Discussion[]>>{
         const discussions = await this.discussionService.getAllDiscusions()
-        return ZaLaResponse.Ok(discussions, '200')
+        return ZaLaResponse.Ok(discussions, 'Ok', '200')
     }
 
     @Post('comment/:profileId')
     @ApiOperation({summary: 'Create a parent comment'})
     async addParentDiscussion(
         @Param('profileId') profileId: string,
-        @Body() dto: CreateCommentDto
+        @Body() dto: CreateParentCommentDto
     ){
         const parentComment= await this.discussionService.addParentComment(profileId, dto)
         return ZaLaResponse.Ok(parentComment, 'Comment added', '201')
@@ -56,6 +57,26 @@ export class DiscussionController {
         @Body() dto: UpdateCommentDto
     ){
         await this.discussionService.editComment(profileId, commentId, dto)
-        return {message: 'Comment edited'}
+        return ZaLaResponse.Ok('Comment updated', 'Ok','200')
+    }
+
+    @Post('/child-comment/:profileId/:parentComentId')
+    @ApiOperation({summary:'Add a child comment to a parent comment'})
+    async addChildComment(
+        @Param('profileId') profileId: string,
+        @Param('parantCommentId') parentCommentId: string,
+        @Body() dto: CreateChildCommentDto
+    ){
+        const childComment = await this.discussionService.addChildComment(profileId, parentCommentId, dto)
+        return ZaLaResponse.Ok(childComment, 'Ok', '201')
+    }
+
+    @Get('comments/:parentCommentId')
+    @ApiOperation({summary: 'Get a parent comment and all its child comments'})
+    async getParentComment(
+        @Param('parentCommentId') parentCommentId: string
+    ){
+        const comments = await this.discussionService.getParentComment(parentCommentId)
+        return ZaLaResponse.Ok(comments, 'Ok','200')
     }
 }
