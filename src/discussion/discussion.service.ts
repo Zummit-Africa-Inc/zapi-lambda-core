@@ -99,8 +99,6 @@ export class DiscussionService {
     async editComment(profileId: string, commentId: string, dto: UpdateCommentDto){
         try {
             const comment = await this.commentRepo.findOne({where:{id: commentId}})
-            console.log(comment)
-            console.log(profileId)
             if(profileId !== comment.profile_id){
                 throw new BadRequestException(
                     ZaLaResponse.BadRequest(
