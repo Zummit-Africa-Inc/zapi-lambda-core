@@ -42,7 +42,7 @@ export class DiscussionController {
     }
 
     @IdCheck('profileId')
-    @Post('comment/:profileId')
+    @Post('add-parent-comment/:profileId')
     @ApiOperation({summary: 'Create a parent comment'})
     async addParentDiscussion(
         @Param('profileId') profileId: string,
@@ -65,7 +65,7 @@ export class DiscussionController {
     }
 
     @IdCheck('profileId','commentId')
-    @Post('/child-comment/:profileId/:commentId')
+    @Post('/add-child-comment/:profileId/:commentId')
     @ApiOperation({summary:'Add a child comment to a parent comment'})
     async addChildComment(
         @Param('profileId') profileId: string,
