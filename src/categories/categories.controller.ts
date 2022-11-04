@@ -26,7 +26,6 @@ export class CategoriesController {
   constructor(private readonly categoryService: CategoriesService) {}
 
   @Post('/create')
-  @Public()
   @ApiOperation({ summary: 'Create a new category' })
   async create(
     @Body() createCategoryDto: CreateCategoryDto,
