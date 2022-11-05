@@ -5,13 +5,11 @@ import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { Discussion } from 'src/entities/discussion.entity';
 import { DiscussionService } from './discussion.service';
-import { CreateChildCommentDto } from './dto/add-child-comment.dto';
-import { CreateParentCommentDto } from './dto/add-parent-comment.dto';
+import { CommentDto } from './dto/comment.dto';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
-import { UpdateCommentDto } from './dto/update-comment.dto';
 
-@ApiBearerAuth('access-token')
-@UseGuards(AuthenticationGuard)
+// @ApiBearerAuth('access-token')
+// @UseGuards(AuthenticationGuard)
 @ApiTags('Discussions')
 @Controller('discussion')
 export class DiscussionController {
@@ -28,11 +26,11 @@ export class DiscussionController {
 
     @IdCheck('discussionId')
     @Get('/:discussionId')
-    @ApiOperation({summary: 'Get a single discussion'})
+    @ApiOperation({summary: 'Gets a discussion and all its comments'})
     async getSingleDiscussion(
         @Param('discussionId') discussionId: string
-    ): Promise<Ok<Discussion>>{
-        const discussion = await this.discussionService.getSingleDisussion(discussionId) 
+    ): Promise<Ok<Object>>{
+        const discussion = await this.discussionService.getSingleDisussionAndComments(discussionId) 
         return ZaLaResponse.Ok(discussion,'Ok','200')
     }
 
@@ -47,48 +45,27 @@ export class DiscussionController {
         return ZaLaResponse.Ok(discussions, 'Ok', '200')
     }
 
-    @IdCheck('profileId')
-    @Post('add-parent-comment/:profileId')
-    @ApiOperation({summary: 'Create a parent comment'})
-    async addParentDiscussion(
+    @IdCheck('discussionId','profileId')
+    @Post('/comment/:discussionId/:profileId')
+    @ApiOperation({summary: 'Comment under a discussion'})
+    async addComment(
+        @Param('discussionId') discussionId: string,
         @Param('profileId') profileId: string,
-        @Body() dto: CreateParentCommentDto
+        @Body() dto: CommentDto
     ){
-        const parentComment= await this.discussionService.addParentComment(profileId, dto)
-        return ZaLaResponse.Ok(parentComment, 'Ok', '201')
+        const comment = await this.discussionService.addComment(discussionId, profileId, dto)
+        return ZaLaResponse.Ok(comment, 'Ok', '201')
     }
 
-    @IdCheck('profileId','commentId')
-    @Patch('/:profileId/:commentId')
-    @ApiOperation({summary: 'Edit a comment'})
-    async editComment(
-        @Param('profileId') profileId: string,
+    @IdCheck('commentId','profileId')
+    @Patch('/comment/:commentId/:profileId')
+    @ApiOperation({summary: 'Update a comment'})
+    async updateComment(
         @Param('commentId') commentId: string,
-        @Body() dto: UpdateCommentDto
-    ):Promise<Ok<string>>{
-        await this.discussionService.editComment(profileId, commentId, dto)
-        return ZaLaResponse.Ok('Comment updated', 'Ok','200')
-    }
-
-    @IdCheck('profileId','commentId')
-    @Post('/add-child-comment/:profileId/:commentId')
-    @ApiOperation({summary:'Add a child comment to a parent comment'})
-    async addChildComment(
         @Param('profileId') profileId: string,
-        @Param('commentId') commentId: string,
-        @Body() dto: CreateChildCommentDto
+        @Body() dto: CommentDto
     ){
-        const childComment = await this.discussionService.addChildComment(profileId, commentId, dto)
-        return ZaLaResponse.Ok(childComment, 'Ok', '201')
-    }
-
-    @IdCheck('commentId')
-    @Get('comments/:commentId')
-    @ApiOperation({summary: 'Get a parent comment and all its child comments'})
-    async getParentComment(
-        @Param('commentId') commentId: string
-    ){
-        const comments = await this.discussionService.getParentAndChildComments(commentId)
-        return ZaLaResponse.Ok(comments, 'Ok','200')
+        await this.discussionService.updateComment(commentId, profileId, dto)
+        return ZaLaResponse.Ok('Comment updated', 'Ok', '200')
     }
 }
