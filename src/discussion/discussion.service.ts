@@ -26,17 +26,21 @@ export class DiscussionService {
         }
     }
 
-    async getSingleDisussionAndComments(disucssionId: string): Promise<Object[]>{
-        try {
-            const discussionAndComments = [] 
+    async getSingleDisussionAndComments(disucssionId: string): Promise<Object>{
+        try { 
             const discussion = await this.discussionRepo.findOne({where: {id: disucssionId}})
-            discussionAndComments.push(discussion)
 
-            const comments = discussion.comments
+            const comments = []
 
-            for(let i = 0; i <= comments.length; i++){
+            for(let i = 0; i <= discussion.comments.length; i++){
                 const comment = await this.commentRepo.findOne({where:{id: comments[i]}})
-                discussionAndComments.push(comment)
+                comments.push(comment)
+            }
+
+            // object to hold discussion and comments
+            const discussionAndComments = {
+                discussion: discussion,
+                comments: comments
             }
 
             return discussionAndComments
