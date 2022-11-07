@@ -8,8 +8,8 @@ import { DiscussionService } from './discussion.service';
 import { CommentDto } from './dto/comment.dto';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
 
-// @ApiBearerAuth('access-token')
-// @UseGuards(AuthenticationGuard)
+@ApiBearerAuth('access-token')
+@UseGuards(AuthenticationGuard)
 @ApiTags('Discussions')
 @Controller('discussion')
 export class DiscussionController {
