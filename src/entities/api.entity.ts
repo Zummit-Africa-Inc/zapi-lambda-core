@@ -44,6 +44,9 @@ export class Api extends SharedEntity {
   @Column('text', { array: true, nullable: true, default: [] })
   subscriptions: string[];
 
+  @Column('text', { array: true, nullable: true, default: [] })
+  contributors: string[];
+
   @Column({
     type: 'enum',
     enum: Status,
