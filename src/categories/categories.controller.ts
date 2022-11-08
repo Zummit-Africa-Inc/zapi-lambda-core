@@ -19,12 +19,12 @@ import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 
 @ApiTags('Categories')
-@ApiBearerAuth('access-token')
-@UseGuards(AuthenticationGuard)
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoryService: CategoriesService) {}
 
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthenticationGuard)
   @Post('/create')
   @ApiOperation({ summary: 'Create a new category' })
   async create(
@@ -36,6 +36,8 @@ export class CategoriesController {
     return ZaLaResponse.Ok(category, 'Category created', '201');
   }
 
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthenticationGuard)
   @Get()
   @Public()
   @ApiOperation({ summary: 'Get all available category' })
@@ -44,6 +46,8 @@ export class CategoriesController {
     return ZaLaResponse.Ok(allCategories, 'Ok', '200');
   }
 
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthenticationGuard)
   @Get(':categoryId/apis')
   @IdCheck('categoryId')
   @ApiOperation({ summary: 'get all public apis in a particular category' })
