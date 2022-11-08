@@ -1,7 +1,7 @@
 import { SharedEntity } from '../common/model/sharedEntity';
-import { Column } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 import { FeedbackEnum } from '../common/enums/feedback.enum';
-
+@Entity()
 export class Feedback extends SharedEntity {
   @Column()
   name: string;
