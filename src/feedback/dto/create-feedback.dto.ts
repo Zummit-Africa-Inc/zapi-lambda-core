@@ -13,6 +13,10 @@ export class CreateFeedbackDto {
 
   @ApiProperty()
   @IsString()
+  body: string;
+
+  @ApiProperty()
+  @IsString()
   title: string;
 
   @ApiProperty()
