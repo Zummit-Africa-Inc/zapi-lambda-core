@@ -30,8 +30,7 @@ export class FeedbackService {
 
   async findAll(): Promise<Feedback[]> {
     try {
-      const feedbacks = await this.feedbackRepo.find();
-      return feedbacks;
+      return await this.feedbackRepo.find();
     } catch (err) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(err.name, err.message, err.status),

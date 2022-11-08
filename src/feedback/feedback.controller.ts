@@ -1,13 +1,14 @@
-import { Controller, Get, Body, Post } from '@nestjs/common';
+import { Controller, Get, Body, Post, UseGuards } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { Feedback } from 'src/entities/feedback.entity';
+import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 
 @ApiTags('Feedback')
-// @ApiBearerAuth('access-token')
-// @UseGuards(AuthenticationGuard)
+@ApiBearerAuth('access-token')
+@UseGuards(AuthenticationGuard)
 @Controller('feedback')
 export class FeedbackController {
   constructor(private readonly feedbackService: FeedbackService) {}
