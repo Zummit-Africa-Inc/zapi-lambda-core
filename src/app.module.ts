@@ -23,6 +23,9 @@ import { IdCheckGuard } from './common/guards/idcheck.guard';
 import { Logger } from 'src/entities/logger.entity';
 import { LoggerModule } from 'src/logger/logger.module';
 import { FeedbackModule } from './feedback/feedback.module';
+import { DiscussionModule } from './discussion/discussion.module';
+import { Comment } from './entities/comments.entity';
+import { Discussion } from './entities/discussion.entity';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -56,6 +59,8 @@ const RabbitMQService = {
       Pricing,
       Subscription,
       Logger,
+      Comment,
+      Discussion
     ]),
     TypeOrmModule.forRoot(AppDataSource.options),
     EndpointsModule,
@@ -66,6 +71,7 @@ const RabbitMQService = {
     AnalyticsModule,
     LoggerModule,
     FeedbackModule,
+    DiscussionModule,
   ],
   controllers: [AppController],
   providers: [

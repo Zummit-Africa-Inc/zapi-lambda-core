@@ -48,6 +48,7 @@ export class CategoriesController {
   @IdCheck('categoryId')
   @Public()
   @ApiOperation({ summary: 'get all apis in a particular category' })
+  @ApiOperation({ summary: 'get all public apis in a particular category' })
   findAllApis(@Param('categoryId') categoryId: string) {
     return this.categoryService.getAllApis(categoryId);
   }
