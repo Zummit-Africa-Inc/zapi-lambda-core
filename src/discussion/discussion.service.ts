@@ -29,11 +29,11 @@ export class DiscussionService {
     async getSingleDisussionAndComments(disucssionId: string): Promise<Object>{
         try { 
             const discussion = await this.discussionRepo.findOne({where: {id: disucssionId}})
-
+            
             const comments = []
 
-            for(let i = 0; i <= discussion.comments.length; i++){
-                const comment = await this.commentRepo.findOne({where:{id: comments[i]}})
+            for(let i = 0; i <= discussion.comments.length - 1; i++){
+                const comment = await this.commentRepo.findOne({where:{id: discussion.comments[i]}})
                 comments.push(comment)
             }
 
