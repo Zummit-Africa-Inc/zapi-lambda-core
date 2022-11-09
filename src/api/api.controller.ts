@@ -60,6 +60,7 @@ export class ApiController {
 
   @Get('/findOne/:apiId')
   @IdCheck('apiId')
+  @Public()
   @ApiOperation({ summary: 'Get an API' })
   @ApiQuery({
     name: 'profileId',

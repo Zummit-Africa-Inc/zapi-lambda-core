@@ -18,6 +18,7 @@ import { UpdateEndpointDto } from './dto/update-endpoint.dto';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { Public } from 'src/common/decorators/publicRoute.decorator';
 
 @ApiTags('endpoints')
 @ApiBearerAuth('access-token')
@@ -43,6 +44,7 @@ export class EndpointsController {
 
   @Get(':apiId')
   @IdCheck('apiId')
+  @Public()
   @ApiOperation({ summary: 'Get all endpoints of an api' })
   async getApiEndpoints(
     @Param('apiId') apiId: string,

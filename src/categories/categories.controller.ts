@@ -19,12 +19,12 @@ import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 
 @ApiTags('Categories')
-@ApiBearerAuth('access-token')
-@UseGuards(AuthenticationGuard)
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoryService: CategoriesService) {}
 
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthenticationGuard)
   @Post('/create')
   @ApiOperation({ summary: 'Create a new category' })
   async create(
@@ -37,7 +37,6 @@ export class CategoriesController {
   }
 
   @Get()
-  @Public()
   @ApiOperation({ summary: 'Get all available category' })
   async findAll(): Promise<Ok<Category[]>> {
     const allCategories = await this.categoryService.findAllCategory();
@@ -48,6 +47,7 @@ export class CategoriesController {
   @IdCheck('categoryId')
   @Public()
   @ApiOperation({ summary: 'get all apis in a particular category' })
+  @ApiOperation({ summary: 'get all public apis in a particular category' })
   findAllApis(@Param('categoryId') categoryId: string) {
     return this.categoryService.getAllApis(categoryId);
   }
