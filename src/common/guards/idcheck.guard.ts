@@ -9,6 +9,8 @@ import { Reflector } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Api } from 'src/entities/api.entity';
 import { Category } from 'src/entities/category.entity';
+import { Comment } from 'src/entities/comments.entity';
+import { Discussion } from 'src/entities/discussion.entity';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { Pricing } from 'src/entities/pricing.entity';
 import { Profile } from 'src/entities/profile.entity';
@@ -32,6 +34,10 @@ export class IdCheckGuard implements CanActivate {
     private pricingRepo: Repository<Pricing>,
     @InjectRepository(Subscription)
     private subRepo: Repository<Subscription>,
+    @InjectRepository(Comment)
+    private commentRepo: Repository<Comment>,
+    @InjectRepository(Discussion)
+    private discussionRepo: Repository<Discussion>,
     private reflector: Reflector,
   ) {}
 
@@ -43,6 +49,8 @@ export class IdCheckGuard implements CanActivate {
     endpointId: this.endpointRepo,
     pricingId: this.pricingRepo,
     subscriptionId: this.subRepo,
+    commentId: this.commentRepo,
+    discussionId: this.discussionRepo
   };
 
   async canActivate(context: ExecutionContext) {
