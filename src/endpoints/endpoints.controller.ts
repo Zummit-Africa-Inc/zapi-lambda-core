@@ -18,6 +18,7 @@ import { UpdateEndpointDto } from './dto/update-endpoint.dto';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { CreateCollectionDto } from './dto/create-collection.dto';
 
 @ApiTags('endpoints')
 @ApiBearerAuth('access-token')
@@ -39,6 +40,16 @@ export class EndpointsController {
       createEndpointDto,
     );
     return ZaLaResponse.Ok(endpoint, 'Endpoint Created', '201');
+  }
+  @Post('new/collection/:apiId')
+  @IdCheck('apiId')
+  @ApiOperation({ summary: 'Endpoints from postman collection' })
+  async collection(
+    @Param('apiId') apiId: string,
+    @Body() body: CreateCollectionDto,
+  ): Promise<Ok<any>> {
+    const endpoint = await this.endpointsService.collection(apiId, body);
+    return ZaLaResponse.Ok(endpoint, 'Endpoint(s) Created', '201');
   }
 
   @Get(':apiId')

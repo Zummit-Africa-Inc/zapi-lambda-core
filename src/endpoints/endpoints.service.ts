@@ -13,6 +13,7 @@ import { Action } from 'src/common/enums/actionLogger.enum';
 import { Profile } from 'src/entities/profile.entity';
 import { Logger } from 'src/entities/logger.entity';
 import { Api } from '../entities/api.entity';
+import { CreateCollectionDto } from './dto/create-collection.dto';
 
 @Injectable()
 export class EndpointsService {
@@ -72,12 +73,46 @@ export class EndpointsService {
       );
     }
   }
+  /**
+   * It takes a collection of endpoints from a postman collection and creates them in the database
+   * @param {string} apiId - string
+   * @param {CreateCollectionDto} body - CreateCollectionDto
+   * @returns The result of the forEach loop.
+   */
+
+  async collection(apiId: string, body: CreateCollectionDto): Promise<any> {
+    try {
+      const result = body.item.forEach(async (item) => {
+        const body = JSON.parse(item.request.body?.raw);
+        const endpoint: CreateEndpointDto = {
+          name: item.name,
+          description: item.request.description,
+          body: Array.isArray(body) ? body : [body],
+          method: item.request.method.toLowerCase(),
+          route: `/${item.request.url.path[0]}`,
+          headers: item.request.header ?? [],
+          query: item.request.url.query ?? [],
+        };
+
+        const isUndefined = Object.values(endpoint).includes(undefined);
+        if (!isUndefined) {
+          return await this.create(apiId, endpoint);
+        }
+      });
+      return result;
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(error.name, error.message, error.status),
+      );
+    }
+  }
 
   /**
    * It gets all the endpoints of an API
    * @param {string} apiId - string
    * @returns An array of Endpoint objects.
    */
+
   async getAllApiEndpoints(apiId: string): Promise<Endpoint[]> {
     try {
       //check if api exists in Endpoint table
