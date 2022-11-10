@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty ,ApiPropertyOptional} from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 import { FeedbackEnum } from 'src/common/enums/feedback.enum';
 
@@ -15,11 +15,9 @@ export class CreateFeedbackDto {
   @IsString()
   body: string;
 
-  @ApiProperty()
-  @IsString()
+  @ApiPropertyOptional()
   title: string;
 
-  @ApiProperty()
-  @IsString()
+  @ApiPropertyOptional()
   category: FeedbackEnum;
 }
