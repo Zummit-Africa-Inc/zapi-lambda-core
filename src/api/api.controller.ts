@@ -30,6 +30,8 @@ import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
+import { Profile } from 'src/entities/profile.entity';
+
 
 @ApiTags('Apis')
 @UseGuards(AuthenticationGuard)
@@ -150,4 +152,14 @@ export class ApiController {
     const apis = await this.apiService.getPopularAPis();
     return ZaLaResponse.Ok(apis, 'OK', '200');
   }
+
+  @Get('/contributors/:apiId')
+  @ApiOperation({summary: 'Get contributors of an API'})
+  async getApiContributors(
+    @Param('apiId')apiId: string
+  ): Promise<Ok<Profile[]>> {
+    const contributors = await this.apiService.getAllApiContributors(apiId);
+    return ZaLaResponse.Ok(contributors, 'OK', '200');
+  }
+
 }

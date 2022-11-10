@@ -422,4 +422,38 @@ export class ApiService {
       ); 
     }
   }
+
+   async getAllApiContributors(apiId: string){
+    try {
+      //Check if Api exists
+      const api = await this.apiRepo.findOne({where:{id:apiId}})
+      if(!api){
+        throw new NotFoundException(
+          ZaLaResponse.NotFoundRequest(
+            "Not Found Error",
+            "Api Not Found",
+            "404"
+          )
+        )
+      }
+      const contributors = []
+      const contributorIds = api.contributors
+      for(const id of contributorIds){
+        const contributor = await this.profileRepo.findOneBy({id})
+        if(contributor){
+          contributors.push(contributor)
+        }
+      }
+      return contributors
+    } catch (error) {
+      console.log(error);  
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            'Internal Server Error',
+            'Something went wrong',
+            '500',
+          ),
+        );
+    }
+  }
 }

@@ -26,6 +26,8 @@ import { FeedbackModule } from './feedback/feedback.module';
 import { DiscussionModule } from './discussion/discussion.module';
 import { Comment } from './entities/comments.entity';
 import { Discussion } from './entities/discussion.entity';
+import { InvitationModule } from './invitation/invitation.module';
+import { Invitation } from './entities/invitation.entity';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -60,7 +62,8 @@ const RabbitMQService = {
       Subscription,
       Logger,
       Comment,
-      Discussion
+      Discussion,
+      Invitation
     ]),
     TypeOrmModule.forRoot(AppDataSource.options),
     EndpointsModule,
@@ -72,6 +75,8 @@ const RabbitMQService = {
     LoggerModule,
     FeedbackModule,
     DiscussionModule,
+    InvitationModule,
+
   ],
   controllers: [AppController],
   providers: [
