@@ -14,6 +14,7 @@ import { Profile } from 'src/entities/profile.entity';
 import { Logger } from 'src/entities/logger.entity';
 import { Api } from '../entities/api.entity';
 import { CreateCollectionDto } from './dto/create-collection.dto';
+import { CollectionResponse } from 'src/common/interfaces/collectionResponse.interface';
 
 @Injectable()
 export class EndpointsService {
@@ -70,17 +71,18 @@ export class EndpointsService {
   }
 
   /**
-   * It takes a collection of endpoints from a postman collection and creates them in the database
-   * @param {string} apiId - string
+   * It takes a Postman collection, parses it, and creates new endpoints.
+   * @param {string} apiId - string,
    * @param {CreateCollectionDto} body - CreateCollectionDto
-   * @returns The result of the forEach loop.
+   * @returns The return type is a Promise of a CollectionResponse.
    */
   async collection(
     apiId: string,
     body: CreateCollectionDto,
-  ): Promise<Endpoint[]> {
+  ): Promise<CollectionResponse> {
     try {
-      const results: Endpoint[] = [];
+      const endpoints: Endpoint[] = [];
+      const skipped: string[] = [];
 
       for (const item of body.item) {
         const body = JSON.parse(item.request.body?.raw);
@@ -93,12 +95,18 @@ export class EndpointsService {
           headers: item.request.header ?? [],
           query: item.request.url.query ?? [],
         };
+
+        /* Checking if any of the values in the endpoint object is undefined. If it is, it pushes the
+        name of the endpoint to the skipped array. If not, it pushes the endpoint to the endpoints
+        array. */
         const isUndefined = Object.values(endpoint).includes(undefined);
-        if (!isUndefined) {
-          results.push(await this.create(apiId, endpoint));
+        if (isUndefined) {
+          skipped.push(endpoint.name);
+        } else {
+          endpoints.push(await this.create(apiId, endpoint));
         }
       }
-      return results;
+      return { endpoints, skipped };
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),

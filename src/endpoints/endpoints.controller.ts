@@ -20,6 +20,7 @@ import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { CreateCollectionDto } from './dto/create-collection.dto';
+import { CollectionResponse } from 'src/common/interfaces/collectionResponse.interface';
 
 @ApiTags('endpoints')
 @ApiBearerAuth('access-token')
@@ -48,9 +49,9 @@ export class EndpointsController {
   async collection(
     @Param('apiId') apiId: string,
     @Body() body: CreateCollectionDto,
-  ): Promise<Ok<Endpoint[]>> {
-    const endpoint = await this.endpointsService.collection(apiId, body);
-    return ZaLaResponse.Ok(endpoint, 'Endpoint(s) Created', '201');
+  ): Promise<Ok<CollectionResponse>> {
+    const endpoints = await this.endpointsService.collection(apiId, body);
+    return ZaLaResponse.Collection(endpoints, 'Endpoint(s) Created', '201');
   }
 
   @Get(':apiId')
