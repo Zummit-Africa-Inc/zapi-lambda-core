@@ -43,7 +43,7 @@ export class EndpointsService {
         where: {
           apiId,
           method: createEndpointDto.method,
-          route: createEndpointDto.route,
+          route: encodeURIComponent(createEndpointDto.route),
         },
       });
 
@@ -61,28 +61,28 @@ export class EndpointsService {
         apiId,
       });
 
-      const savedEndpoint = await this.endpointRepo.save(newEndpoint);
-      const result = await this.endpointRepo.findOne({
-        where: { id: savedEndpoint.id },
-      });
-
-      return result;
+      return await this.endpointRepo.save(newEndpoint);
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
       );
     }
   }
+
   /**
    * It takes a collection of endpoints from a postman collection and creates them in the database
    * @param {string} apiId - string
    * @param {CreateCollectionDto} body - CreateCollectionDto
    * @returns The result of the forEach loop.
    */
-
-  async collection(apiId: string, body: CreateCollectionDto): Promise<any> {
+  async collection(
+    apiId: string,
+    body: CreateCollectionDto,
+  ): Promise<Endpoint[]> {
     try {
-      const result = body.item.forEach(async (item) => {
+      const results: Endpoint[] = [];
+
+      for (const item of body.item) {
         const body = JSON.parse(item.request.body?.raw);
         const endpoint: CreateEndpointDto = {
           name: item.name,
@@ -93,13 +93,12 @@ export class EndpointsService {
           headers: item.request.header ?? [],
           query: item.request.url.query ?? [],
         };
-
         const isUndefined = Object.values(endpoint).includes(undefined);
         if (!isUndefined) {
-          return await this.create(apiId, endpoint);
+          results.push(await this.create(apiId, endpoint));
         }
-      });
-      return result;
+      }
+      return results;
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),

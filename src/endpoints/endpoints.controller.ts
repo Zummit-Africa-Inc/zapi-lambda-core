@@ -48,7 +48,7 @@ export class EndpointsController {
   async collection(
     @Param('apiId') apiId: string,
     @Body() body: CreateCollectionDto,
-  ): Promise<Ok<any>> {
+  ): Promise<Ok<Endpoint[]>> {
     const endpoint = await this.endpointsService.collection(apiId, body);
     return ZaLaResponse.Ok(endpoint, 'Endpoint(s) Created', '201');
   }
