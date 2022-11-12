@@ -35,15 +35,7 @@ export class InvitationService {
     try {
 
       const api = await this.apiRepo.findOne({where:{id:apiId}})
-      if(!api){
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            "Not Found Error",
-            "Api Not Found",
-            "404"
-          )
-        )
-      }
+
       //Check if there is an existing invitation to this email yet to be accepted
       const existingInvite = await this.invitationRepo.findOne({
         where:{
@@ -105,15 +97,7 @@ export class InvitationService {
 
     } catch (error) {
       console.log(error);  
-      //  if (error.name === 'JsonWebTokenError') {
-      //   throw new UnauthorizedException(
-      //     ZaLaResponse.BadRequest(
-      //       'Subscription Error',
-      //       "Invitation already expired",
-      //       '403',
-      //     ),
-      //   );
-      // } else {
+ 
         throw new BadRequestException(
           ZaLaResponse.BadRequest(
             'Internal Server Error',
@@ -128,31 +112,9 @@ export class InvitationService {
   async acceptInvitation(inviteeId: string, apiId: string) {
     try {
 
-      //Check if API exists
       const api = await this.apiRepo.findOne({where:{id:apiId}})
-      if(!api){
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            "Not Found Error",
-            "Api Not Found",
-            "404"
-          )
-        )
-      }
 
-      //Check if the user exists
-      const invitee = await this.profileRepo.findOne({where:{id: inviteeId}})
-      if(!invitee){
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            "Not Found Error",
-            "User Not found",
-            "404"
-          )
-        )
-      }
-
-      //Check if the invitation still exists
+     //Check if the invitation still exists
       const existingInvite = await this.invitationRepo.findOne({
         where:{
           inviteeId,
@@ -183,7 +145,7 @@ export class InvitationService {
 
       )
       //Delete the invitation after it has been accepted
-      await this.invitationRepo.delete(existingInvite.id)
+      this.invitationRepo.delete(existingInvite.id)
 
       return 'Invitation Accepted Successfully'
     } catch (error) {
@@ -210,25 +172,10 @@ export class InvitationService {
 
   async getallInvitations( apiId: string) {
     try {
-
-      //Check if API exists
-      const api = await this.apiRepo.findOne({where:{id:apiId}})
-      if(!api){
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            "Not Found Error",
-            "Api Not Found",
-            "404"
-          )
-        )
-      }
-
       const allInvites = await this.invitationRepo.find({where:{apiId: apiId}})
      
-
       return allInvites
     } catch (error) {
-      console.log(error);  
         throw new BadRequestException(
           ZaLaResponse.BadRequest(
             'Internal Server Error',

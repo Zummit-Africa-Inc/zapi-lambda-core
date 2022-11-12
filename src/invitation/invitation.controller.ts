@@ -4,6 +4,7 @@ import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ZaLaResponse, Ok } from 'src/common/helpers/response';
 import { Invitation } from 'src/entities/invitation.entity';
+import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 
 
 @ApiTags('Api-Invitation')
@@ -13,6 +14,7 @@ export class InvitationController {
   constructor(private readonly invitationService: InvitationService) {}
 
   @Post('/invite/:apiId')
+  @IdCheck('apiId')
   @ApiOperation({ summary: 'Send Email Invite' })
   async createInvite(
     @Body() createInvitationDto: CreateInvitationDto,
@@ -23,6 +25,8 @@ export class InvitationController {
   }
 
   @Get('/accept/:apiId/:inviteeId')
+  @IdCheck('apiId')
+  @IdCheck('inviteeId')
   @ApiOperation({ summary: 'Accept Email Invite' })
   async acceptInvite(
     @Param('apiId') apiId: string,
@@ -34,6 +38,7 @@ export class InvitationController {
   }
 
   @Get('/get-all/:apiId')
+  @IdCheck('apiId')
   @ApiOperation({ summary: 'Send Email Invite' })
   async getAllInvite(
     @Param('apiId') apiId: string,

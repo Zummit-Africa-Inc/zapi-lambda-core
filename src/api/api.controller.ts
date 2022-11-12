@@ -154,6 +154,7 @@ export class ApiController {
   }
 
   @Get('/contributors/:apiId')
+  @IdCheck('apiId')
   @ApiOperation({summary: 'Get contributors of an API'})
   async getApiContributors(
     @Param('apiId')apiId: string
