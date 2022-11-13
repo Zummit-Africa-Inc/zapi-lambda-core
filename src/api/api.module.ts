@@ -9,6 +9,7 @@ import { Endpoint } from 'src/entities/endpoint.entity';
 import { Logger } from 'src/entities/logger.entity';
 import { Profile } from 'src/entities/profile.entity';
 import { Subscription } from 'src/entities/subscription.entity';
+import { Review } from 'src/entities/review.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -19,6 +20,7 @@ import { Subscription } from 'src/entities/subscription.entity';
       Logger,
       Profile,
       Subscription,
+      Review
     ]),
   ],
   controllers: [ApiController],
