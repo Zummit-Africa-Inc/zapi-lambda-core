@@ -444,7 +444,7 @@ export class ApiService {
       }
 
       //ensure user cannot rate an api twice
-      const reviewAlreadyExists = await this.reviewRepo.findOne({where:{profile_id: profileId}})
+      const reviewAlreadyExists = await this.reviewRepo.findOne({where:{api_id: apiId, profile_id: profileId}})
        if(reviewAlreadyExists){
           throw new BadRequestException(
             ZaLaResponse.BadRequest('Internal Server error', "You cannot rate an api twice", '500'),
