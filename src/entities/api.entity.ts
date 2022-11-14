@@ -61,7 +61,7 @@ export class Api extends SharedEntity {
   })
   visibility: Visibility;
 
-  @Column({ default: 0 })
+  @Column({ default: 0, type: 'decimal', scale: 1, precision: 3})
   rating: number;
 
   @Column({ default: 0 })

@@ -29,6 +29,8 @@ import { Endpoint } from 'src/entities/endpoint.entity';
 import { Action } from 'src/common/enums/actionLogger.enum';
 import { FreeApis } from 'src/subscription/apis';
 import { Visibility } from 'src/common/enums/visibility.enum';
+import { ApiRatingDto } from './dto/add-api-rating.dto';
+import { Review } from 'src/entities/review.entity';
 
 @Injectable()
 export class ApiService {
@@ -47,6 +49,8 @@ export class ApiService {
     private readonly profileRepo: Repository<Profile>,
     @InjectRepository(Subscription)
     private readonly subscriptionRepo: Repository<Subscription>,
+    @InjectRepository(Review)
+    private readonly reviewRepo: Repository<Review>
   ) {}
 
   /**
@@ -420,6 +424,60 @@ export class ApiService {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
       ); 
+    }
+  }
+
+  /**
+   * 
+   * @param profileId : id of the profile making a request to update an api
+   * @param apiId : id of the api to be updated
+   * @param dto : api update dto
+   */
+  async addApiRating(profileId: string, apiId: string, dto: ApiRatingDto):Promise<void>{
+    try {
+      //ensure api owner cannot post a review
+      const api = await this.apiRepo.findOne({where:{id: apiId}})
+      if(api.profileId === profileId){
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest('Internal Server error', "You cannot rate your own api", '500'),
+        );
+      }
+
+      //ensure user cannot rate an api twice
+      const reviewAlreadyExists = await this.reviewRepo.findOne({where:{api_id: apiId, profile_id: profileId}})
+       if(reviewAlreadyExists){
+          throw new BadRequestException(
+            ZaLaResponse.BadRequest('Internal Server error', "You cannot rate an api twice", '500'),
+          );
+        }
+
+      //create api rating object
+      const apiRating = await this.reviewRepo.create({
+        profile_id: profileId,
+        api_id: apiId,
+        ...dto
+      })
+
+      //save api rating
+      await this.reviewRepo.save(apiRating)
+      
+      //calculate api rating
+      const reviews = await this.reviewRepo.find({where:{api_id: apiId}})
+      let ratingsTotal = 0
+
+      reviews.forEach(review=>{
+        ratingsTotal += review.rating
+      })
+
+      const overallRating = (ratingsTotal/ reviews.length) * 2
+      
+      //update api rating
+      await this.apiRepo.update(apiId,{rating: overallRating})
+
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+      );
     }
   }
 }
