@@ -96,16 +96,13 @@ export class InvitationService {
       return `Invitation sent successfully to ${invitee.email}`
 
     } catch (error) {
-      console.log(error);  
- 
-        throw new BadRequestException(
-          ZaLaResponse.BadRequest(
-            'Internal Server Error',
-            'Something went wrong',
-            '500',
-          ),
-        );
-      // }
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(
+          'Internal Server Error',
+          'Something went wrong',
+          '500',
+        ),
+      );
     }
   }
 
@@ -149,8 +146,7 @@ export class InvitationService {
 
       return 'Invitation Accepted Successfully'
     } catch (error) {
-      console.log(error);  
-       if (error.name === 'JsonWebTokenError') {
+      if (error.name === 'JsonWebTokenError') {
         throw new UnauthorizedException(
           ZaLaResponse.BadRequest(
             'Subscription Error',

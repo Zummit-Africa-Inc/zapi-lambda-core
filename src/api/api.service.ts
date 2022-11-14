@@ -437,7 +437,6 @@ export class ApiService {
       }
       return contributors
     } catch (error) {
-      console.log(error);  
         throw new BadRequestException(
           ZaLaResponse.BadRequest(
             'Internal Server Error',

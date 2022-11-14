@@ -25,8 +25,7 @@ export class InvitationController {
   }
 
   @Get('/accept/:apiId/:inviteeId')
-  @IdCheck('apiId')
-  @IdCheck('inviteeId')
+  @IdCheck('apiId', 'inviteeId')
   @ApiOperation({ summary: 'Accept Email Invite' })
   async acceptInvite(
     @Param('apiId') apiId: string,
