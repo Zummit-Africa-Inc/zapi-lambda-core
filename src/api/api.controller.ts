@@ -30,6 +30,7 @@ import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
+import { Profile } from 'src/entities/profile.entity';
 import { ApiRatingDto } from './dto/add-api-rating.dto';
 
 @ApiTags('Apis')
@@ -150,6 +151,16 @@ export class ApiController {
   async getPopularApis(): Promise<Ok<Api[]>> {
     const apis = await this.apiService.getPopularAPis();
     return ZaLaResponse.Ok(apis, 'OK', '200');
+  }
+
+  @Get('/contributors/:apiId')
+  @IdCheck('apiId')
+  @ApiOperation({summary: 'Get contributors of an API'})
+  async getApiContributors(
+    @Param('apiId')apiId: string
+  ): Promise<Ok<Profile[]>> {
+    const contributors = await this.apiService.getAllApiContributors(apiId);
+    return ZaLaResponse.Ok(contributors, 'OK', '200');
   }
 
   @IdCheck('profileId','apiId')

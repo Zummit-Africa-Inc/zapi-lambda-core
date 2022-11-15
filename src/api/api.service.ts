@@ -427,6 +427,30 @@ export class ApiService {
     }
   }
 
+   async getAllApiContributors(apiId: string){
+    try {
+
+      const api = await this.apiRepo.findOne({where:{id:apiId}})
+      const contributors = []
+      const contributorIds = api.contributors
+      for(const id of contributorIds){
+        const contributor = await this.profileRepo.findOneBy({id})
+        if(contributor){
+          contributors.push(contributor)
+        }
+      }
+      return contributors
+    } catch (error) {
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            'Internal Server Error',
+            'Something went wrong',
+            '500',
+          ),
+        );
+     }
+  }
+
   /**
    * 
    * @param profileId : id of the profile making a request to update an api
