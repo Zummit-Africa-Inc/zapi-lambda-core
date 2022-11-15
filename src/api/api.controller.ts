@@ -31,6 +31,7 @@ import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { ApiRatingDto } from './dto/add-api-rating.dto';
+import { Review } from 'src/entities/review.entity';
 
 @ApiTags('Apis')
 @UseGuards(AuthenticationGuard)
@@ -160,6 +161,17 @@ export class ApiController {
     @Body() dto: ApiRatingDto
   ):Promise<Ok<string>>{
     await this.apiService.addApiRating(profileId, apiId, dto)
-    return ZaLaResponse.Ok("Api rating complete", "Ok", '200')
+    return ZaLaResponse.Ok("Api rating complete", "Ok", '201')
   }
+
+  @IdCheck('apiId')
+  @Post('/reviews/:apiId')
+  @ApiOperation({summary:"Get all reviews of an api"})
+  async getApiReviewsAndRating(
+    @Param('apiId') apiId: string
+  ): Promise<Ok<Review[]>>{
+    const reviews = await this.apiService.getApiReviewsAndRating(apiId)
+    return ZaLaResponse.Ok(reviews, "Ok", '200')
+  }
+
 }
