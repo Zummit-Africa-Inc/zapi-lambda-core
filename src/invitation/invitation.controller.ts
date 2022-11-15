@@ -1,4 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
+import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { InvitationService } from './invitation.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -14,6 +16,7 @@ export class InvitationController {
   constructor(private readonly invitationService: InvitationService) {}
 
   @Post('/invite/:apiId')
+  @UseGuards(AuthenticationGuard)
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Send Email Invite' })
   async createInvite(
@@ -37,6 +40,7 @@ export class InvitationController {
   }
 
   @Get('/get-all/:apiId')
+  @UseGuards(AuthenticationGuard)
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Send Email Invite' })
   async getAllInvite(
