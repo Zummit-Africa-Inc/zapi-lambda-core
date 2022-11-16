@@ -88,6 +88,25 @@ export class SubscriptionController {
     return ZaLaResponse.Ok(request, 'Request Successful', '200');
   }
 
+  @Post('api-dev-test')
+  @ApiOperation({ summary: 'Test an api' })
+  async devTest(
+    @Body() requestBody: ApiRequestDto,
+    @Headers('x-zapi-request-token') token: string,
+  ): Promise<Ok<any>> {
+    if (!token) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(
+          'Bad Request',
+          'Subscription token is required to make a request',
+          '403',
+        ),
+      );
+    }
+    const request = await this.subscriptionService.devTest(token, requestBody);
+    return ZaLaResponse.Ok(request, 'Request Successful', '200');
+  }
+
   @Post('/free-request/:apiId')
   @Public()
   @ApiOperation({ summary: 'Free api request' })

@@ -394,4 +394,48 @@ export class SubscriptionService {
       );
     }
   }
+
+  /* Developer test endpoint for making requests to an external server */
+  async devTest(token: string, body: ApiRequestDto): Promise<any> {
+    try {
+      const { api } = await this.verifySub(token);
+      const encodedRoute = encodeURIComponent(body.route);
+      const endpoint = await this.endpointRepository.findOne({
+        where: {
+          apiId: api.id,
+          method: body.method,
+          route: encodedRoute,
+        },
+      });
+
+      if (!endpoint) {
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest('Server Error', 'Wrong Endpoint', '400'),
+        );
+      }
+
+      const base_url = api.base_url;
+      const method = endpoint.method.toLowerCase();
+
+      /* Making a request to the api with the payload and the secret key. */
+      const ref = this.httpService.axiosRef;
+      const axiosResponse = await ref({
+        method,
+        url: `${base_url}${endpoint.route}`,
+        data: body.payload,
+        headers: { 'X-Zapi-Proxy-Secret': api.secretKey },
+      });
+
+      const data = axiosResponse.data;
+      return data;
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(
+          'External server error',
+          `Message from external server: '${error.message}'`,
+          '500',
+        ),
+      );
+    }
+  }
 }
