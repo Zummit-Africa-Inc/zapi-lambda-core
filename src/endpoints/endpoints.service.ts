@@ -13,6 +13,8 @@ import { Action } from 'src/common/enums/actionLogger.enum';
 import { Profile } from 'src/entities/profile.entity';
 import { Logger } from 'src/entities/logger.entity';
 import { Api } from '../entities/api.entity';
+import { CreateCollectionDto } from './dto/create-collection.dto';
+import { CollectionResponse } from 'src/common/interfaces/collectionResponse.interface';
 
 @Injectable()
 export class EndpointsService {
@@ -42,7 +44,7 @@ export class EndpointsService {
         where: {
           apiId,
           method: createEndpointDto.method,
-          route: createEndpointDto.route,
+          route: encodeURIComponent(createEndpointDto.route),
         },
       });
 
@@ -60,15 +62,54 @@ export class EndpointsService {
         apiId,
       });
 
-      const savedEndpoint = await this.endpointRepo.save(newEndpoint);
-      const result = await this.endpointRepo.findOne({
-        where: { id: savedEndpoint.id },
-      });
-
-      return result;
+      return await this.endpointRepo.save(newEndpoint);
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+      );
+    }
+  }
+
+  /**
+   * It takes a Postman collection, parses it, and creates new endpoints.
+   * @param {string} apiId - string,
+   * @param {CreateCollectionDto} body - CreateCollectionDto
+   * @returns The return type is a Promise of a CollectionResponse.
+   */
+  async collection(
+    apiId: string,
+    body: CreateCollectionDto,
+  ): Promise<CollectionResponse> {
+    try {
+      const endpoints: Endpoint[] = [];
+      const skipped: string[] = [];
+
+      for (const item of body.item) {
+        const body = JSON.parse(item.request.body?.raw);
+        const endpoint: CreateEndpointDto = {
+          name: item.name,
+          description: item.request.description,
+          body: Array.isArray(body) ? body : [body],
+          method: item.request.method.toLowerCase(),
+          route: `/${item.request.url.path[0]}`,
+          headers: item.request.header ?? [],
+          query: item.request.url.query ?? [],
+        };
+
+        /* Checking if any of the values in the endpoint object is undefined. If it is, it pushes the
+        name of the endpoint to the skipped array. If not, it pushes the endpoint to the endpoints
+        array. */
+        const isUndefined = Object.values(endpoint).includes(undefined);
+        if (isUndefined) {
+          skipped.push(endpoint.name);
+        } else {
+          endpoints.push(await this.create(apiId, endpoint));
+        }
+      }
+      return { endpoints, skipped };
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(error.name, error.message, error.status),
       );
     }
   }
@@ -78,6 +119,7 @@ export class EndpointsService {
    * @param {string} apiId - string
    * @returns An array of Endpoint objects.
    */
+
   async getAllApiEndpoints(apiId: string): Promise<Endpoint[]> {
     try {
       //check if api exists in Endpoint table

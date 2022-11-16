@@ -9,7 +9,7 @@ export class Feedback extends SharedEntity {
   @Column()
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   title: string;
 
   @Column()

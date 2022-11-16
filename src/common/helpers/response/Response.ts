@@ -68,4 +68,18 @@ export class ZaLaResponse {
       message,
     } as Ok<T>;
   }
+  static Collection<T>(
+    object: T,
+    message = '',
+    status?: string | number,
+  ): Ok<T> {
+    const { endpoints, skipped }: any = object;
+    return {
+      status,
+      success: true,
+      data: endpoints,
+      skipped,
+      message,
+    } as Ok<T>;
+  }
 }
