@@ -452,7 +452,7 @@ export class ApiService {
   }
 
   /**
-   * 
+   * allows the user to review and rate an api
    * @param profileId : id of the profile making a request to update an api
    * @param apiId : id of the api to be updated
    * @param dto : api update dto
@@ -498,6 +498,21 @@ export class ApiService {
       //update api rating
       await this.apiRepo.update(apiId,{rating: overallRating})
 
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+      );
+    }
+  }
+
+  /**
+   * it gets all the reviews of an api
+   * @param apiId : id of the api 
+   * @returns : returns all reviews of the api
+   */
+  async getApiReviewsAndRating(apiId: string):Promise<Review[]>{
+    try {
+      return await this.reviewRepo.find({where:{api_id: apiId}})
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
