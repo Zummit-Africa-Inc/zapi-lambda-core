@@ -176,8 +176,9 @@ export class ApiController {
     return ZaLaResponse.Ok("Api rating complete", "Ok", '201')
   }
 
+  @Public()
   @IdCheck('apiId')
-  @Post('/reviews/:apiId')
+  @Get('/reviews/:apiId')
   @ApiOperation({summary:"Get all reviews of an api"})
   async getApiReviewsAndRating(
     @Param('apiId') apiId: string
