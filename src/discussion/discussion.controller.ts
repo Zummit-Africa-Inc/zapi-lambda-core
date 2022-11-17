@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
+import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { Discussion } from 'src/entities/discussion.entity';
@@ -34,6 +35,7 @@ export class DiscussionController {
         return ZaLaResponse.Ok(discussion,'Ok','200')
     }
 
+    @Public()
     @IdCheck('apiId')
     @Get('/api/:apiId')
     @ApiOperation({summary:'Get all discussions of an api'})
