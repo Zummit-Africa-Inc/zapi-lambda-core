@@ -15,5 +15,5 @@ export class ApiRatingDto {
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
-    reviewer: string
+    reviewer: string 
 }
