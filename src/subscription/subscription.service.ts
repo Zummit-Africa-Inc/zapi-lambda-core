@@ -428,6 +428,7 @@ export class SubscriptionService {
         method,
         route: endpoint.route,
         profileId,
+        apiId,
       };
       try {
         /* Making a request to the api with the payload and the secret key. */
@@ -468,5 +469,15 @@ export class SubscriptionService {
   async recordTest(testData: DevTestRequestDto): Promise<void> {
     const newTest = this.devTestingRepo.create(testData);
     this.devTestingRepo.save(newTest);
+  }
+
+  /**
+   * Returns an array of Dev tests, where the profileId matches the
+   * profileId passed in as a parameter.
+   * @param {string} profileId - string
+   * @returns An array of DevTesting objects.
+   */
+  async getTests(profileId: string): Promise<DevTesting[]> {
+    return this.devTestingRepo.find({ where: { profileId } });
   }
 }

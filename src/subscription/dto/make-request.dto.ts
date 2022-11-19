@@ -37,4 +37,7 @@ export class DevTestRequestDto {
 
   @ApiProperty()
   profileId: string;
+
+  @ApiProperty()
+  apiId: string;
 }

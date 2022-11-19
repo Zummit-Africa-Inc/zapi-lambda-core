@@ -4,6 +4,12 @@ import { Column, Entity } from 'typeorm';
 @Entity()
 export class DevTesting extends SharedEntity {
   @Column()
+  profileId: string;
+
+  @Column()
+  apiId: string;
+
+  @Column()
   url: string;
 
   @Column()
@@ -14,7 +20,4 @@ export class DevTesting extends SharedEntity {
 
   @Column()
   requestStatus: string;
-
-  @Column()
-  profileId: string;
 }

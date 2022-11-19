@@ -21,6 +21,7 @@ import { FreeRequestDto } from './dto/make-request.dto';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { DevTesting } from 'src/entities/devTesting.entity';
 
 @ApiTags('Subscription')
 @ApiBearerAuth('access-token')
@@ -103,6 +104,12 @@ export class SubscriptionController {
       requestBody,
     );
     return ZaLaResponse.Ok(request, 'Request Successful', '200');
+  }
+  @Get('/get-dev-tests')
+  @ApiOperation({ summary: 'Get test records' })
+  async getTests(@Req() req: Request): Promise<Ok<DevTesting[]>> {
+    const tests = await this.subscriptionService.getTests(req.profileId);
+    return ZaLaResponse.Ok(tests, 'Request Successful', '200');
   }
 
   @Post('/free-request/:apiId')
