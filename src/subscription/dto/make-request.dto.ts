@@ -21,3 +21,17 @@ export class FreeRequestDto {
   @ApiPropertyOptional()
   payload: any;
 }
+
+export class DevTestRequestDto {
+  @ApiProperty()
+  method: string;
+
+  @ApiProperty()
+  route: string;
+
+  @ApiProperty()
+  requestStatus: string;
+
+  @ApiProperty()
+  url: string;
+}

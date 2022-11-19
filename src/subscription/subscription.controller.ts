@@ -8,7 +8,9 @@ import {
   Param,
   UseGuards,
   Query,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { ApiRequestDto } from './dto/make-request.dto';
@@ -87,23 +89,19 @@ export class SubscriptionController {
     );
     return ZaLaResponse.Ok(request, 'Request Successful', '200');
   }
-
-  @Post('api-dev-test')
+  @IdCheck('apiId')
+  @Post('/api-dev-test/:apiId')
   @ApiOperation({ summary: 'Test an api' })
   async devTest(
     @Body() requestBody: ApiRequestDto,
-    @Headers('x-zapi-request-token') token: string,
+    @Param('apiId') apiId: string,
+    @Req() req: Request,
   ): Promise<Ok<any>> {
-    if (!token) {
-      throw new BadRequestException(
-        ZaLaResponse.BadRequest(
-          'Bad Request',
-          'Subscription token is required to make a request',
-          '403',
-        ),
-      );
-    }
-    const request = await this.subscriptionService.devTest(token, requestBody);
+    const request = await this.subscriptionService.devTest(
+      apiId,
+      req.profileId,
+      requestBody,
+    );
     return ZaLaResponse.Ok(request, 'Request Successful', '200');
   }
 

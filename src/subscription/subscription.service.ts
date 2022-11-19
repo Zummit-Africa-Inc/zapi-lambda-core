@@ -14,13 +14,14 @@ import { Subscription } from '../entities/subscription.entity';
 import { Tokens } from 'src/common/interfaces/subscriptionToken.interface';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { HttpService } from '@nestjs/axios';
-import { ApiRequestDto } from './dto/make-request.dto';
+import { ApiRequestDto, DevTestRequestDto } from './dto/make-request.dto';
 import { ConfigService } from '@nestjs/config';
 import { lastValueFrom } from 'rxjs';
 import { AxiosResponse } from 'axios';
 import { ClientProxy } from '@nestjs/microservices';
 import { HttpCallService } from './httpCall.service';
 import { FreeApis } from './apis';
+import { DevTesting } from 'src/entities/devTesting.entity';
 
 @Injectable()
 export class SubscriptionService {
@@ -33,6 +34,8 @@ export class SubscriptionService {
     private readonly endpointRepository: Repository<Endpoint>,
     @InjectRepository(Subscription)
     private readonly subscriptionRepo: Repository<Subscription>,
+    @InjectRepository(DevTesting)
+    private readonly devTestingRepo: Repository<DevTesting>,
     private jwtService: JwtService,
     private httpService: HttpService,
     private readonly httpCallService: HttpCallService,
@@ -396,9 +399,13 @@ export class SubscriptionService {
   }
 
   /* Developer test endpoint for making requests to an external server */
-  async devTest(token: string, body: ApiRequestDto): Promise<any> {
+  async devTest(
+    apiId: string,
+    profileId: string,
+    body: ApiRequestDto,
+  ): Promise<any> {
     try {
-      const { api } = await this.verifySub(token);
+      const api = await this.apiRepo.findOne({ where: { id: apiId } });
       const encodedRoute = encodeURIComponent(body.route);
       const endpoint = await this.endpointRepository.findOne({
         where: {
@@ -416,18 +423,33 @@ export class SubscriptionService {
 
       const base_url = api.base_url;
       const method = endpoint.method.toLowerCase();
-
-      /* Making a request to the api with the payload and the secret key. */
-      const ref = this.httpService.axiosRef;
-      const axiosResponse = await ref({
+      const testData = {
+        url: base_url,
         method,
-        url: `${base_url}${endpoint.route}`,
-        data: body.payload,
-        headers: { 'X-Zapi-Proxy-Secret': api.secretKey },
-      });
+        route: endpoint.route,
+        profileId,
+      };
+      try {
+        /* Making a request to the api with the payload and the secret key. */
+        const ref = this.httpService.axiosRef;
+        const axiosResponse = await ref({
+          method,
+          url: `${base_url}${endpoint.route}`,
+          data: body.payload,
+          headers: { 'X-Zapi-Proxy-Secret': api.secretKey },
+        });
 
-      const data = axiosResponse.data;
-      return data;
+        this.recordTest({
+          ...testData,
+          requestStatus: axiosResponse.status.toString(),
+        });
+        return axiosResponse.data;
+      } catch (error) {
+        this.recordTest({
+          ...testData,
+          requestStatus: error.response.status ?? 'Unknown error',
+        });
+      }
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(
@@ -437,5 +459,15 @@ export class SubscriptionService {
         ),
       );
     }
+  }
+
+  /**
+   * It creates a new instance of the DevTestRequestDto class, and then saves it to the database
+   * @param {DevTestRequestDto} testData - DevTestRequestDto
+   */
+  async recordTest(testData: DevTestRequestDto): Promise<void> {
+    console.log(testData);
+    const newTest = this.devTestingRepo.create(testData);
+    this.devTestingRepo.save(newTest);
   }
 }
