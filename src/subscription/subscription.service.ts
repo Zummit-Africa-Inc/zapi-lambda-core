@@ -466,7 +466,6 @@ export class SubscriptionService {
    * @param {DevTestRequestDto} testData - DevTestRequestDto
    */
   async recordTest(testData: DevTestRequestDto): Promise<void> {
-    console.log(testData);
     const newTest = this.devTestingRepo.create(testData);
     this.devTestingRepo.save(newTest);
   }
