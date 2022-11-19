@@ -22,6 +22,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import { HttpCallService } from './httpCall.service';
 import { FreeApis } from './apis';
 import { DevTesting } from 'src/entities/devTesting.entity';
+import { HttpMethod } from 'src/common/enums/httpMethods.enum';
 
 @Injectable()
 export class SubscriptionService {
@@ -402,7 +403,7 @@ export class SubscriptionService {
   async devTest(
     apiId: string,
     profileId: string,
-    body: ApiRequestDto,
+    body: DevTestRequestDto,
   ): Promise<any> {
     try {
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
@@ -429,6 +430,9 @@ export class SubscriptionService {
         route: endpoint.route,
         profileId,
         apiId,
+        testName: body.testName,
+        payload: body.payload,
+        headers: body.headers,
       };
       try {
         /* Making a request to the api with the payload and the secret key. */
@@ -473,7 +477,7 @@ export class SubscriptionService {
    * It creates a new instance of the DevTestRequestDto class, and then saves it to the database
    * @param {DevTestRequestDto} testData - DevTestRequestDto
    */
-  async recordTest(testData: DevTestRequestDto): Promise<void> {
+  async recordTest(testData): Promise<void> {
     const newTest = this.devTestingRepo.create(testData);
     this.devTestingRepo.save(newTest);
   }

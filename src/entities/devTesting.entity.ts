@@ -20,4 +20,7 @@ export class DevTesting extends SharedEntity {
 
   @Column()
   requestStatus: string;
+
+  @Column()
+  testName: string;
 }

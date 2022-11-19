@@ -13,7 +13,7 @@ import {
 import { Request } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
-import { ApiRequestDto } from './dto/make-request.dto';
+import { ApiRequestDto, DevTestRequestDto } from './dto/make-request.dto';
 import { SubscriptionService } from './subscription.service';
 import { Tokens } from 'src/common/interfaces/subscriptionToken.interface';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
@@ -94,7 +94,7 @@ export class SubscriptionController {
   @Post('/api-dev-test/:apiId')
   @ApiOperation({ summary: 'Test an api' })
   async devTest(
-    @Body() requestBody: ApiRequestDto,
+    @Body() requestBody: DevTestRequestDto,
     @Param('apiId') apiId: string,
     @Req() req: Request,
   ): Promise<Ok<any>> {
