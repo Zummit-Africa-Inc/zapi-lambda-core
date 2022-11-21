@@ -449,14 +449,17 @@ export class SubscriptionService {
           ...testData,
           requestStatus: error.response.status ?? 'Unknown error',
         });
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            'External server error',
+            `Message from external server: '${error.message}'`,
+            '500',
+          ),
+        );
       }
     } catch (error) {
       throw new BadRequestException(
-        ZaLaResponse.BadRequest(
-          'External server error',
-          `Message from external server: '${error.message}'`,
-          '500',
-        ),
+        ZaLaResponse.BadRequest('Internal server error', error.message, '500'),
       );
     }
   }
