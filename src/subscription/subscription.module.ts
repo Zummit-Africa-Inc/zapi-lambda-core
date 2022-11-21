@@ -6,6 +6,7 @@ import { AnalyticsService } from 'src/analytics/analytics.service';
 import { Analytics } from 'src/entities/analytics.entity';
 import { AnalyticsLogs } from 'src/entities/analyticsLogs.entity';
 import { Api } from 'src/entities/api.entity';
+import { DevTesting } from 'src/entities/devTesting.entity';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { Profile } from 'src/entities/profile.entity';
 import { Subscription } from 'src/entities/subscription.entity';
@@ -20,6 +21,7 @@ import { SubscriptionService } from './subscription.service';
       Api,
       Profile,
       Endpoint,
+      DevTesting,
       Analytics,
       AnalyticsLogs,
       JwtModule,

@@ -8,10 +8,12 @@ import {
   Param,
   UseGuards,
   Query,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
-import { ApiRequestDto } from './dto/make-request.dto';
+import { ApiRequestDto, DevTestRequestDto } from './dto/make-request.dto';
 import { SubscriptionService } from './subscription.service';
 import { Tokens } from 'src/common/interfaces/subscriptionToken.interface';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
@@ -19,6 +21,7 @@ import { FreeRequestDto } from './dto/make-request.dto';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { DevTesting } from 'src/entities/devTesting.entity';
 
 @ApiTags('Subscription')
 @ApiBearerAuth('access-token')
@@ -86,6 +89,27 @@ export class SubscriptionController {
       requestBody,
     );
     return ZaLaResponse.Ok(request, 'Request Successful', '200');
+  }
+  @IdCheck('apiId')
+  @Post('/api-dev-test/:apiId')
+  @ApiOperation({ summary: 'Test an api' })
+  async devTest(
+    @Body() requestBody: DevTestRequestDto,
+    @Param('apiId') apiId: string,
+    @Req() req: Request,
+  ): Promise<Ok<any>> {
+    const request = await this.subscriptionService.devTest(
+      apiId,
+      req.profileId,
+      requestBody,
+    );
+    return ZaLaResponse.Ok(request, 'Request Successful', '200');
+  }
+  @Get('/get-dev-tests')
+  @ApiOperation({ summary: 'Get test records' })
+  async getTests(@Req() req: Request): Promise<Ok<DevTesting[]>> {
+    const tests = await this.subscriptionService.getTests(req.profileId);
+    return ZaLaResponse.Ok(tests, 'Request Successful', '200');
   }
 
   @Post('/free-request/:apiId')

@@ -14,13 +14,15 @@ import { Subscription } from '../entities/subscription.entity';
 import { Tokens } from 'src/common/interfaces/subscriptionToken.interface';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { HttpService } from '@nestjs/axios';
-import { ApiRequestDto } from './dto/make-request.dto';
+import { ApiRequestDto, DevTestRequestDto } from './dto/make-request.dto';
 import { ConfigService } from '@nestjs/config';
 import { lastValueFrom } from 'rxjs';
 import { AxiosResponse } from 'axios';
 import { ClientProxy } from '@nestjs/microservices';
 import { HttpCallService } from './httpCall.service';
 import { FreeApis } from './apis';
+import { DevTesting } from 'src/entities/devTesting.entity';
+import { HttpMethod } from 'src/common/enums/httpMethods.enum';
 
 @Injectable()
 export class SubscriptionService {
@@ -33,6 +35,8 @@ export class SubscriptionService {
     private readonly endpointRepository: Repository<Endpoint>,
     @InjectRepository(Subscription)
     private readonly subscriptionRepo: Repository<Subscription>,
+    @InjectRepository(DevTesting)
+    private readonly devTestingRepo: Repository<DevTesting>,
     private jwtService: JwtService,
     private httpService: HttpService,
     private readonly httpCallService: HttpCallService,
@@ -393,5 +397,94 @@ export class SubscriptionService {
         ZaLaResponse.BadRequest(error.name, error.message, error.errorCode),
       );
     }
+  }
+
+  /* Developer test endpoint for making requests to an external server */
+  async devTest(
+    apiId: string,
+    profileId: string,
+    body: DevTestRequestDto,
+  ): Promise<any> {
+    try {
+      const api = await this.apiRepo.findOne({ where: { id: apiId } });
+      const encodedRoute = encodeURIComponent(body.route);
+      const endpoint = await this.endpointRepository.findOne({
+        where: {
+          apiId: api.id,
+          method: body.method,
+          route: encodedRoute,
+        },
+      });
+
+      if (!endpoint) {
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest('Server Error', 'Wrong Endpoint', '400'),
+        );
+      }
+
+      const base_url = api.base_url;
+      const method = endpoint.method.toLowerCase();
+      const testData = {
+        url: base_url,
+        method,
+        route: endpoint.route,
+        profileId,
+        apiId,
+        testName: body.testName,
+        payload: body.payload,
+        headers: body.headers,
+      };
+      try {
+        /* Making a request to the api with the payload and the secret key. */
+        const ref = this.httpService.axiosRef;
+        const axiosResponse = await ref({
+          method,
+          url: `${base_url}${endpoint.route}`,
+          data: body.payload,
+          headers: { 'X-Zapi-Proxy-Secret': api.secretKey },
+        });
+
+        this.recordTest({
+          ...testData,
+          requestStatus: axiosResponse.status.toString(),
+        });
+        return axiosResponse.data;
+      } catch (error) {
+        this.recordTest({
+          ...testData,
+          requestStatus: error.response.status ?? 'Unknown error',
+        });
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            'External server error',
+            `Message from external server: '${error.message}'`,
+            '500',
+          ),
+        );
+      }
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal server error', error.message, '500'),
+      );
+    }
+  }
+
+  /**
+   * It creates a new instance of the DevTestRequestDto class, and then saves it to the database
+   * @param {DevTestRequestDto} testData - DevTestRequestDto
+   */
+  async recordTest(testData): Promise<void> {
+    const newTest = this.devTestingRepo.create(testData);
+    this.devTestingRepo.save(newTest);
+  }
+
+  /**
+   * Returns an array of Dev tests, where the profileId matches the
+   * profileId passed in as a parameter.
+   * @param {string} profileId - string
+   * @returns An array of DevTesting objects.
+   */
+  async getTests(profileId: string): Promise<DevTesting[]> {
+    return this.devTestingRepo.find({ where: { profileId } });
   }
 }
