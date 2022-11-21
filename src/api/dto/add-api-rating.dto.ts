@@ -1,10 +1,9 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsNotEmpty, IsOptional, IsString, Max, Min } from "class-validator";
 export class ApiRatingDto {
-    @ApiProperty()
+    @ApiPropertyOptional()
     @IsString()
-    @IsOptional()
-    review: string
+    review? : string
 
     @ApiProperty()
     @IsNotEmpty()
