@@ -25,6 +25,7 @@ import { SubscriptionService } from './subscription.service';
       Analytics,
       AnalyticsLogs,
       JwtModule,
+      DevTesting,
     ]),
     JwtModule.register({}),
     HttpModule,

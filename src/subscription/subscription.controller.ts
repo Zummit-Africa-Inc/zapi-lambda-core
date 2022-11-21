@@ -90,21 +90,33 @@ export class SubscriptionController {
     );
     return ZaLaResponse.Ok(request, 'Request Successful', '200');
   }
-  @IdCheck('apiId')
-  @Post('/api-dev-test/:apiId')
+
+  @Post('/api-dev-test/:testId')
   @ApiOperation({ summary: 'Test an api' })
   async devTest(
+    @Param('testId') testId: string,
+    @Body() payload?: Object,
+  ): Promise<Ok<any>> {
+    const request = await this.subscriptionService.devTest(testId, payload);
+    return ZaLaResponse.Ok(request, 'Request Successful', '200');
+  }
+
+  @IdCheck('apiId')
+  @Post('/save-dev-test/:apiId')
+  @ApiOperation({ summary: 'Save test data' })
+  async saveTest(
     @Body() requestBody: DevTestRequestDto,
     @Param('apiId') apiId: string,
     @Req() req: Request,
   ): Promise<Ok<any>> {
-    const request = await this.subscriptionService.devTest(
+    const test = await this.subscriptionService.saveTest(
       apiId,
       req.profileId,
       requestBody,
     );
-    return ZaLaResponse.Ok(request, 'Request Successful', '200');
+    return ZaLaResponse.Ok(test, 'Test saved', '201');
   }
+
   @Get('/get-dev-tests')
   @ApiOperation({ summary: 'Get test records' })
   async getTests(@Req() req: Request): Promise<Ok<DevTesting[]>> {

@@ -1,5 +1,6 @@
 import { SharedEntity } from '../common/model/sharedEntity';
 import { Column, Entity } from 'typeorm';
+import { HttpMethod } from '.././common/enums/httpMethods.enum';
 
 @Entity()
 export class DevTesting extends SharedEntity {
@@ -10,16 +11,13 @@ export class DevTesting extends SharedEntity {
   apiId: string;
 
   @Column()
-  url: string;
+  endpointId: string;
 
   @Column()
   route: string;
 
   @Column()
-  method: string;
-
-  @Column()
-  requestStatus: string;
+  method: HttpMethod;
 
   @Column()
   testName: string;
