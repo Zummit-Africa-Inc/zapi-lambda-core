@@ -22,13 +22,7 @@ export class FreeRequestDto {
   payload: any;
 }
 
-export class DevTestRequestDto {
-  @ApiProperty()
-  method: string;
-
-  @ApiProperty()
-  route: string;
-
+export class DevTestRequestDto extends ApiRequestDto {
   @ApiProperty()
   requestStatus: string;
 
@@ -37,4 +31,10 @@ export class DevTestRequestDto {
 
   @ApiProperty()
   profileId: string;
+
+  @ApiProperty()
+  apiId: string;
+
+  @ApiProperty()
+  testName: string;
 }
