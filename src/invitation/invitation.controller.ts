@@ -45,7 +45,7 @@ export class InvitationController {
   @ApiOperation({ summary: 'Send Email Invite' })
   async getAllInvite(
     @Param('apiId') apiId: string,
-    ): Promise<Ok<Invitation[]>> {
+    ): Promise<Ok<any[]>> {
     const invites = await this.invitationService.getallInvitations( apiId);
     return ZaLaResponse.Ok(invites, 'Invites retrieved successfully', 200)
   }

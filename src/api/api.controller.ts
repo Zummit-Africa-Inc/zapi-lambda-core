@@ -159,7 +159,7 @@ export class ApiController {
   @ApiOperation({summary: 'Get contributors of an API'})
   async getApiContributors(
     @Param('apiId')apiId: string
-  ): Promise<Ok<Profile[]>> {
+  ): Promise<Ok<any[]>> {
     const contributors = await this.apiService.getAllApiContributors(apiId);
     return ZaLaResponse.Ok(contributors, 'OK', '200');
   }

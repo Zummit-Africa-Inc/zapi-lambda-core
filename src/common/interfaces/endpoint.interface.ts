@@ -2,7 +2,7 @@ import { EndpointHeaderType } from '../enums/endpointHeaderType.enum';
 
 export interface ReqBody {
   key: string;
-  value: string | Date | boolean | number | object | symbol | Array<any>;
+  value: string | Date | boolean | number | object | symbol | Array<any> | Express.Multer.File;
 }
 
 export interface DataType {

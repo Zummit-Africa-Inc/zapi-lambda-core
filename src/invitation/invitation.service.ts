@@ -168,9 +168,14 @@ export class InvitationService {
 
   async getallInvitations( apiId: string) {
     try {
+      let pendingInvites = []
       const allInvites = await this.invitationRepo.find({where:{apiId: apiId}})
-     
-      return allInvites
+      if(allInvites.length < 1){
+        return allInvites
+      } else{
+        return pendingInvites
+      }
+
     } catch (error) {
         throw new BadRequestException(
           ZaLaResponse.BadRequest(
