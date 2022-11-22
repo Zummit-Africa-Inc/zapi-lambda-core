@@ -15,6 +15,4 @@ export class Review extends SharedEntity{
     @Column()
     rating: number
 
-    @Column()
-    reviewer: string
 }
