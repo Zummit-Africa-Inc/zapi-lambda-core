@@ -400,7 +400,7 @@ export class SubscriptionService {
   }
 
   /* Developer test endpoint for making requests to an external server */
-  async devTest(testId: string, payload?: Object): Promise<any> {
+  async devTest(testId: string): Promise<any> {
     try {
       const test = await this.devTestingRepo.findOne({ where: { id: testId } });
       const api = await this.apiRepo.findOne({ where: { id: test.apiId } });
@@ -424,14 +424,14 @@ export class SubscriptionService {
       }
 
       const base_url = api.base_url;
-      const method = endpoint.method;
+      const method = test.method;
       try {
         /* Making a request to the api with the payload and the secret key. */
         const ref = this.httpService.axiosRef;
         const axiosResponse = await ref({
           method,
           url: `${base_url}${endpoint.route}`,
-          data: payload,
+          data: test.payload.value,
           headers: { 'X-Zapi-Proxy-Secret': api.secretKey },
         });
 
@@ -452,24 +452,15 @@ export class SubscriptionService {
     }
   }
 
-  // /**
-  //  * It creates a new instance of the DevTestRequestDto class, and then saves it to the database
-  //  * @param {DevTestRequestDto} testData - DevTestRequestDto
-  //  */
-  // async recordTest(testData): Promise<void> {
-  //   const newTest = this.devTestingRepo.create(testData);
-  //   this.devTestingRepo.save(newTest);
-  // }
-
   /* Finding a record in the database that matches the apiId, method, and route. */
   async saveTest(
-    apiId: string,
+    // apiId: string,
     profileId: string,
     body: DevTestRequestDto,
   ): Promise<DevTesting> {
     const test = await this.devTestingRepo.findOne({
       where: {
-        apiId,
+        apiId: body.apiId,
         method: body.method,
         route: encodeURIComponent(body.route),
       },
@@ -486,7 +477,6 @@ export class SubscriptionService {
 
     const newTest = this.devTestingRepo.create({
       ...body,
-      apiId,
       profileId,
     });
 
@@ -499,6 +489,26 @@ export class SubscriptionService {
    * @returns An array of DevTesting objects.
    */
   async getTests(profileId: string): Promise<DevTesting[]> {
-    return this.devTestingRepo.find({ where: { profileId } });
+    try {
+      return this.devTestingRepo.find({ where: { profileId } });
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
+      );
+    }
+  }
+
+  /**
+   * This function deletes a test from the database.
+   * @param {string} testId - The id of the test you want to delete.
+   */
+  async deleteTest(testId: string): Promise<void> {
+    try {
+      this.devTestingRepo.delete(testId);
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
+      );
+    }
   }
 }
