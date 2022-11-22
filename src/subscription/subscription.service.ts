@@ -431,7 +431,7 @@ export class SubscriptionService {
         const axiosResponse = await ref({
           method,
           url: `${base_url}${endpoint.route}`,
-          data: test.payload.value,
+          data: test.payload,
           headers: { 'X-Zapi-Proxy-Secret': api.secretKey },
         });
 
