@@ -1,5 +1,7 @@
 import { SharedEntity } from '../common/model/sharedEntity';
 import { Column, Entity } from 'typeorm';
+import { HttpMethod } from '.././common/enums/httpMethods.enum';
+import { ReqBody } from 'src/common/interfaces/endpoint.interface';
 
 @Entity()
 export class DevTesting extends SharedEntity {
@@ -10,17 +12,20 @@ export class DevTesting extends SharedEntity {
   apiId: string;
 
   @Column()
-  url: string;
+  endpointId: string;
 
   @Column()
   route: string;
 
   @Column()
-  method: string;
+  method: HttpMethod;
 
   @Column()
-  requestStatus: string;
+  name: string;
 
-  @Column()
-  testName: string;
+  @Column('jsonb', {
+    default: () => "'{}'",
+    nullable: true,
+  })
+  payload: ReqBody;
 }
