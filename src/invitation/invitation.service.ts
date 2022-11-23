@@ -31,11 +31,12 @@ export class InvitationService {
     @Inject('NOTIFY_SERVICE') private readonly n_client: ClientProxy,
 
   ){}
+
   async createInvitation(createInvitationDto: CreateInvitationDto, apiId: string) {
     try {
 
       const api = await this.apiRepo.findOne({where:{id:apiId}})
-
+      
       //Check if there is an existing invitation to this email yet to be accepted
       const existingInvite = await this.invitationRepo.findOne({
         where:{
@@ -43,7 +44,6 @@ export class InvitationService {
           apiAuthor: api.profileId
         }
       })
-      
 
       let verify: Object
       let newInvite: Object
@@ -67,30 +67,54 @@ export class InvitationService {
       const token = await this.jwTokenService.signAsync(
         jwtPayload, {secret: invitationSecret, expiresIn: invitationExpiry}
       )
-      
       if (existingInvite){
-       verify = this.jwTokenService.verify(existingInvite.token,{secret: invitationSecret})
-       if(!verify){
-            newInvite = await this.invitationRepo.create({
+        verify = this.jwTokenService.verify(existingInvite.token,{secret: invitationSecret})       
+        if(!verify){
+            newInvite = this.invitationRepo.create({
+            apiId: api.id,
             apiAuthor: api.profileId,
             inviteeEmail: invitee.email,
             inviteeId: invitee.id,
             token: token
-
           })
-        }
-      }
+          await this.invitationRepo.save(newInvite)
+        } else if(verify){
+          throw new BadRequestException(
+            ZaLaResponse.BadRequest(
+              "Bad Request Error",
+              "A Pending Invitation exists for this user",
+              "400"
+            )
+          )
+        }  
+      }   
+
+      newInvite =  this.invitationRepo.create({
+        apiId: api.id,
+        apiAuthor: api.profileId,
+        inviteeEmail: invitee.email,
+        inviteeId: invitee.id,
+        token: token
+
+      })
+      await this.invitationRepo.save(newInvite)
+
       const coreBaseUrl = this.configService.get<string>(configConstant.baseUrls.coreService)
-      const acceptUrl = `${coreBaseUrl}/invitation/accept/${api.id}/${invitee.id}`
+      const acceptUrl = `${coreBaseUrl}/api/v1/invitation/accept/${api.id}/${invitee.id}`
       const body = `
-      <h1>Hello ${invitee.email},</h1>
-      <h2> You have been invited to be a contributor to the ${api.name} API </h2>
-      <a href=${acceptUrl}> Click Here To Accept Invite</a>
+        <h1>Hello ${invitee.email},</h1>
+        <h2> You have been invited to be a contributor to the ${api.name} API </h2>
+        <a href=${acceptUrl}> Click Here To Accept Invite</a>
+      `
+      const rawText = `Hello ${invitee.email}, \n
+      You have been invited to be a contributor to the ${api.name} API \n
+        Click The Link Below To Accept Invite: \n${acceptUrl}
       `
       const mailData = {
         email: invitee.email,
         subject: `Invitation to Become A Contributor To An API`,
-        html: body
+        html: body,
+        text: rawText,
       }
       await this.sendMail('mail', mailData)
       return `Invitation sent successfully to ${invitee.email}`
@@ -114,10 +138,11 @@ export class InvitationService {
      //Check if the invitation still exists
       const existingInvite = await this.invitationRepo.findOne({
         where:{
-          inviteeId,
+          inviteeId: inviteeId,
           apiId: api.id
         }
       })
+      
 
       if(!existingInvite){
         throw new NotFoundException(
@@ -171,9 +196,9 @@ export class InvitationService {
       let pendingInvites = []
       const allInvites = await this.invitationRepo.find({where:{apiId: apiId}})
       if(allInvites.length < 1){
-        return allInvites
-      } else{
         return pendingInvites
+      } else{
+        return allInvites
       }
 
     } catch (error) {
