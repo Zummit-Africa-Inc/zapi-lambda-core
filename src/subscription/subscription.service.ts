@@ -400,60 +400,43 @@ export class SubscriptionService {
   }
 
   /* Developer test endpoint for making requests to an external server */
-  async devTest(
-    apiId: string,
-    profileId: string,
-    body: DevTestRequestDto,
-  ): Promise<any> {
+  async devTest(testId: string): Promise<any> {
     try {
-      const api = await this.apiRepo.findOne({ where: { id: apiId } });
-      const encodedRoute = encodeURIComponent(body.route);
+      const test = await this.devTestingRepo.findOne({ where: { id: testId } });
+      const api = await this.apiRepo.findOne({ where: { id: test.apiId } });
+      const encodedRoute = encodeURIComponent(test.route);
       const endpoint = await this.endpointRepository.findOne({
         where: {
           apiId: api.id,
-          method: body.method,
+          method: test.method,
           route: encodedRoute,
         },
       });
 
       if (!endpoint) {
         throw new BadRequestException(
-          ZaLaResponse.BadRequest('Server Error', 'Wrong Endpoint', '400'),
+          ZaLaResponse.BadRequest(
+            'Internal Server Error',
+            'Wrong Endpoint',
+            '400',
+          ),
         );
       }
 
       const base_url = api.base_url;
-      const method = endpoint.method.toLowerCase();
-      const testData = {
-        url: base_url,
-        method,
-        route: endpoint.route,
-        profileId,
-        apiId,
-        testName: body.testName,
-        payload: body.payload,
-        headers: body.headers,
-      };
+      const method = test.method;
       try {
         /* Making a request to the api with the payload and the secret key. */
         const ref = this.httpService.axiosRef;
         const axiosResponse = await ref({
           method,
           url: `${base_url}${endpoint.route}`,
-          data: body.payload,
+          data: test.payload,
           headers: { 'X-Zapi-Proxy-Secret': api.secretKey },
         });
 
-        this.recordTest({
-          ...testData,
-          requestStatus: axiosResponse.status.toString(),
-        });
         return axiosResponse.data;
       } catch (error) {
-        this.recordTest({
-          ...testData,
-          requestStatus: error.response.status ?? 'Unknown error',
-        });
         throw new BadRequestException(
           ZaLaResponse.BadRequest(
             'External server error',
@@ -469,15 +452,24 @@ export class SubscriptionService {
     }
   }
 
-  /**
-   * It creates a new instance of the DevTestRequestDto class, and then saves it to the database
-   * @param {DevTestRequestDto} testData - DevTestRequestDto
-   */
-  async recordTest(testData): Promise<void> {
-    const newTest = this.devTestingRepo.create(testData);
-    this.devTestingRepo.save(newTest);
-  }
+  /* Finding a record in the database that matches the apiId, method, and route. */
+  async saveTest(
+    profileId: string,
+    body: DevTestRequestDto,
+  ): Promise<DevTesting> {
+    try {
+      const newTest = this.devTestingRepo.create({
+        ...body,
+        profileId,
+      });
 
+      return await this.devTestingRepo.save(newTest);
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
+      );
+    }
+  }
   /**
    * Returns an array of Dev tests, where the profileId matches the
    * profileId passed in as a parameter.
@@ -485,6 +477,26 @@ export class SubscriptionService {
    * @returns An array of DevTesting objects.
    */
   async getTests(profileId: string): Promise<DevTesting[]> {
-    return this.devTestingRepo.find({ where: { profileId } });
+    try {
+      return this.devTestingRepo.find({ where: { profileId } });
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
+      );
+    }
+  }
+
+  /**
+   * This function deletes a test from the database.
+   * @param {string} testId - The id of the test you want to delete.
+   */
+  async deleteTest(testId: string): Promise<void> {
+    try {
+      this.devTestingRepo.delete(testId);
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
+      );
+    }
   }
 }
