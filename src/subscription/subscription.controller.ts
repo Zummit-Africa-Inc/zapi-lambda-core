@@ -9,7 +9,6 @@ import {
   UseGuards,
   Query,
   Req,
-  Delete,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -91,39 +90,26 @@ export class SubscriptionController {
     );
     return ZaLaResponse.Ok(request, 'Request Successful', '200');
   }
-
-  @Post('/api-dev-test/:testId')
+  @IdCheck('apiId')
+  @Post('/api-dev-test/:apiId')
   @ApiOperation({ summary: 'Test an api' })
-  async devTest(@Param('testId') testId: string): Promise<Ok<any>> {
-    const request = await this.subscriptionService.devTest(testId);
-    return ZaLaResponse.Ok(request, 'Request Successful', '200');
-  }
-
-  @Post('save-dev-test')
-  @ApiOperation({ summary: 'Save test data' })
-  async saveTest(
+  async devTest(
     @Body() requestBody: DevTestRequestDto,
+    @Param('apiId') apiId: string,
     @Req() req: Request,
   ): Promise<Ok<any>> {
-    const test = await this.subscriptionService.saveTest(
+    const request = await this.subscriptionService.devTest(
+      apiId,
       req.profileId,
       requestBody,
     );
-    return ZaLaResponse.Ok(test, 'Test saved', '201');
+    return ZaLaResponse.Ok(request, 'Request Successful', '200');
   }
-
   @Get('/get-dev-tests')
   @ApiOperation({ summary: 'Get test records' })
   async getTests(@Req() req: Request): Promise<Ok<DevTesting[]>> {
     const tests = await this.subscriptionService.getTests(req.profileId);
     return ZaLaResponse.Ok(tests, 'Request Successful', '200');
-  }
-
-  @Delete('/delete-test/:testId')
-  @ApiOperation({ summary: 'Delete a test record' })
-  async deleteTest(@Param('testId') testId: string): Promise<Ok<string>> {
-    await this.subscriptionService.deleteTest(testId);
-    return ZaLaResponse.Ok('Ok', 'Test record removed', '200');
   }
 
   @Post('/free-request/:apiId')
