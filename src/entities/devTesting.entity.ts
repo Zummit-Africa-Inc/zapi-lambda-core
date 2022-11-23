@@ -21,7 +21,7 @@ export class DevTesting extends SharedEntity {
   method: HttpMethod;
 
   @Column()
-  testName: string;
+  name: string;
 
   @Column('jsonb', {
     default: () => "'{}'",

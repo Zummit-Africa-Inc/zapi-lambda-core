@@ -454,27 +454,9 @@ export class SubscriptionService {
 
   /* Finding a record in the database that matches the apiId, method, and route. */
   async saveTest(
-    // apiId: string,
     profileId: string,
     body: DevTestRequestDto,
   ): Promise<DevTesting> {
-    const test = await this.devTestingRepo.findOne({
-      where: {
-        apiId: body.apiId,
-        method: body.method,
-        route: encodeURIComponent(body.route),
-      },
-    });
-
-    if (test) {
-      throw new BadRequestException(
-        ZaLaResponse.BadRequest(
-          'Existing Test',
-          'A test with same parameters already exists',
-        ),
-      );
-    }
-
     const newTest = this.devTestingRepo.create({
       ...body,
       profileId,
