@@ -164,7 +164,15 @@ export class ApiController {
     return ZaLaResponse.Ok(contributors, 'OK', '200');
   }
 
-  @IdCheck('profileId','apiId')
+  @Get('/subscriptions/:apiId')
+  @IdCheck('apiId')
+  @ApiOperation({ summary: 'Get subscriptions of an API' })
+  async getApiSubscriptions(@Param('apiId') apiId: string): Promise<Ok<any[]>> {
+    const subscriptions = await this.apiService.getAllApiSubscriptions(apiId);
+    return ZaLaResponse.Ok(subscriptions, 'OK', '200');
+  }
+
+  @IdCheck('profileId', 'apiId')
   @Post('/rate-api/:profileId/:apiId')
   @ApiOperation({summary:"Rate an api"})
   async addApiRating(
