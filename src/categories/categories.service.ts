@@ -49,7 +49,7 @@ export class CategoriesService {
 
   async findAllCategory(): Promise<Category[]> {
     try {
-      const category = await this.categoryRepo.find();
+      const category = await this.categoryRepo.find({ order: { name: 'ASC' } });
       return category;
     } catch (err) {
       throw new BadRequestException(
