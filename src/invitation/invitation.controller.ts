@@ -15,8 +15,8 @@ import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 export class InvitationController {
   constructor(private readonly invitationService: InvitationService) {}
 
-  @Post('/invite/:apiId')
   @UseGuards(AuthenticationGuard)
+  @Post('/invite/:apiId')
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Send Email Invite' })
   async createInvite(
@@ -28,7 +28,8 @@ export class InvitationController {
   }
 
   @Get('/accept/:apiId/:inviteeId')
-  @IdCheck('apiId', 'inviteeId')
+  @IdCheck('apiId')
+  @IdCheck('inviteeId')
   @ApiOperation({ summary: 'Accept Email Invite' })
   async acceptInvite(
     @Param('apiId') apiId: string,
@@ -36,16 +37,17 @@ export class InvitationController {
 
     ): Promise<Ok<String>> {
     const invite = await this.invitationService.acceptInvitation(inviteeId, apiId);
+    
     return ZaLaResponse.Ok(invite, 'Invite accepted', 200)
   }
 
   @Get('/get-all/:apiId')
   @UseGuards(AuthenticationGuard)
   @IdCheck('apiId')
-  @ApiOperation({ summary: 'Send Email Invite' })
+  @ApiOperation({ summary: 'Get All Invites' })
   async getAllInvite(
     @Param('apiId') apiId: string,
-    ): Promise<Ok<Invitation[]>> {
+    ): Promise<Ok<any[]>> {
     const invites = await this.invitationService.getallInvitations( apiId);
     return ZaLaResponse.Ok(invites, 'Invites retrieved successfully', 200)
   }

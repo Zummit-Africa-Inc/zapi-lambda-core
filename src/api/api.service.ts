@@ -131,6 +131,8 @@ export class ApiService {
       this.analyticsRepo.save(analytics);
       return savedApi;
     } catch (err) {
+      console.log(err);
+      
       throw new BadRequestException(
         ZaLaResponse.BadRequest(
           err.response.error,

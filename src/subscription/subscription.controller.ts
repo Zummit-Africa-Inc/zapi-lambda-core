@@ -8,10 +8,13 @@ import {
   Param,
   UseGuards,
   Query,
+  Req,
+  Delete,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
-import { ApiRequestDto } from './dto/make-request.dto';
+import { ApiRequestDto, DevTestRequestDto } from './dto/make-request.dto';
 import { SubscriptionService } from './subscription.service';
 import { Tokens } from 'src/common/interfaces/subscriptionToken.interface';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
@@ -19,6 +22,7 @@ import { FreeRequestDto } from './dto/make-request.dto';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { DevTesting } from 'src/entities/devTesting.entity';
 
 @ApiTags('Subscription')
 @ApiBearerAuth('access-token')
@@ -86,6 +90,40 @@ export class SubscriptionController {
       requestBody,
     );
     return ZaLaResponse.Ok(request, 'Request Successful', '200');
+  }
+
+  @Post('/api-dev-test/:testId')
+  @ApiOperation({ summary: 'Test an api' })
+  async devTest(@Param('testId') testId: string): Promise<Ok<any>> {
+    const request = await this.subscriptionService.devTest(testId);
+    return ZaLaResponse.Ok(request, 'Request Successful', '200');
+  }
+
+  @Post('save-dev-test')
+  @ApiOperation({ summary: 'Save test data' })
+  async saveTest(
+    @Body() requestBody: DevTestRequestDto,
+    @Req() req: Request,
+  ): Promise<Ok<any>> {
+    const test = await this.subscriptionService.saveTest(
+      req.profileId,
+      requestBody,
+    );
+    return ZaLaResponse.Ok(test, 'Test saved', '201');
+  }
+
+  @Get('/get-dev-tests')
+  @ApiOperation({ summary: 'Get test records' })
+  async getTests(@Req() req: Request): Promise<Ok<DevTesting[]>> {
+    const tests = await this.subscriptionService.getTests(req.profileId);
+    return ZaLaResponse.Ok(tests, 'Request Successful', '200');
+  }
+
+  @Delete('/delete-test/:testId')
+  @ApiOperation({ summary: 'Delete a test record' })
+  async deleteTest(@Param('testId') testId: string): Promise<Ok<string>> {
+    await this.subscriptionService.deleteTest(testId);
+    return ZaLaResponse.Ok('Ok', 'Test record removed', '200');
   }
 
   @Post('/free-request/:apiId')

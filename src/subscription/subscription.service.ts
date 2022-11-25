@@ -14,13 +14,15 @@ import { Subscription } from '../entities/subscription.entity';
 import { Tokens } from 'src/common/interfaces/subscriptionToken.interface';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { HttpService } from '@nestjs/axios';
-import { ApiRequestDto } from './dto/make-request.dto';
+import { ApiRequestDto, DevTestRequestDto } from './dto/make-request.dto';
 import { ConfigService } from '@nestjs/config';
 import { lastValueFrom } from 'rxjs';
 import { AxiosResponse } from 'axios';
 import { ClientProxy } from '@nestjs/microservices';
 import { HttpCallService } from './httpCall.service';
 import { FreeApis } from './apis';
+import { DevTesting } from 'src/entities/devTesting.entity';
+import { HttpMethod } from 'src/common/enums/httpMethods.enum';
 
 @Injectable()
 export class SubscriptionService {
@@ -33,6 +35,8 @@ export class SubscriptionService {
     private readonly endpointRepository: Repository<Endpoint>,
     @InjectRepository(Subscription)
     private readonly subscriptionRepo: Repository<Subscription>,
+    @InjectRepository(DevTesting)
+    private readonly devTestingRepo: Repository<DevTesting>,
     private jwtService: JwtService,
     private httpService: HttpService,
     private readonly httpCallService: HttpCallService,
@@ -391,6 +395,107 @@ export class SubscriptionService {
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.errorCode),
+      );
+    }
+  }
+
+  /* Developer test endpoint for making requests to an external server */
+  async devTest(testId: string): Promise<any> {
+    try {
+      const test = await this.devTestingRepo.findOne({ where: { id: testId } });
+      const api = await this.apiRepo.findOne({ where: { id: test.apiId } });
+      const encodedRoute = encodeURIComponent(test.route);
+      const endpoint = await this.endpointRepository.findOne({
+        where: {
+          apiId: api.id,
+          method: test.method,
+          route: encodedRoute,
+        },
+      });
+
+      if (!endpoint) {
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            'Internal Server Error',
+            'Wrong Endpoint',
+            '400',
+          ),
+        );
+      }
+
+      const base_url = api.base_url;
+      const method = test.method;
+      try {
+        /* Making a request to the api with the payload and the secret key. */
+        const ref = this.httpService.axiosRef;
+        const axiosResponse = await ref({
+          method,
+          url: `${base_url}${endpoint.route}`,
+          data: test.payload,
+          headers: { 'X-Zapi-Proxy-Secret': api.secretKey },
+        });
+
+        return axiosResponse.data;
+      } catch (error) {
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            'External server error',
+            `Message from external server: '${error.message}'`,
+            '500',
+          ),
+        );
+      }
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal server error', error.message, '500'),
+      );
+    }
+  }
+
+  /* Finding a record in the database that matches the apiId, method, and route. */
+  async saveTest(
+    profileId: string,
+    body: DevTestRequestDto,
+  ): Promise<DevTesting> {
+    try {
+      const newTest = this.devTestingRepo.create({
+        ...body,
+        profileId,
+      });
+
+      return await this.devTestingRepo.save(newTest);
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
+      );
+    }
+  }
+  /**
+   * Returns an array of Dev tests, where the profileId matches the
+   * profileId passed in as a parameter.
+   * @param {string} profileId - string
+   * @returns An array of DevTesting objects.
+   */
+  async getTests(profileId: string): Promise<DevTesting[]> {
+    try {
+      return this.devTestingRepo.find({ where: { profileId } });
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
+      );
+    }
+  }
+
+  /**
+   * This function deletes a test from the database.
+   * @param {string} testId - The id of the test you want to delete.
+   */
+  async deleteTest(testId: string): Promise<void> {
+    try {
+      this.devTestingRepo.delete(testId);
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
       );
     }
   }

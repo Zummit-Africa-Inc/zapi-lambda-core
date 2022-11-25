@@ -9,6 +9,14 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { ZaLaResponse } from '../helpers/response';
 
+declare global {
+  namespace Express {
+    interface Request {
+      profileId?: string;
+    }
+  }
+}
+
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
   constructor(
