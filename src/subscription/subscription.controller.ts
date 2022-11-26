@@ -70,6 +70,7 @@ export class SubscriptionController {
     return ZaLaResponse.Ok(subToken, 'Access key revoked', '200');
   }
 
+  @Public()
   @Post('api-request')
   @ApiOperation({ summary: 'Request an api' })
   async apiRequest(

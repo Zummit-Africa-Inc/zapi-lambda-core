@@ -24,10 +24,7 @@ export class FreeRequestDto {
 
 export class DevTestRequestDto extends ApiRequestDto {
   @ApiProperty()
-  requestStatus: string;
-
-  @ApiProperty()
-  url: string;
+  endpointId: string;
 
   @ApiProperty()
   profileId: string;
@@ -36,5 +33,5 @@ export class DevTestRequestDto extends ApiRequestDto {
   apiId: string;
 
   @ApiProperty()
-  testName: string;
+  name: string;
 }
