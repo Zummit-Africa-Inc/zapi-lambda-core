@@ -15,4 +15,6 @@ export class Review extends SharedEntity{
     @Column()
     rating: number
 
+    @Column({nullable: true})
+    reviewer: string
 }
