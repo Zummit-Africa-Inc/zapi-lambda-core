@@ -50,7 +50,7 @@ export class ApiService {
     @InjectRepository(Subscription)
     private readonly subscriptionRepo: Repository<Subscription>,
     @InjectRepository(Review)
-    private readonly reviewRepo: Repository<Review>
+    private readonly reviewRepo: Repository<Review>,
   ) {}
 
   /**
@@ -132,7 +132,7 @@ export class ApiService {
       return savedApi;
     } catch (err) {
       console.log(err);
-      
+
       throw new BadRequestException(
         ZaLaResponse.BadRequest(
           err.response.error,
@@ -339,11 +339,11 @@ export class ApiService {
         sortableColumns: ['createdOn', 'name', 'visibility'],
         searchableColumns: ['name', 'description', 'about', 'visibility'],
         defaultSortBy: [['id', 'DESC']],
-        where:{visibility: Visibility.Public},
+        where: { visibility: Visibility.Public },
         filterableColumns: {
           category: [FilterOperator.IN],
           status: [FilterOperator.IN],
-          rating: [FilterOperator.GTE, FilterOperator.LTE]
+          rating: [FilterOperator.GTE, FilterOperator.LTE],
         },
       });
     } catch (error) {
@@ -414,43 +414,66 @@ export class ApiService {
     }
   }
 
-  /**
-   * It returns the top 20 most subscribed apis in the system 
-   * @returns an array of api objects 
-   */
-  async getPopularAPis(){
+  async getAllApiSubscriptions(apiId: string) {
     try {
-      const apis = await this.apiRepo.query(`SELECT * FROM Api ORDER BY cardinality(subscriptions) DESC LIMIT 20`) 
-      return apis
+      const api = await this.apiRepo.findOne({ where: { id: apiId } });
+      const subscriptions = [];
+      const subscriptionIds = api.subscriptions;
+      for (const id of subscriptionIds) {
+        const contributor = await this.profileRepo.findOneBy({ id });
+        if (contributor) {
+          subscriptions.push(contributor);
+        }
+      }
+      return subscriptions;
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(
+          'Internal Server Error',
+          'Something went wrong',
+          '500',
+        ),
+      );
+    }
+  }
+  /**
+   * It returns the top 20 most subscribed apis in the system
+   * @returns an array of api objects
+   */
+  async getPopularAPis() {
+    try {
+      const apis = await this.apiRepo.query(
+        `SELECT * FROM Api ORDER BY cardinality(subscriptions) DESC LIMIT 20`,
+      );
+      return apis;
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
-      ); 
+      );
     }
   }
 
-   async getAllApiContributors(apiId: string){
+  async getAllApiContributors(apiId: string) {
     try {
-
-      const api = await this.apiRepo.findOne({where:{id:apiId}})
-      const contributors = []
-      const contributorIds = api.contributors
-      for(const id of contributorIds){
-        const contributor = await this.profileRepo.findOneBy({id})
-        if(contributor){
-          contributors.push(contributor)
+      const api = await this.apiRepo.findOne({ where: { id: apiId } });
+      const contributors = [];
+      const contributorIds = api.contributors;
+      for (const id of contributorIds) {
+        const contributor = await this.profileRepo.findOneBy({ id });
+        if (contributor) {
+          contributors.push(contributor);
         }
       }
-      return contributors
+      return contributors;
     } catch (error) {
-        throw new BadRequestException(
-          ZaLaResponse.BadRequest(
-            'Internal Server Error',
-            'Something went wrong',
-            '500',
-          ),
-        );
-     }
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(
+          'Internal Server Error',
+          'Something went wrong',
+          '500',
+        ),
+      );
+    }
   }
 
   /**
@@ -459,47 +482,60 @@ export class ApiService {
    * @param apiId : id of the api to be updated
    * @param dto : api update dto
    */
-  async addApiRating(profileId: string, apiId: string, dto: ApiRatingDto):Promise<void>{
+  async addApiRating(
+    profileId: string,
+    apiId: string,
+    dto: ApiRatingDto,
+  ): Promise<void> {
     try {
       //ensure api owner cannot post a review
-      const api = await this.apiRepo.findOne({where:{id: apiId}})
-      if(api.profileId === profileId){
+      const api = await this.apiRepo.findOne({ where: { id: apiId } });
+      if (api.profileId === profileId) {
         throw new BadRequestException(
-          ZaLaResponse.BadRequest('Internal Server error', "You cannot rate your own api", '500'),
+          ZaLaResponse.BadRequest(
+            'Internal Server error',
+            'You cannot rate your own api',
+            '500',
+          ),
         );
       }
 
       //ensure user cannot rate an api twice
-      const reviewAlreadyExists = await this.reviewRepo.findOne({where:{api_id: apiId, profile_id: profileId}})
-       if(reviewAlreadyExists){
-          throw new BadRequestException(
-            ZaLaResponse.BadRequest('Internal Server error', "You cannot rate an api twice", '500'),
-          );
-        }
+      const reviewAlreadyExists = await this.reviewRepo.findOne({
+        where: { api_id: apiId, profile_id: profileId },
+      });
+      if (reviewAlreadyExists) {
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            'Internal Server error',
+            'You cannot rate an api twice',
+            '500',
+          ),
+        );
+      }
 
       //create api rating object
       const apiRating = await this.reviewRepo.create({
         profile_id: profileId,
         api_id: apiId,
-        ...dto
-      })
+        ...dto,
+      });
 
       //save api rating
-      await this.reviewRepo.save(apiRating)
-      
+      await this.reviewRepo.save(apiRating);
+
       //calculate api rating
-      const reviews = await this.reviewRepo.find({where:{api_id: apiId}})
-      let ratingsTotal = 0
+      const reviews = await this.reviewRepo.find({ where: { api_id: apiId } });
+      let ratingsTotal = 0;
 
-      reviews.forEach(review=>{
-        ratingsTotal += review.rating
-      })
+      reviews.forEach((review) => {
+        ratingsTotal += review.rating;
+      });
 
-      const overallRating = (ratingsTotal/ reviews.length) * 2
-      
+      const overallRating = (ratingsTotal / reviews.length) * 2;
+
       //update api rating
-      await this.apiRepo.update(apiId,{rating: overallRating})
-
+      await this.apiRepo.update(apiId, { rating: overallRating });
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
@@ -509,12 +545,12 @@ export class ApiService {
 
   /**
    * it gets all the reviews of an api
-   * @param apiId : id of the api 
+   * @param apiId : id of the api
    * @returns : returns all reviews of the api
    */
-  async getApiReviewsAndRating(apiId: string):Promise<Review[]>{
+  async getApiReviewsAndRating(apiId: string): Promise<Review[]> {
     try {
-      return await this.reviewRepo.find({where:{api_id: apiId}})
+      return await this.reviewRepo.find({ where: { api_id: apiId } });
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
