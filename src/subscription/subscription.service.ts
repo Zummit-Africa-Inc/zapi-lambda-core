@@ -492,6 +492,7 @@ export class SubscriptionService {
           endpointId: [FilterOperator.EQ],
           route: [FilterOperator.EQ],
           profileId: [FilterOperator.EQ],
+          apiId: [FilterOperator.EQ],
           name: [FilterOperator.IN],
           payload: [FilterOperator.IN],
         },
