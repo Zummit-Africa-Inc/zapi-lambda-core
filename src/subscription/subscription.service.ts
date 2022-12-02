@@ -23,6 +23,12 @@ import { HttpCallService } from './httpCall.service';
 import { FreeApis } from './apis';
 import { DevTesting } from 'src/entities/devTesting.entity';
 import { HttpMethod } from 'src/common/enums/httpMethods.enum';
+import {
+  FilterOperator,
+  paginate,
+  Paginated,
+  PaginateQuery,
+} from 'nestjs-paginate';
 
 @Injectable()
 export class SubscriptionService {
@@ -476,9 +482,20 @@ export class SubscriptionService {
    * @param {string} profileId - string
    * @returns An array of DevTesting objects.
    */
-  async getTests(profileId: string): Promise<DevTesting[]> {
+  async getTests(query: PaginateQuery): Promise<Paginated<DevTesting>> {
     try {
-      return this.devTestingRepo.find({ where: { profileId } });
+      return paginate(query, this.devTestingRepo, {
+        sortableColumns: ['createdOn', 'name', 'method', 'route'],
+        searchableColumns: ['name', 'route', 'payload', 'method'],
+        defaultSortBy: [['id', 'DESC']],
+        filterableColumns: {
+          endpointId: [FilterOperator.EQ],
+          route: [FilterOperator.EQ],
+          profileId: [FilterOperator.EQ],
+          name: [FilterOperator.IN],
+          payload: [FilterOperator.IN],
+        },
+      });
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
