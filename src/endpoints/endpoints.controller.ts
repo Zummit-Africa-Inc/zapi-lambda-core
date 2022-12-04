@@ -21,6 +21,7 @@ import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { CollectionResponse } from 'src/common/interfaces/collectionResponse.interface';
+import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 
 @ApiTags('endpoints')
 @ApiBearerAuth('access-token')
@@ -54,15 +55,14 @@ export class EndpointsController {
     return ZaLaResponse.Collection(endpoints, 'Endpoint(s) Created', '201');
   }
 
-  @Get(':apiId')
-  @IdCheck('apiId')
+  @Get()
   @Public()
   @ApiOperation({ summary: 'Get all endpoints of an api' })
   async getApiEndpoints(
-    @Param('apiId') apiId: string,
-  ): Promise<Ok<Endpoint[]>> {
-    const endpoints = await this.endpointsService.getAllApiEndpoints(apiId);
-    return ZaLaResponse.Ok(endpoints, 'Ok', 200);
+    @Paginate() query: PaginateQuery,
+  ): Promise<Ok<Paginated<Endpoint>>> {
+    const endpoints = await this.endpointsService.getAllApiEndpoints(query);
+    return ZaLaResponse.Paginated(endpoints, 'Ok', 200);
   }
 
   @Patch(':endpointId')
