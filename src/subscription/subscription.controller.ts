@@ -120,10 +120,9 @@ export class SubscriptionController {
     @Req() req: Request,
     @Paginate() query: PaginateQuery,
   ): Promise<Ok<Paginated<DevTesting>>> {
-    const filter = query.filter;
     const tests = await this.subscriptionService.getTests({
       ...query,
-      filter: { ...filter, profileId: req.profileId },
+      filter: { ...query.filter, profileId: req.profileId },
     });
     return ZaLaResponse.Paginated(tests, 'Request Successful', '200');
   }

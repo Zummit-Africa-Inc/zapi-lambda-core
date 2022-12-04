@@ -341,7 +341,7 @@ export class ApiService {
         defaultSortBy: [['id', 'DESC']],
         where: { visibility: Visibility.Public },
         filterableColumns: {
-          category: [FilterOperator.IN],
+          categoryId: [FilterOperator.EQ],
           status: [FilterOperator.IN],
           rating: [FilterOperator.GTE, FilterOperator.LTE],
         },
