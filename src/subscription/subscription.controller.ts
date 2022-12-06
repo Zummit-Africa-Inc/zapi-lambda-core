@@ -23,6 +23,7 @@ import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { DevTesting } from 'src/entities/devTesting.entity';
+import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 
 @ApiTags('Subscription')
 @ApiBearerAuth('access-token')
@@ -70,6 +71,7 @@ export class SubscriptionController {
     return ZaLaResponse.Ok(subToken, 'Access key revoked', '200');
   }
 
+  @Public()
   @Post('api-request')
   @ApiOperation({ summary: 'Request an api' })
   async apiRequest(
@@ -114,9 +116,15 @@ export class SubscriptionController {
 
   @Get('/get-dev-tests')
   @ApiOperation({ summary: 'Get test records' })
-  async getTests(@Req() req: Request): Promise<Ok<DevTesting[]>> {
-    const tests = await this.subscriptionService.getTests(req.profileId);
-    return ZaLaResponse.Ok(tests, 'Request Successful', '200');
+  async getTests(
+    @Req() req: Request,
+    @Paginate() query: PaginateQuery,
+  ): Promise<Ok<Paginated<DevTesting>>> {
+    const tests = await this.subscriptionService.getTests({
+      ...query,
+      filter: { ...query.filter, profileId: req.profileId },
+    });
+    return ZaLaResponse.Paginated(tests, 'Request Successful', '200');
   }
 
   @Delete('/delete-test/:testId')
