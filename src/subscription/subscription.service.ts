@@ -443,12 +443,10 @@ export class SubscriptionService {
 
         return axiosResponse.data;
       } catch (error) {
-        throw new BadRequestException(
-          ZaLaResponse.BadRequest(
-            'External server error',
-            `Message from external server: '${error.message}'`,
-            '500',
-          ),
+        return ZaLaResponse.Ok(
+          '',
+          error.response.statusText ?? error.message,
+          error.response.status ?? 'Unknown error code',
         );
       }
     } catch (error) {
