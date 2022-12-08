@@ -28,6 +28,7 @@ import { Comment } from './entities/comments.entity';
 import { Discussion } from './entities/discussion.entity';
 import { InvitationModule } from './invitation/invitation.module';
 import { Invitation } from './entities/invitation.entity';
+import { HttpModule } from '@nestjs/axios';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -76,6 +77,7 @@ const RabbitMQService = {
     FeedbackModule,
     DiscussionModule,
     InvitationModule,
+    HttpModule
 
   ],
   controllers: [AppController],

@@ -16,6 +16,9 @@ import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { ClientProxy } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { configConstant } from '../common/constants/config.constant';
+import { HttpService } from '@nestjs/axios';
+import { AxiosResponse } from 'axios';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class InvitationService {
@@ -29,6 +32,7 @@ export class InvitationService {
     private jwTokenService: JwtService,
     private readonly configService: ConfigService,
     @Inject('NOTIFY_SERVICE') private readonly n_client: ClientProxy,
+    private readonly httpService: HttpService
 
   ){}
 
@@ -113,7 +117,8 @@ export class InvitationService {
         subject: `Invitation to Become A Contributor To An API`,
         text: rawText,
       }
-      await this.sendMail('mail', mailData)
+      // await this.sendMail('mail', mailData)
+      await this.sendMailByAxios(mailData)
       return `Invitation sent successfully to ${invitee.email}`
 
     } catch (error) {
@@ -170,7 +175,11 @@ export class InvitationService {
         text: textBody,
       }
 
-      await this.sendMail('mail', mailData)
+      // Send mail by rabbitMQ
+      // await this.sendMail('mail', mailData)
+
+      //Sending mail via axios
+      await this.sendMailByAxios( mailData)
 
       await this.apiRepo.update(
         api.id,
@@ -237,5 +246,36 @@ export class InvitationService {
         );
       }
   }
+  async sendMailByAxios(payload: object): Promise<any> {
+    try {
+      const mailUrl = this.configService.get(configConstant.baseUrls.notificationServiceMailSendingUrl)
+      const axRef =  this.httpService.axiosRef
+      const mailResponse = await axRef({
+        method: "post",
+        url: mailUrl,
+        data: payload,
+        //  headers: { 'X-Zapi-Proxy-Secret': uniqueApiSecurityKey },
+      })
+      if(mailResponse.status >= 400){
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            "mail sending Error",
+            mailResponse.statusText,
+            (mailResponse.status).toString()
+          )
+        )
+      }
+      const data = mailResponse.data
 
+      return data
+    } catch (error) {
+      throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+          error.response.error||'Internal Server Error',
+          error.response.message||'Something went wrong',
+          error.response.errorCode||'500',
+        ),
+      );
+    }
+  }
 }

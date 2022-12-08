@@ -81,7 +81,9 @@ export class SubscriptionService {
     apiId: string,
     profileId: string,
     subscriberId: string,
-  ): Promise<AxiosResponse<any>> {
+  ): Promise<any>
+  // Promise<AxiosResponse<any>>
+ {
     const url = `${this.configService.get(
       'NOTIFICATION_URL',
     )}/ws-notify/subscription-event`;

@@ -7,8 +7,8 @@ import { Feedback } from 'src/entities/feedback.entity';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 
 @ApiTags('Feedback')
-@ApiBearerAuth('access-token')
-@UseGuards(AuthenticationGuard)
+// @ApiBearerAuth('access-token')
+// @UseGuards(AuthenticationGuard)
 @Controller('feedback')
 export class FeedbackController {
   constructor(private readonly feedbackService: FeedbackService) {}
@@ -21,6 +21,8 @@ export class FeedbackController {
     return ZaLaResponse.Ok(feedback, 'Feedback created', '201');
   }
 
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthenticationGuard)
   @Get()
   @ApiOperation({ summary: 'Get all available feedback' })
   async findAll(): Promise<Ok<Feedback[]>> {
