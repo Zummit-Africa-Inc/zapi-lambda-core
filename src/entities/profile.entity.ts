@@ -20,4 +20,13 @@ export class Profile extends SharedEntity {
     onDelete: 'CASCADE',
   })
   subscription: Subscription[];
+
+  @Column({ nullable: true })
+  bio: string;
+
+  @Column({ nullable: true })
+  country: string;
+
+  @Column({ nullable: true })
+  fullName: string;
 }
