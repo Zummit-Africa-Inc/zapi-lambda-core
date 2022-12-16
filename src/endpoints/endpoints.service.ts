@@ -15,6 +15,7 @@ import { Logger } from 'src/entities/logger.entity';
 import { Api } from '../entities/api.entity';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { CollectionResponse } from 'src/common/interfaces/collectionResponse.interface';
+import {createEntity} from 'src/common/helpers/entityCreation'
 
 @Injectable()
 export class EndpointsService {
@@ -57,12 +58,23 @@ export class EndpointsService {
         );
       }
 
-      const newEndpoint = this.endpointRepo.create({
-        ...createEndpointDto,
-        apiId,
-      });
+      // const newEndpoint = this.endpointRepo.create({
+      //   ...createEndpointDto,
+      //   apiId,
+      // });
+      // return await this.endpointRepo.save(newEndpoint);
 
-      return await this.endpointRepo.save(newEndpoint);
+
+      const savedEndpoint =  await  createEntity(
+        this.endpointRepo, 
+        {...createEndpointDto,
+          apiId,
+       }
+      )
+      return savedEndpoint;
+
+
+
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
@@ -186,19 +198,34 @@ export class EndpointsService {
 
       const newValues = await this.endpointRepo.findOne({
         where: { id: endpointId },
-        select: ['name', 'description', 'method', 'route', 'headers', 'body'],
+        select: ['name', 'description', 'method', 'route', 'headers', 'body', 'updatedOn', 'updated_at'],
       });
 
+      //RECORD THE UPDATE DATE ON THE API ALSO 
+      await this.apiRepo.update({name: api.name}, {id: newValues.apiId})
+      
       //LOG THE UPDATE MADE
-      const logger = await this.loggerRepo.create({
-        entity_type: 'endpoint',
-        identifier: endpointId,
-        action_type: Action.Update,
-        previous_values: previousValues,
-        new_values: newValues,
-        operated_by: email,
-      });
-      await this.loggerRepo.save(logger);
+      // const logger = await this.loggerRepo.create({
+      //   entity_type: 'endpoint',
+      //   identifier: endpointId,
+      //   action_type: Action.Update,
+      //   previous_values: previousValues,
+      //   new_values: newValues,
+      //   operated_by: email,
+      // });
+      // await this.loggerRepo.save(logger);
+
+      const logger = await createEntity(
+        this.loggerRepo,
+        {
+           entity_type: 'endpoint',
+          identifier: endpointId,
+          action_type: Action.Update,
+          previous_values: previousValues,
+          new_values: newValues,
+          operated_by: email,
+        }
+      )
 
       return newValues;
     } catch (error) {
@@ -230,14 +257,33 @@ export class EndpointsService {
         where: { id: api.profileId },
       });
 
+
+
       await this.endpointRepo.delete(endpointId);
-      const logger = await this.loggerRepo.create({
-        entity_type: 'endpoint',
-        identifier: endpointId,
-        action_type: Action.Delete,
-        operated_by: email,
-      });
-      await this.loggerRepo.save(logger);
+
+      
+      
+      //RECORD THE UPDATE DATE ON THE API ALSO 
+      await this.apiRepo.update({updatedOn: new Date}, {id: api.id})
+
+      // const logger = await this.loggerRepo.create({
+      //   entity_type: 'endpoint',
+      //   identifier: endpointId,
+      //   action_type: Action.Delete,
+      //   operated_by: email,
+      // });
+      // await this.loggerRepo.save(logger);
+
+      const logger = await createEntity(
+        this.loggerRepo,
+        {
+          entity_type: 'endpoint',
+          identifier: endpointId,
+          action_type: Action.Delete,
+          operated_by: email,
+        }
+      )
+
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),

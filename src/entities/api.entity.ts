@@ -6,6 +6,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  BeforeUpdate,
 } from 'typeorm';
 import { Status } from '../common/enums/apiVerification.enum';
 import { Profile } from './profile.entity';

@@ -27,6 +27,8 @@ export class AuthorizationGuard implements CanActivate {
 
       return true;
     } catch (error) {
+      console.log(error);
+      
       if (error) {
         throw new BadRequestException(
           ZaLaResponse.BadRequest(

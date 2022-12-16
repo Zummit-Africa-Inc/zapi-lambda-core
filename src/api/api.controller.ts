@@ -109,7 +109,7 @@ export class ApiController {
   /* A put request that takes in an apiId, profileId, and a body and returns a promise of an
   UpdateResult. */
   @Patch(':apiId')
-  @UseGuards(AuthorizationGuard)
+  // @UseGuards(AuthorizationGuard)
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Update an API' })
   async update(

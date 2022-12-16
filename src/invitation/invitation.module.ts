@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import {Invitation} from '../entities/invitation.entity'
 import {Profile} from '../entities/profile.entity'
 import {Api} from '../entities/api.entity'
+import { HttpModule, HttpService } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import {Api} from '../entities/api.entity'
     ]),
     JwtModule.register({ publicKey: 'PUBLIC_KEY', privateKey: 'PRIVATE_KEY' }),
     ConfigModule,
+    HttpModule
   ],
   controllers: [InvitationController],
   providers: [InvitationService]

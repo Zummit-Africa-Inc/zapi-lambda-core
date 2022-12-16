@@ -31,7 +31,7 @@ import { FreeApis } from 'src/subscription/apis';
 import { Visibility } from 'src/common/enums/visibility.enum';
 import { ApiRatingDto } from './dto/add-api-rating.dto';
 import { Review } from 'src/entities/review.entity';
-
+import {createEntity} from 'src/common/helpers/entityCreation'
 @Injectable()
 export class ApiService {
   constructor(
@@ -78,8 +78,23 @@ export class ApiService {
    */
   async getAnApi(apiId: string, profileId?: string): Promise<Api> {
     try {
-      const api = await this.apiRepo.findOne({ where: { id: apiId } });
+      const existingapi = await this.apiRepo.findOne({ where: { id: apiId } });
+      const apiEndpoints = await this.endpointsRepo.find({ where:{apiId: existingapi.id}, order:{updatedOn: "DESC" }})
+     
+      // Get the last update made on the api
+      const updatesDates = []
+      updatesDates.push(existingapi.updated_at)
+      for(const each of apiEndpoints){
+        updatesDates.push(each.updated_at)
+      }
+      
+      const sortedUpdateDates =  updatesDates.sort()
+      const lastUpdated = sortedUpdateDates[sortedUpdateDates.length -1]
 
+      
+      // await this.apiRepo.update({updatedOn: lastUpdated},{id: existingapi.id})
+
+     const api = await this.apiRepo.findOne({where:{id: apiId}})
       if (api.profileId === profileId) {
         return api;
       } else {
@@ -121,14 +136,29 @@ export class ApiService {
         );
       }
       const uniqueApiSecretKey = uuid();
-      const newApi = this.apiRepo.create({
-        ...createApiDto,
-        profileId,
-        secretKey: uniqueApiSecretKey,
-      });
-      const savedApi = await this.apiRepo.save(newApi);
-      const analytics = this.analyticsRepo.create({ apiId: savedApi.id });
-      this.analyticsRepo.save(analytics);
+    
+      // const newApi = this.apiRepo.create({
+      //   ...createApiDto,
+      //   profileId,
+      //   secretKey: uniqueApiSecretKey,
+      // });
+      // const savedApi = await this.apiRepo.save(newApi);
+      const savedApi = await  createEntity(
+        this.apiRepo, 
+        {...createApiDto,
+          profileId,
+          secretKey: uniqueApiSecretKey,
+       }
+      )
+      
+      // const analytics = await this.analyticsRepo.create({ apiId: savedApi.id });
+      // await this.analyticsRepo.save(analytics);
+
+      const analytic = await createEntity(
+        this.analyticsRepo,
+        { apiId: savedApi.id }
+      )
+
       return savedApi;
     } catch (err) {
       console.log(err);
@@ -222,24 +252,43 @@ export class ApiService {
             : updateApiDto.base_url
           : null;
 
-        const updatedApi = await this.apiRepo.save({
-          ...api,
-          ...updateApiDto,
-        });
-
+        // const updatedApi = await this.apiRepo.create({
+        //   ...api,
+        //   ...updateApiDto,
+        // })
+        // const updatedApiSave = await this.apiRepo.save(updatedApi);
+        const updatedApiSave = await createEntity(
+          this.apiRepo,
+          {...api,...updateApiDto,}
+          )
         const { email } = await this.profileRepo.findOne({
           where: { id: profileId },
         });
-        const logger = this.loggerRepo.create({
-          entity_type: 'api',
-          identifier: api.id,
-          action_type: Action.Update,
-          previous_values: previousValues,
-          new_values: { ...updateApiDto },
-          operated_by: email,
-        });
-        await this.loggerRepo.save(logger);
-        return updatedApi;
+
+
+        // const logger = this.loggerRepo.create({
+        //   entity_type: 'api',
+        //   identifier: api.id,
+        //   action_type: Action.Update,
+        //   previous_values: previousValues,
+        //   new_values: { ...updateApiDto },
+        //   operated_by: email,
+        // });
+        // await this.loggerRepo.save(logger);
+
+        const logger = await createEntity(
+          this.loggerRepo,
+          {
+            entity_type: 'api',
+            identifier: api.id,
+            action_type: Action.Update,
+            previous_values: previousValues,
+            new_values: { ...updateApiDto },
+            operated_by: email,
+          }
+        )
+
+        return updatedApiSave;
       } else {
         throw new BadRequestException(
           ZaLaResponse.NotFoundRequest(
@@ -271,13 +320,25 @@ export class ApiService {
           where: { id: profileId },
         });
         //LOG THE DELETE ACTION
-        const logger = this.loggerRepo.create({
-          entity_type: 'api',
-          identifier: api.id,
-          action_type: Action.Delete,
-          operated_by: email,
-        });
-        await this.loggerRepo.save(logger);
+
+        // const logger = this.loggerRepo.create({
+        //   entity_type: 'api',
+        //   identifier: api.id,
+        //   action_type: Action.Delete,
+        //   operated_by: email,
+        // });
+        // await this.loggerRepo.save(logger);
+
+        const logger = await createEntity(
+          this.loggerRepo,
+          {
+            entity_type: 'api',
+            identifier: api.id,
+            action_type: Action.Delete,
+            operated_by: email,
+          }
+        )
+
         return await this.apiRepo.remove(api);
       }
       throw new NotFoundException(
@@ -310,15 +371,27 @@ export class ApiService {
         where: { id: api.profileId },
       });
       await this.apiRepo.update(apiId, { logo_url });
-      const logger = await this.loggerRepo.create({
-        entity_type: 'api',
-        identifier: api.id,
-        action_type: Action.Update,
-        previous_values: { logo_url: api?.logo_url ? api.logo_url : null },
-        new_values: { logo_url },
-        operated_by: email,
-      });
-      await this.loggerRepo.save(logger);
+      // const logger = await this.loggerRepo.create({
+      //   entity_type: 'api',
+      //   identifier: api.id,
+      //   action_type: Action.Update,
+      //   previous_values: { logo_url: api?.logo_url ? api.logo_url : null },
+      //   new_values: { logo_url },
+      //   operated_by: email,
+      // });
+      // await this.loggerRepo.save(logger);
+
+      const logger = await createEntity(
+        this.loggerRepo,
+        {
+          entity_type: 'api',
+          identifier: api.id,
+          action_type: Action.Update,
+          previous_values: { logo_url: api?.logo_url ? api.logo_url : null },
+          new_values: { logo_url },
+          operated_by: email,
+        }
+      )
       return logo_url;
     } catch (error) {
       throw new BadRequestException(
@@ -557,4 +630,5 @@ export class ApiService {
       );
     }
   }
+
 }
