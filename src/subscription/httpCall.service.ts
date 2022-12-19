@@ -39,11 +39,11 @@ export class HttpCallService {
 
       const data = axiosResponse.data;
 
-      this.analyticsService.updateAnalytics(
-        axiosResponse.status,
-        apiId,
-        totalTimeInMs,
-      );
+      // this.analyticsService.updateAnalytics(
+      //   axiosResponse.status,
+      //   apiId,
+      //   totalTimeInMs,
+      // );
       this.analyticsService.analyticLogs({
         status: axiosResponse.status,
         latency: Math.round(totalTimeInMs),
@@ -55,10 +55,10 @@ export class HttpCallService {
 
       return data;
     } catch (error) {
-      this.analyticsService.updateAnalytics(
-        error.response.status ?? 'Unknown error',
-        apiId,
-      );
+      // this.analyticsService.updateAnalytics(
+      //   error.response.status ?? 'Unknown error',
+      //   apiId,
+      // );
       this.analyticsService.analyticLogs({
         status: error.response.status ?? 'Unknown error',
         errorMessage: error.response.statusText,
