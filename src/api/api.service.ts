@@ -92,9 +92,7 @@ export class ApiService {
       const lastUpdated = sortedUpdateDates[sortedUpdateDates.length -1]
 
       
-      // await this.apiRepo.update({updatedOn: lastUpdated},{id: existingapi.id})
-
-     const api = await this.apiRepo.findOne({where:{id: apiId}})
+      const api = await this.apiRepo.findOne({where:{id: apiId}})
       if (api.profileId === profileId) {
         return api;
       } else {
@@ -137,12 +135,6 @@ export class ApiService {
       }
       const uniqueApiSecretKey = uuid();
     
-      // const newApi = this.apiRepo.create({
-      //   ...createApiDto,
-      //   profileId,
-      //   secretKey: uniqueApiSecretKey,
-      // });
-      // const savedApi = await this.apiRepo.save(newApi);
       const savedApi = await  createEntity(
         this.apiRepo, 
         {...createApiDto,
@@ -150,9 +142,6 @@ export class ApiService {
           secretKey: uniqueApiSecretKey,
        }
       )
-      
-      // const analytics = await this.analyticsRepo.create({ apiId: savedApi.id });
-      // await this.analyticsRepo.save(analytics);
 
       const analytic = await createEntity(
         this.analyticsRepo,
@@ -252,29 +241,13 @@ export class ApiService {
             : updateApiDto.base_url
           : null;
 
-        // const updatedApi = await this.apiRepo.create({
-        //   ...api,
-        //   ...updateApiDto,
-        // })
-        // const updatedApiSave = await this.apiRepo.save(updatedApi);
-        const updatedApiSave = await createEntity(
+          const updatedApiSave = await createEntity(
           this.apiRepo,
           {...api,...updateApiDto,}
           )
         const { email } = await this.profileRepo.findOne({
           where: { id: profileId },
         });
-
-
-        // const logger = this.loggerRepo.create({
-        //   entity_type: 'api',
-        //   identifier: api.id,
-        //   action_type: Action.Update,
-        //   previous_values: previousValues,
-        //   new_values: { ...updateApiDto },
-        //   operated_by: email,
-        // });
-        // await this.loggerRepo.save(logger);
 
         const logger = await createEntity(
           this.loggerRepo,
@@ -320,15 +293,7 @@ export class ApiService {
           where: { id: profileId },
         });
         //LOG THE DELETE ACTION
-
-        // const logger = this.loggerRepo.create({
-        //   entity_type: 'api',
-        //   identifier: api.id,
-        //   action_type: Action.Delete,
-        //   operated_by: email,
-        // });
-        // await this.loggerRepo.save(logger);
-
+ 
         const logger = await createEntity(
           this.loggerRepo,
           {
@@ -371,15 +336,6 @@ export class ApiService {
         where: { id: api.profileId },
       });
       await this.apiRepo.update(apiId, { logo_url });
-      // const logger = await this.loggerRepo.create({
-      //   entity_type: 'api',
-      //   identifier: api.id,
-      //   action_type: Action.Update,
-      //   previous_values: { logo_url: api?.logo_url ? api.logo_url : null },
-      //   new_values: { logo_url },
-      //   operated_by: email,
-      // });
-      // await this.loggerRepo.save(logger);
 
       const logger = await createEntity(
         this.loggerRepo,

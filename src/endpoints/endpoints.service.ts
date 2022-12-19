@@ -58,13 +58,6 @@ export class EndpointsService {
         );
       }
 
-      // const newEndpoint = this.endpointRepo.create({
-      //   ...createEndpointDto,
-      //   apiId,
-      // });
-      // return await this.endpointRepo.save(newEndpoint);
-
-
       const savedEndpoint =  await  createEntity(
         this.endpointRepo, 
         {...createEndpointDto,
@@ -205,16 +198,6 @@ export class EndpointsService {
       await this.apiRepo.update({name: api.name}, {id: newValues.apiId})
       
       //LOG THE UPDATE MADE
-      // const logger = await this.loggerRepo.create({
-      //   entity_type: 'endpoint',
-      //   identifier: endpointId,
-      //   action_type: Action.Update,
-      //   previous_values: previousValues,
-      //   new_values: newValues,
-      //   operated_by: email,
-      // });
-      // await this.loggerRepo.save(logger);
-
       const logger = await createEntity(
         this.loggerRepo,
         {
@@ -265,14 +248,6 @@ export class EndpointsService {
       
       //RECORD THE UPDATE DATE ON THE API ALSO 
       await this.apiRepo.update({updatedOn: new Date}, {id: api.id})
-
-      // const logger = await this.loggerRepo.create({
-      //   entity_type: 'endpoint',
-      //   identifier: endpointId,
-      //   action_type: Action.Delete,
-      //   operated_by: email,
-      // });
-      // await this.loggerRepo.save(logger);
 
       const logger = await createEntity(
         this.loggerRepo,
