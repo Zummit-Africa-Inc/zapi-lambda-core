@@ -3,6 +3,8 @@ import {
     Column,
     BeforeUpdate,
     DeleteDateColumn,
+    UpdateDateColumn,
+
   } from 'typeorm';
   
   export abstract class SharedEntity {
@@ -15,7 +17,7 @@ import {
     @Column({ nullable: true })
     createdBy?: string;
   
-    @Column({ nullable: true, type: 'timestamp' })
+    @UpdateDateColumn()
     updatedOn?: Date;
   
     @Column({ nullable: true })
