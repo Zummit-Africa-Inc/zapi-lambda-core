@@ -124,15 +124,15 @@ export class SubscriptionService {
         where: { id: profileId },
       });
 
-      // if (profileId === api.profileId) {
-      //   throw new BadRequestException(
-      //     ZaLaResponse.BadRequest(
-      //       'Bad request',
-      //       "You can't subscribe to your own api",
-      //       '400',
-      //     ),
-      //   );
-      // }
+      if (profileId === api.profileId) {
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            'Bad request',
+            "You can't subscribe to your own api",
+            '400',
+          ),
+        );
+      }
 
       const subscriptionToken = await this.setTokens(apiId, profileId);
       const subPayload = { apiId, profileId, subscriptionToken };
@@ -284,14 +284,7 @@ export class SubscriptionService {
         method: endpoint.method.toLowerCase(),
       };
 
-      const ref = this.httpService.axiosRef;
-      const axiosResponse = await ref({
-        method: 'post',
-        url: process.env.HANDLER_URL,
-        data: requestProps,
-      });
-
-      return await axiosResponse.data;
+      return await this.httpCallService.call(requestProps);
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal server error', error.message, '500'),
@@ -322,14 +315,7 @@ export class SubscriptionService {
         method: api.method.toLowerCase(),
       };
 
-      const ref = this.httpService.axiosRef;
-      const axiosResponse = await ref({
-        method: 'post',
-        url: process.env.HANDLER_URL,
-        data: requestProps,
-      });
-
-      return await axiosResponse.data;
+      return await this.httpCallService.call(requestProps);
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal server error', error.message, '500'),

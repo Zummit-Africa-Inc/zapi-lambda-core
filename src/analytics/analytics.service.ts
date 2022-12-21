@@ -11,7 +11,6 @@ import {
   paginate,
   Paginated,
 } from 'nestjs-paginate';
-import { CreateAnalyticsDto } from './dto/createAnalyticsDto.dto';
 
 @Injectable()
 export class AnalyticsService {
@@ -23,11 +22,11 @@ export class AnalyticsService {
   ) {}
 
   /* Updating the analytics table with the new values. */
-  async updateAnalytics({
-    status,
-    apiId,
-    latency = 0,
-  }: CreateAnalyticsDto): Promise<void> {
+  async updateAnalytics(
+    status: string | number,
+    apiId: string,
+    latency: number = 0,
+  ): Promise<void> {
     try {
       const a = async (): Promise<Analytics> => {
         const analytic = await this.analyticsRepository.findOne({

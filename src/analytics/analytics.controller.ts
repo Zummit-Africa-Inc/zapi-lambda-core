@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AnalyticsService } from './analytics.service';
 import { Analytics } from 'src/entities/analytics.entity';
@@ -36,7 +36,8 @@ export class AnalyticsController {
 
   @EventPattern('analytics')
   async analytics(@Body() body: CreateAnalyticsDto) {
-    this.analyticsService.updateAnalytics(body);
+    const { status, apiId, latency } = body;
+    this.analyticsService.updateAnalytics(status, apiId, latency);
   }
   @EventPattern('logs')
   async logs(@Body() body: CreateLogsDto) {
