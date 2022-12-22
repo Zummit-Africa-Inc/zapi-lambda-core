@@ -8,15 +8,13 @@ import {
 import { ZaLaResponse } from '../helpers/response';
 
 @Injectable()
-export class AdminGuard implements CanActivate {
+export class adminAuthorizationGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
       const request = context.switchToHttp().getRequest();
-      const requestIsAdmin = request.query['isAdmin'];
       const isAdmin = request.isAdmin;
-      console.log({ requestIsAdmin, isAdmin });
 
-      if (requestIsAdmin !== isAdmin) {
+      if (!isAdmin) {
         throw new ForbiddenException(
           ZaLaResponse.BadRequest(
             'Authorization Error',
