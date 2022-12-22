@@ -13,6 +13,7 @@ declare global {
   namespace Express {
     interface Request {
       profileId?: string;
+      isAdmin?: boolean;
     }
   }
 }
@@ -62,6 +63,7 @@ export class AuthenticationGuard implements CanActivate {
         );
       }
       request.profileId = decodedToken.profileId;
+      request.isAdmin = decodedToken.isAdmin;
       return true;
     } catch (error) {
       throw new BadRequestException(
