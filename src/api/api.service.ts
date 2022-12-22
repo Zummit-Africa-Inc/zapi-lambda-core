@@ -235,7 +235,7 @@ export class ApiService {
             ),
           );
         }
-        if (!updateApiDto.base_url.slice(0, 5).includes('http')) {
+        if (!updateApiDto.base_url.slice(0, 5).includes('https')) {
           throw new BadRequestException(
             ZaLaResponse.BadRequest('Bad Request', 'Invalid Base Url', '403'),
           );
