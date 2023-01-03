@@ -314,6 +314,7 @@ export class SubscriptionService {
         secretKey: api.secretKey,
         method: api.method.toLowerCase(),
       };
+
       return await this.httpCallService.call(requestProps);
     } catch (error) {
       throw new BadRequestException(
