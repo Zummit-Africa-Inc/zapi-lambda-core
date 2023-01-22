@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { InvalidCategories } from 'src/common/enums/invalidCategories.enum';
-import { Visibility } from 'src/common/enums/visibility.enum';
-import { ZaLaResponse } from 'src/common/helpers/response';
-import { Api } from 'src/entities/api.entity';
-import { Category } from 'src/entities/category.entity';
+import { InvalidCategories } from '../common/enums/invalidCategories.enum';
+import { Visibility } from '../common/enums/visibility.enum';
+import { ZaLaResponse } from '../common/helpers/response';
+import { Api } from '../entities/api.entity';
+import { Category } from '../entities/category.entity';
 import { Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 
