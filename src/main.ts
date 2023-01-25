@@ -14,14 +14,14 @@ async function bootstrap() {
     .setTitle('ZA Lambda Core Service')
     .setDescription('Zummit Africa Lambda Core Service')
     .setVersion('1.0')
-    .addBearerAuth(
+    .addApiKey(
       {
-        type: 'http',
+        type: 'apiKey',
+        name: 'x-zapi-auth-token',
+        in: 'header',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        name: 'JWT',
-        description: 'Enter Access Token',
-        in: 'header',
+        description: 'Zapi Access Token',
       },
       'access-token',
     )
