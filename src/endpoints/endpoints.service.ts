@@ -15,6 +15,12 @@ import { Logger } from 'src/entities/logger.entity';
 import { Api } from '../entities/api.entity';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { CollectionResponse } from 'src/common/interfaces/collectionResponse.interface';
+import {
+  FilterOperator,
+  paginate,
+  Paginated,
+  PaginateQuery,
+} from 'nestjs-paginate';
 
 @Injectable()
 export class EndpointsService {
@@ -120,22 +126,18 @@ export class EndpointsService {
    * @returns An array of Endpoint objects.
    */
 
-  async getAllApiEndpoints(apiId: string): Promise<Endpoint[]> {
+  async getAllApiEndpoints(query: PaginateQuery): Promise<Paginated<Endpoint>> {
     try {
-      //check if api exists in Endpoint table
-      const endpoints = await this.endpointRepo.find({
-        where: { apiId: apiId },
+      return paginate(query, this.endpointRepo, {
+        sortableColumns: ['createdOn', 'name', 'method', 'route'],
+        searchableColumns: ['name', 'description', 'method', 'route'],
+        defaultSortBy: [['id', 'DESC']],
+        filterableColumns: {
+          apiId: [FilterOperator.EQ],
+          name: [FilterOperator.IN],
+          route: [FilterOperator.IN],
+        },
       });
-      if (!endpoints) {
-        throw new NotFoundException(
-          ZaLaResponse.NotFoundRequest(
-            'Not Found',
-            'API does not exists',
-            '404',
-          ),
-        );
-      }
-      return endpoints;
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),

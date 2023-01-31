@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
@@ -46,26 +47,16 @@ export class DiscussionController {
     return ZaLaResponse.Ok(discussion, 'Ok', '200');
   }
 
-  @Get('/get/user-discussions')
-  @ApiOperation({ summary: "Get all user's discussions" })
-  async getUserDiscussions(@Req() req: Request): Promise<Ok<Discussion[]>> {
-    const discussions = await this.discussionService.getUserDiscussions(
-      req.profileId,
-    );
-    return ZaLaResponse.Ok(discussions, 'Ok', '200');
-  }
-
   @Public()
-  @IdCheck('apiId')
-  @Get('/api/:apiId')
+  @Get('/api/all')
   @ApiOperation({ summary: 'Get all discussions of an api' })
   async getAllDiscussions(
-    @Param('apiId') apiId: string,
-  ): Promise<Ok<Discussion[]>> {
+    @Paginate() query: PaginateQuery,
+  ): Promise<Ok<Paginated<Discussion>>> {
     const discussions = await this.discussionService.getAllDiscusionsOfAnApi(
-      apiId,
+      query,
     );
-    return ZaLaResponse.Ok(discussions, 'Ok', '200');
+    return ZaLaResponse.Paginated(discussions, 'Ok', '200');
   }
 
   @IdCheck('discussionId', 'profileId')
@@ -82,6 +73,15 @@ export class DiscussionController {
       dto,
     );
     return ZaLaResponse.Ok(comment, 'Ok', '201');
+  }
+
+  @Get('/get/user-discussions')
+  @ApiOperation({ summary: "Get all user's discussions" })
+  async getUserDiscussions(@Req() req: Request): Promise<Ok<Discussion[]>> {
+    const discussions = await this.discussionService.getUserDiscussions(
+      req.profileId,
+    );
+    return ZaLaResponse.Ok(discussions, 'Ok', '200');
   }
 
   @IdCheck('commentId', 'profileId')

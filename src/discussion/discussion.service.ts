@@ -1,5 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import {
+  FilterOperator,
+  paginate,
+  Paginated,
+  PaginateQuery,
+} from 'nestjs-paginate';
 import { ZaLaResponse } from 'src/common/helpers/response';
 import { Comment } from 'src/entities/comments.entity';
 import { Discussion } from 'src/entities/discussion.entity';
@@ -55,9 +61,21 @@ export class DiscussionService {
     }
   }
 
-  async getAllDiscusionsOfAnApi(apiId: string): Promise<Discussion[]> {
+  async getAllDiscusionsOfAnApi(
+    query: PaginateQuery,
+  ): Promise<Paginated<Discussion>> {
     try {
-      return await this.discussionRepo.find({ where: { api_id: apiId } });
+      return paginate(query, this.discussionRepo, {
+        sortableColumns: ['createdOn', 'profile_id', 'api_id'],
+        searchableColumns: ['title', 'body', 'comment', 'comments'],
+        defaultSortBy: [['id', 'DESC']],
+
+        filterableColumns: {
+          api_id: [FilterOperator.EQ],
+          profile_id: [FilterOperator.EQ],
+          title: [FilterOperator.EQ],
+        },
+      });
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),
