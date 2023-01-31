@@ -1,12 +1,16 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -21,10 +25,12 @@ import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { CollectionResponse } from 'src/common/interfaces/collectionResponse.interface';
+import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
+import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 
 @ApiTags('endpoints')
 @ApiBearerAuth('access-token')
-@UseGuards(AuthenticationGuard)
+// @UseGuards(AuthenticationGuard)
 @Controller('endpoints')
 export class EndpointsController {
   constructor(private readonly endpointsService: EndpointsService) {}
@@ -50,8 +56,27 @@ export class EndpointsController {
     @Param('apiId') apiId: string,
     @Body() body: CreateCollectionDto,
   ): Promise<Ok<CollectionResponse>> {
-    const endpoints = await this.endpointsService.collection(apiId, body);
+    const endpoints = await this.endpointsService.jsonCollection(apiId, body);
     return ZaLaResponse.Collection(endpoints, 'Endpoint(s) Created', '201');
+  }
+
+  @Post('new/yaml/:apiId')
+  @IdCheck('apiId')
+  @ApiOperation({ summary: 'Upload Yaml Collection' })
+  @ApiFile('file', true, {
+    fileFilter: fileMimetypeFilter('application/octet-stream'),
+  })
+  async yamlCollection(
+    @Param('apiId') apiId: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new MaxFileSizeValidator({ maxSize: 5000 })],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    const endpoints = await this.endpointsService.yamlCollection(file, apiId);
+    return ZaLaResponse.Ok(endpoints, 'Endpoint(s) Created', 201);
   }
 
   @Get(':apiId')
