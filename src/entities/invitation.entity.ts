@@ -1,11 +1,7 @@
 import { SharedEntity } from '../common/model/sharedEntity';
 import {
-  BeforeInsert,
   Column,
   Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
 } from 'typeorm';
 
 @Entity()

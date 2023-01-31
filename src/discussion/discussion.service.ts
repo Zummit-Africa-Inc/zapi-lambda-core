@@ -134,4 +134,21 @@ export class DiscussionService {
       );
     }
   }
+
+  /**
+   * It returns an array of discussions that belong to a user
+   * @param {string} profileId - string
+   * @returns An array of discussions.
+   */
+  async getUserDiscussions(profileId: string): Promise<Discussion[]> {
+    try {
+      return await this.discussionRepo.find({
+        where: { profile_id: profileId },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(error.name, error.message, error.status),
+      );
+    }
+  }
 }

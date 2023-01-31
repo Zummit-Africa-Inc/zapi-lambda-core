@@ -216,6 +216,31 @@ export class ApiService {
           }
         }
 
+        if (!updateApiDto.description) {
+          throw new BadRequestException(
+            ZaLaResponse.BadRequest(
+              'Bad Request',
+              'Description is required',
+              '403',
+            ),
+          );
+        }
+
+        if (!updateApiDto.base_url) {
+          throw new BadRequestException(
+            ZaLaResponse.BadRequest(
+              'Bad Request',
+              'Base Url is required',
+              '403',
+            ),
+          );
+        }
+        if (!updateApiDto.base_url.slice(0, 5).includes('https')) {
+          throw new BadRequestException(
+            ZaLaResponse.BadRequest('Bad Request', 'Invalid Base Url', '403'),
+          );
+        }
+
         updateApiDto.base_url
           ? updateApiDto.base_url.slice(-1) === '/'
             ? (updateApiDto.base_url = updateApiDto.base_url.slice(0, -1))

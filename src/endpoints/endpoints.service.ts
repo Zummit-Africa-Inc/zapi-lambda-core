@@ -191,6 +191,9 @@ export class EndpointsService {
         select: ['name', 'description', 'method', 'route', 'headers', 'body'],
       });
 
+      //RECORD THE UPDATE DATE ON THE API ALSO 
+      await this.apiRepo.update({name: api.name}, {id: newValues.apiId})
+
       //LOG THE UPDATE MADE
       const logger = await this.loggerRepo.create({
         entity_type: 'endpoint',
@@ -233,6 +236,11 @@ export class EndpointsService {
       });
 
       await this.endpointRepo.delete(endpointId);
+
+      //RECORD THE UPDATE DATE ON THE API ALSO 
+      await this.apiRepo.update({name: api.name}, {id: api.id})
+
+
       const logger = await this.loggerRepo.create({
         entity_type: 'endpoint',
         identifier: endpointId,

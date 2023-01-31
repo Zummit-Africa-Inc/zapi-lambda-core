@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -17,6 +18,7 @@ import { Discussion } from 'src/entities/discussion.entity';
 import { DiscussionService } from './discussion.service';
 import { CommentDto } from './dto/comment.dto';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
+import { Request } from 'express';
 
 @ApiBearerAuth('access-token')
 @UseGuards(AuthenticationGuard)
@@ -71,6 +73,15 @@ export class DiscussionController {
       dto,
     );
     return ZaLaResponse.Ok(comment, 'Ok', '201');
+  }
+
+  @Get('/get/user-discussions')
+  @ApiOperation({ summary: "Get all user's discussions" })
+  async getUserDiscussions(@Req() req: Request): Promise<Ok<Discussion[]>> {
+    const discussions = await this.discussionService.getUserDiscussions(
+      req.profileId,
+    );
+    return ZaLaResponse.Ok(discussions, 'Ok', '200');
   }
 
   @IdCheck('commentId', 'profileId')

@@ -443,12 +443,10 @@ export class SubscriptionService {
 
         return axiosResponse.data;
       } catch (error) {
-        throw new BadRequestException(
-          ZaLaResponse.BadRequest(
-            'External server error',
-            `Message from external server: '${error.message}'`,
-            '500',
-          ),
+        return ZaLaResponse.Ok(
+          '',
+          error.response.statusText ?? error.message,
+          error.response.status ?? 'Unknown error code',
         );
       }
     } catch (error) {
@@ -476,12 +474,14 @@ export class SubscriptionService {
       );
     }
   }
+
   /**
-   * Returns an array of Dev tests, where the profileId matches the
-   * profileId passed in as a parameter.
-   * @param {string} profileId - string
-   * @returns An array of DevTesting objects.
+   * It takes a query object, and returns a paginated list of DevTesting objects
+   * @param {PaginateQuery} query - PaginateQuery - This is the query object that is passed in from the
+   * controller.
+   * @returns Paginated<DevTesting>
    */
+
   async getTests(query: PaginateQuery): Promise<Paginated<DevTesting>> {
     try {
       return paginate(query, this.devTestingRepo, {
