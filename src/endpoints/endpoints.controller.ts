@@ -30,7 +30,7 @@ import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 
 @ApiTags('endpoints')
 @ApiBearerAuth('access-token')
-// @UseGuards(AuthenticationGuard)
+@UseGuards(AuthenticationGuard)
 @Controller('endpoints')
 export class EndpointsController {
   constructor(private readonly endpointsService: EndpointsService) {}
