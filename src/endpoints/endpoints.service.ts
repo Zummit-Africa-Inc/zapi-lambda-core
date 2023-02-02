@@ -15,6 +15,7 @@ import { Logger } from 'src/entities/logger.entity';
 import { Api } from '../entities/api.entity';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { CollectionResponse } from 'src/common/interfaces/collectionResponse.interface';
+import * as yaml from 'js-yaml';
 
 @Injectable()
 export class EndpointsService {
@@ -76,31 +77,66 @@ export class EndpointsService {
    * @param {CreateCollectionDto} body - CreateCollectionDto
    * @returns The return type is a Promise of a CollectionResponse.
    */
-  async collection(
+  async jsonCollection(
     apiId: string,
     body: CreateCollectionDto,
   ): Promise<CollectionResponse> {
     try {
+      return await this.getEndpoints(body.item, apiId);
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(error.name, error.message, error.status),
+      );
+    }
+  }
+
+  /**
+   * It takes a file and an apiId, then it loads the file, gets the endpoints, and returns the endpoints
+   * @param file - Express.Multer.File
+   * @param {string} apiId - string - this is the id of the api that the collection is being uploaded to
+   * @returns The return type is a Promise of a CollectionResponse.
+   */
+  async yamlCollection(
+    file: Express.Multer.File,
+    apiId: string,
+  ): Promise<CollectionResponse> {
+    try {
+      const { item } = await yaml.load(file.buffer.toString());
+      return await this.getEndpoints(item, apiId);
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(error.name, error.message, error.status),
+      );
+    }
+  }
+
+  /**
+   * It takes an array of objects, loops through them, and creates an endpoint for each object
+   * @param {any} data - this is the data that is being passed to the function
+   * @param {string} apiId - string
+   * @returns An object with two properties: endpoints and skipped.
+   */
+  async getEndpoints(data: any, apiId: string) {
+    try {
+      const { base_url } = await this.apiRepo.findOne({ where: { id: apiId } });
       const endpoints: Endpoint[] = [];
       const skipped: string[] = [];
 
-      for (const item of body.item) {
-        const body = JSON.parse(item.request.body?.raw);
+      for (const item of data) {
+        const body =
+          item.request.body?.raw && JSON.parse(item.request.body?.raw);
+
         const endpoint: CreateEndpointDto = {
           name: item.name,
           description: item.request.description,
-          body: Array.isArray(body) ? body : [body],
+          body: Array.isArray(body) ? body : body ? [body] : [],
           method: item.request.method.toLowerCase(),
-          route: `/${item.request.url.path[0]}`,
+          route: item.request.url.raw.split(base_url)[1],
           headers: item.request.header ?? [],
           query: item.request.url.query ?? [],
         };
 
-        /* Checking if any of the values in the endpoint object is undefined. If it is, it pushes the
-        name of the endpoint to the skipped array. If not, it pushes the endpoint to the endpoints
-        array. */
-        const isUndefined = Object.values(endpoint).includes(undefined);
-        if (isUndefined) {
+        if (Object.values(endpoint).includes(undefined)) {
           skipped.push(endpoint.name);
         } else {
           endpoints.push(await this.create(apiId, endpoint));
@@ -119,7 +155,6 @@ export class EndpointsService {
    * @param {string} apiId - string
    * @returns An array of Endpoint objects.
    */
-
   async getAllApiEndpoints(apiId: string): Promise<Endpoint[]> {
     try {
       //check if api exists in Endpoint table
@@ -189,8 +224,8 @@ export class EndpointsService {
         select: ['name', 'description', 'method', 'route', 'headers', 'body'],
       });
 
-      //RECORD THE UPDATE DATE ON THE API ALSO 
-      await this.apiRepo.update({name: api.name}, {id: newValues.apiId})
+      //RECORD THE UPDATE DATE ON THE API ALSO
+      await this.apiRepo.update({ name: api.name }, { id: newValues.apiId });
 
       //LOG THE UPDATE MADE
       const logger = await this.loggerRepo.create({
@@ -235,9 +270,8 @@ export class EndpointsService {
 
       await this.endpointRepo.delete(endpointId);
 
-      //RECORD THE UPDATE DATE ON THE API ALSO 
-      await this.apiRepo.update({name: api.name}, {id: api.id})
-
+      //RECORD THE UPDATE DATE ON THE API ALSO
+      await this.apiRepo.update({ name: api.name }, { id: api.id });
 
       const logger = await this.loggerRepo.create({
         entity_type: 'endpoint',
