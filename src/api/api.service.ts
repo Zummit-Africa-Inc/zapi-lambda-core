@@ -582,4 +582,44 @@ export class ApiService {
       );
     }
   }
+
+  async getApiDetails(): Promise<any> {
+    try {
+      const apiCount = await this.apiRepo.createQueryBuilder('api').getCount();
+      const allApis = await this.apiRepo.createQueryBuilder('api').getMany();
+
+      const apis = await Promise.all(
+        allApis.map(async (api) => {
+          const { totalCalls, totalLatency, successfulCalls, totalErrors } =
+            await this.analyticsRepo
+              .createQueryBuilder('analytics')
+              .select('SUM(analytics.total_calls)', 'totalCalls')
+              .addSelect('SUM(analytics.totalLatency)', 'totalLatency')
+              .addSelect('SUM(analytics.successful_calls)', 'successfulCalls')
+              .addSelect('SUM(analytics.total_errors)', 'totalErrors')
+              .where('analytics.apiId = :apiId', { apiId: api.id })
+              .getRawOne();
+
+          const subscriptionCount = await this.subscriptionRepo
+            .createQueryBuilder('subscription')
+            .where('subscription.apiId = :apiId', { apiId: api.id })
+            .getCount();
+
+          return {
+            apiId: api.id,
+            subscriptionCount,
+            totalCalls: Number(totalCalls),
+            totalLatency: Number(totalLatency),
+            successfulCalls: Number(successfulCalls),
+            totalErrors: Number(totalErrors),
+          };
+        }),
+      );
+      return { apiCount, apis };
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+      );
+    }
+  }
 }
