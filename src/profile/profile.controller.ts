@@ -99,6 +99,12 @@ export class ProfileController {
     await this.profileService.deleteProfile(profileId);
     return ZaLaResponse.Ok('Profile deleted successfully', 'Ok', 200);
   }
+  @Get('/profile/admin-data')
+  @ApiOperation({ summary: 'Get profile details for admin dashboard' })
+  async dash(): Promise<Ok<any>> {
+    const apis = await this.profileService.getUserProfiles();
+    return ZaLaResponse.Ok(apis, 'Ok', 200);
+  }
 
   //Endpoints for communication testing
   @Post('/send_to_notification')

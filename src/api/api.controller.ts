@@ -156,10 +156,8 @@ export class ApiController {
 
   @Get('/contributors/:apiId')
   @IdCheck('apiId')
-  @ApiOperation({summary: 'Get contributors of an API'})
-  async getApiContributors(
-    @Param('apiId')apiId: string
-  ): Promise<Ok<any[]>> {
+  @ApiOperation({ summary: 'Get contributors of an API' })
+  async getApiContributors(@Param('apiId') apiId: string): Promise<Ok<any[]>> {
     const contributors = await this.apiService.getAllApiContributors(apiId);
     return ZaLaResponse.Ok(contributors, 'OK', '200');
   }
@@ -174,25 +172,31 @@ export class ApiController {
 
   @IdCheck('profileId', 'apiId')
   @Post('/rate-api/:profileId/:apiId')
-  @ApiOperation({summary:"Rate an api"})
+  @ApiOperation({ summary: 'Rate an api' })
   async addApiRating(
-    @Param('profileId') profileId : string,
-    @Param('apiId') apiId : string,
-    @Body() dto: ApiRatingDto
-  ):Promise<Ok<string>>{
-    await this.apiService.addApiRating(profileId, apiId, dto)
-    return ZaLaResponse.Ok("Api rating complete", "Ok", '201')
+    @Param('profileId') profileId: string,
+    @Param('apiId') apiId: string,
+    @Body() dto: ApiRatingDto,
+  ): Promise<Ok<string>> {
+    await this.apiService.addApiRating(profileId, apiId, dto);
+    return ZaLaResponse.Ok('Api rating complete', 'Ok', '201');
   }
 
   @Public()
   @IdCheck('apiId')
   @Get('/reviews/:apiId')
-  @ApiOperation({summary:"Get all reviews of an api"})
+  @ApiOperation({ summary: 'Get all reviews of an api' })
   async getApiReviewsAndRating(
-    @Param('apiId') apiId: string
-  ): Promise<Ok<Review[]>>{
-    const reviews = await this.apiService.getApiReviewsAndRating(apiId)
-    return ZaLaResponse.Ok(reviews, "Ok", '200')
+    @Param('apiId') apiId: string,
+  ): Promise<Ok<Review[]>> {
+    const reviews = await this.apiService.getApiReviewsAndRating(apiId);
+    return ZaLaResponse.Ok(reviews, 'Ok', '200');
   }
 
+  @Get('/api/admin-data')
+  @ApiOperation({ summary: 'Get api details for admin dashboard' })
+  async getApiDetails(): Promise<Ok<any>> {
+    const apis = await this.apiService.getApiDetails();
+    return ZaLaResponse.Ok(apis, 'Ok', '200');
+  }
 }
