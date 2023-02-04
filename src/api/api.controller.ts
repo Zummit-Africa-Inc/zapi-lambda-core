@@ -195,8 +195,11 @@ export class ApiController {
 
   @Get('/api/admin-data')
   @ApiOperation({ summary: 'Get api details for admin dashboard' })
-  async getApiDetails(): Promise<Ok<any>> {
-    const apis = await this.apiService.getApiDetails();
-    return ZaLaResponse.Ok(apis, 'Ok', '200');
+  async getApiDetails(
+    @Query() paginateQuery: PaginateQuery,
+  ): Promise<Ok<Paginated<any>>> {
+    const { page, limit } = paginateQuery;
+    const apis = await this.apiService.getApiDetails(page, limit);
+    return ZaLaResponse.Paginated(apis, 'Ok', 200);
   }
 }

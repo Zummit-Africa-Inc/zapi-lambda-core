@@ -27,6 +27,7 @@ import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { Paginated, PaginateQuery } from 'nestjs-paginate';
 
 @ApiTags('Profile')
 @ApiBearerAuth('access-token')
@@ -101,9 +102,11 @@ export class ProfileController {
   }
   @Get('/profile/admin-data')
   @ApiOperation({ summary: 'Get profile details for admin dashboard' })
-  async dash(): Promise<Ok<any>> {
-    const apis = await this.profileService.getUserProfiles();
-    return ZaLaResponse.Ok(apis, 'Ok', 200);
+  async adminData(
+    @Query() paginateQuery: PaginateQuery,
+  ): Promise<Ok<Paginated<any>>> {
+    const profiles = await this.profileService.getUserProfiles(paginateQuery);
+    return ZaLaResponse.Paginated(profiles, 'Ok', 200);
   }
 
   //Endpoints for communication testing
