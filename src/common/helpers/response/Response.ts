@@ -58,13 +58,16 @@ export class ZaLaResponse {
     } as NotFound;
   }
   static Paginated<T>(array: T, message = '', status?: string | number): Ok<T> {
-    const { links, data, meta }: any = array;
+    const { links, data, meta, page, limit, total }: any = array;
     return {
       status,
       success: true,
       data,
       meta,
       links,
+      page,
+      limit,
+      total,
       message,
     } as Ok<T>;
   }

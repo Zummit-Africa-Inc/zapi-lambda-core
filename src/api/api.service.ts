@@ -583,10 +583,14 @@ export class ApiService {
     }
   }
 
-  async getApiDetails(): Promise<any> {
+  async getApiDetails(page: number, limit: number): Promise<any> {
     try {
       const apiCount = await this.apiRepo.createQueryBuilder('api').getCount();
-      const allApis = await this.apiRepo.createQueryBuilder('api').getMany();
+      const allApis = await this.apiRepo
+        .createQueryBuilder('api')
+        .skip(page && (page - 1) * limit)
+        .take(limit && limit)
+        .getMany();
 
       const apis = await Promise.all(
         allApis.map(async (api) => {
@@ -615,7 +619,12 @@ export class ApiService {
           };
         }),
       );
-      return { apiCount, apis };
+
+      return {
+        data: { apiCount, apis },
+        limit,
+        page,
+      };
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),

@@ -1,22 +1,17 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ZaLaResponse } from '../common/helpers/response';
 import { Profile } from '../entities/profile.entity';
 import { Repository } from 'typeorm';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { s3Client } from '../common/helpers/aws-lib';
-import { randomStrings } from 'src/common/helpers/randomString';
+
 import { AnalyticsLogs } from './../entities/analyticsLogs.entity';
 import {
   deleteImage,
   uploadImage,
 } from 'src/common/helpers/imageUploadService';
+import { PaginateQuery } from 'nestjs-paginate';
 
 @Injectable()
 export class ProfileService {
@@ -154,13 +149,15 @@ export class ProfileService {
    * It returns a list of profiles, each of which contains a list of api ids by the profile.
    * @returns profileCount and profiles
    */
-  async getUserProfiles(): Promise<any> {
+  async getUserProfiles({ page, limit }: PaginateQuery): Promise<any> {
     try {
       const result = await this.profileRepo
         .createQueryBuilder('profile')
         .leftJoinAndSelect('profile.apis', 'api')
         .groupBy('profile.id')
         .addGroupBy('api.id')
+        .skip(page && (page - 1) * limit)
+        .take(limit && limit)
         .getMany();
 
       const profileCount = await this.profileRepo
@@ -173,7 +170,12 @@ export class ProfileService {
           apiIds: profile.apis.map((api) => api.id),
         };
       });
-      return { profileCount, profiles };
+
+      return {
+        data: { profileCount, profiles },
+        limit,
+        page,
+      };
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
