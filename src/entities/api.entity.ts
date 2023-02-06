@@ -61,7 +61,7 @@ export class Api extends SharedEntity {
   })
   visibility: Visibility;
 
-  @Column({ default: 0, type: 'decimal', scale: 1, precision: 3})
+  @Column({ default: 0, type: 'decimal', scale: 1, precision: 3 })
   rating: number;
 
   @Column({ default: 0 })
@@ -82,7 +82,7 @@ export class Api extends SharedEntity {
   @Column({ nullable: true })
   tutorialsId: string;
 
-  @ManyToOne(() => Profile, (profile) => profile.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Profile, (profile) => profile.apis, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'profileId' })
   profile: Profile;
 

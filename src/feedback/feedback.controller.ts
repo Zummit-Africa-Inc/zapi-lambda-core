@@ -5,14 +5,16 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { Feedback } from 'src/entities/feedback.entity';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
+import { Public } from 'src/common/decorators/publicRoute.decorator';
 
 @ApiTags('Feedback')
-// @ApiBearerAuth('access-token')
-// @UseGuards(AuthenticationGuard)
+@ApiBearerAuth('access-token')
+@UseGuards(AuthenticationGuard)
 @Controller('feedback')
 export class FeedbackController {
   constructor(private readonly feedbackService: FeedbackService) {}
 
+  @Public()
   @Post('/create')
   async create(
     @Body() createFeedbackDto: CreateFeedbackDto,
@@ -21,8 +23,7 @@ export class FeedbackController {
     return ZaLaResponse.Ok(feedback, 'Feedback created', '201');
   }
 
-  @ApiBearerAuth('access-token')
-  @UseGuards(AuthenticationGuard)
+  @Public()
   @Get()
   @ApiOperation({ summary: 'Get all available feedback' })
   async findAll(): Promise<Ok<Feedback[]>> {

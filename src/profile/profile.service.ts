@@ -149,4 +149,35 @@ export class ProfileService {
       );
     }
   }
+
+  /**
+   * It returns a list of profiles, each of which contains a list of api ids by the profile.
+   * @returns profileCount and profiles
+   */
+  async getUserProfiles(): Promise<any> {
+    try {
+      const result = await this.profileRepo
+        .createQueryBuilder('profile')
+        .leftJoinAndSelect('profile.apis', 'api')
+        .groupBy('profile.id')
+        .addGroupBy('api.id')
+        .getMany();
+
+      const profileCount = await this.profileRepo
+        .createQueryBuilder('profile')
+        .getCount();
+
+      const profiles = result.map((profile) => {
+        return {
+          profileId: profile.id,
+          apiIds: profile.apis.map((api) => api.id),
+        };
+      });
+      return { profileCount, profiles };
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),
+      );
+    }
+  }
 }

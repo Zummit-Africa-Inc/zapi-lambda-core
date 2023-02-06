@@ -4,9 +4,10 @@ import { Profile } from '../entities/profile.entity';
 import { ProfileController } from './profile.controller';
 import { ProfileService } from './profile.service';
 import { AnalyticsLogs } from 'src/entities/analyticsLogs.entity';
+import { Api } from 'src/entities/api.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Profile, AnalyticsLogs])],
+  imports: [TypeOrmModule.forFeature([Profile, AnalyticsLogs, Api])],
   controllers: [ProfileController],
   providers: [ProfileService],
 })

@@ -216,6 +216,31 @@ export class ApiService {
           }
         }
 
+        if (!updateApiDto.description) {
+          throw new BadRequestException(
+            ZaLaResponse.BadRequest(
+              'Bad Request',
+              'Description is required',
+              '403',
+            ),
+          );
+        }
+
+        if (!updateApiDto.base_url) {
+          throw new BadRequestException(
+            ZaLaResponse.BadRequest(
+              'Bad Request',
+              'Base Url is required',
+              '403',
+            ),
+          );
+        }
+        if (!updateApiDto.base_url.slice(0, 5).includes('https')) {
+          throw new BadRequestException(
+            ZaLaResponse.BadRequest('Bad Request', 'Invalid Base Url', '403'),
+          );
+        }
+
         updateApiDto.base_url
           ? updateApiDto.base_url.slice(-1) === '/'
             ? (updateApiDto.base_url = updateApiDto.base_url.slice(0, -1))
@@ -551,6 +576,46 @@ export class ApiService {
   async getApiReviewsAndRating(apiId: string): Promise<Review[]> {
     try {
       return await this.reviewRepo.find({ where: { api_id: apiId } });
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+      );
+    }
+  }
+
+  async getApiDetails(): Promise<any> {
+    try {
+      const apiCount = await this.apiRepo.createQueryBuilder('api').getCount();
+      const allApis = await this.apiRepo.createQueryBuilder('api').getMany();
+
+      const apis = await Promise.all(
+        allApis.map(async (api) => {
+          const { totalCalls, totalLatency, successfulCalls, totalErrors } =
+            await this.analyticsRepo
+              .createQueryBuilder('analytics')
+              .select('SUM(analytics.total_calls)', 'totalCalls')
+              .addSelect('SUM(analytics.totalLatency)', 'totalLatency')
+              .addSelect('SUM(analytics.successful_calls)', 'successfulCalls')
+              .addSelect('SUM(analytics.total_errors)', 'totalErrors')
+              .where('analytics.apiId = :apiId', { apiId: api.id })
+              .getRawOne();
+
+          const subscriptionCount = await this.subscriptionRepo
+            .createQueryBuilder('subscription')
+            .where('subscription.apiId = :apiId', { apiId: api.id })
+            .getCount();
+
+          return {
+            apiId: api.id,
+            subscriptionCount,
+            totalCalls: Number(totalCalls),
+            totalLatency: Number(totalLatency),
+            successfulCalls: Number(successfulCalls),
+            totalErrors: Number(totalErrors),
+          };
+        }),
+      );
+      return { apiCount, apis };
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),

@@ -12,6 +12,7 @@ export const configConstant = {
   baseUrls: {
     identityService: 'IDENTITY_SERVICE_URL',
     notificationService: 'NOTIFICATION_SERVICE_URL',
+    notificationServiceMailSendingUrl: 'NOTIFICATION_SERVICE_SEND_MAIL_URL',
     coreService: 'CORE_SERVICE_URL',
     identityFEUrl: 'IDENTITY_SERVICE_FE_URL',
     completeSignupFE: 'IDENTITY_FE_COMPLETE_SIGNUP'
