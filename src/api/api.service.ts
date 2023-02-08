@@ -583,6 +583,13 @@ export class ApiService {
     }
   }
 
+  /**
+   * It gets the count of all the APIs, gets all the APIs, gets the analytics of each API, gets the
+   * subscription count of each API, and returns the count of all the APIs and the APIs with their
+   * analytics and subscription count.
+   * </code>
+   * @returns An object with two properties: apiCount and apis.
+   */
   async getApiDetails(): Promise<any> {
     try {
       const apiCount = await this.apiRepo.createQueryBuilder('api').getCount();
@@ -607,7 +614,17 @@ export class ApiService {
 
           return {
             apiId: api.id,
+            name: api.name,
+            owner: api.profileId,
+            createdOn: api.createdOn,
+            updatedOn: api.updatedOn,
+            popularity: api.popularity,
+            visibilty: api.visibility,
+            status: api.status,
+            categoryId: api.categoryId,
+            rating: api.rating,
             subscriptionCount,
+            subscriptions: api.subscriptions,
             totalCalls: Number(totalCalls),
             totalLatency: Number(totalLatency),
             successfulCalls: Number(successfulCalls),
