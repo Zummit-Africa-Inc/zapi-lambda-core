@@ -193,6 +193,7 @@ export class ApiController {
     return ZaLaResponse.Ok(reviews, 'Ok', '200');
   }
 
+  @Public()
   @Get('/api/admin-data')
   @ApiOperation({ summary: 'Get api details for admin dashboard' })
   async getApiDetails(): Promise<Ok<any>> {
