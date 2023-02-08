@@ -615,6 +615,7 @@ export class ApiService {
           return {
             apiId: api.id,
             name: api.name,
+            owner: api.profileId,
             createdOn: api.createdOn,
             updatedOn: api.updatedOn,
             popularity: api.popularity,
