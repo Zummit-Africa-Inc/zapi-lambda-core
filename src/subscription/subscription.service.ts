@@ -281,6 +281,7 @@ export class SubscriptionService {
         base_url: api.base_url,
         endpoint: endpoint.route,
         secretKey: api.secretKey,
+        headers: body.headers,
         method: endpoint.method.toLowerCase(),
       };
 
