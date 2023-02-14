@@ -50,11 +50,12 @@ export class CategoriesController {
   @Public()
   @ApiOperation({ summary: 'get all apis in a particular category' })
   @ApiOperation({ summary: 'get all public apis in a particular category' })
-  findAllApis(
+  async findAllApis(
     @Paginate() query: PaginateQuery,
     @Param('categoryId') categoryId: string,
-  ): Promise<Paginated<Api>> {
-    return this.categoryService.getAllApis(categoryId, query);
+  ): Promise<Ok<Paginated<Api>>> {
+    const apis = await this.categoryService.getAllApis(categoryId, query);
+    return ZaLaResponse.Paginated(apis, 'Ok', '200');
   }
 
   @Get('/valid-categories')
