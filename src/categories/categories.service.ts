@@ -1,5 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import {
+  FilterOperator,
+  paginate,
+  Paginated,
+  PaginateQuery,
+} from 'nestjs-paginate';
 import { InvalidCategories } from 'src/common/enums/invalidCategories.enum';
 import { Visibility } from 'src/common/enums/visibility.enum';
 import { ZaLaResponse } from 'src/common/helpers/response';
@@ -58,17 +64,38 @@ export class CategoriesService {
     }
   }
 
-  async getAllApis(categoryId: string) {
+  async getAllApis(
+    categoryId: string,
+    query: PaginateQuery,
+  ): Promise<Paginated<Api>> {
     try {
       const category = await this.categoryRepo.findOne({
         where: { id: categoryId },
       });
+      
       if (category.name.toLowerCase() == 'all')
-        return await this.apiRepo.find({
+        return paginate(query, this.apiRepo, {
+          sortableColumns: ['createdOn', 'name', 'visibility'],
+          searchableColumns: ['name', 'description', 'about', 'visibility'],
+          defaultSortBy: [['id', 'DESC']],
           where: { visibility: Visibility.Public },
+          filterableColumns: {
+            category: [FilterOperator.IN],
+            status: [FilterOperator.IN],
+            rating: [FilterOperator.GTE, FilterOperator.LTE],
+          },
         });
-      const apis = await this.apiRepo.find({
-        where: { categoryId, visibility: Visibility.Public },
+
+      const apis = paginate(query, this.apiRepo, {
+        sortableColumns: ['createdOn', 'name', 'visibility'],
+        searchableColumns: ['name', 'description', 'about', 'visibility'],
+        defaultSortBy: [['id', 'DESC']],
+        where: { visibility: Visibility.Public },
+        filterableColumns: {
+          category: [FilterOperator.IN],
+          status: [FilterOperator.IN],
+          rating: [FilterOperator.GTE, FilterOperator.LTE],
+        },
       });
       return apis;
     } catch (error) {
