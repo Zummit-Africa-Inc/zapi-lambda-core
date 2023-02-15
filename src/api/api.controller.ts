@@ -30,7 +30,6 @@ import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
-import { Profile } from 'src/entities/profile.entity';
 import { ApiRatingDto } from './dto/add-api-rating.dto';
 import { Review } from 'src/entities/review.entity';
 
@@ -193,6 +192,7 @@ export class ApiController {
     return ZaLaResponse.Ok(reviews, 'Ok', '200');
   }
 
+  @Public()
   @Get('/api/admin-data')
   @ApiOperation({ summary: 'Get api details for admin dashboard' })
   async getApiDetails(): Promise<Ok<any>> {

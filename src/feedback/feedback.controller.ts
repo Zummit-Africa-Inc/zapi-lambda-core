@@ -16,6 +16,7 @@ export class FeedbackController {
 
   @Public()
   @Post('/create')
+  @ApiOperation({ summary: 'Add new feedback' })
   async create(
     @Body() createFeedbackDto: CreateFeedbackDto,
   ): Promise<Ok<Feedback>> {
