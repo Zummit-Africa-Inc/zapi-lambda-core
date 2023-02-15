@@ -116,11 +116,11 @@ export class EndpointsService {
    * @param {string} apiId - string
    * @returns An object with two properties: endpoints and skipped.
    */
-  async getEndpoints(data: any, apiId: string) {
+  async getEndpoints(data: any, apiId: string): Promise<any> {
     try {
       const { base_url } = await this.apiRepo.findOne({ where: { id: apiId } });
       const endpoints: Endpoint[] = [];
-      const skipped: string[] = [];
+      const skipped: CollectionResponse['skipped'] = [];
 
       for (const item of data) {
         const body =
@@ -136,8 +136,21 @@ export class EndpointsService {
           query: item.request.url.query ?? [],
         };
 
+        const isEndpoint = await this.endpointRepo.findOne({
+          where: {
+            apiId,
+            method: endpoint.method,
+            route: encodeURIComponent(endpoint.route),
+          },
+        });
+
         if (Object.values(endpoint).includes(undefined)) {
-          skipped.push(endpoint.name);
+          skipped.push({ name: endpoint.name, reason: 'Malformed endpoint' });
+        } else if (isEndpoint) {
+          skipped.push({
+            name: endpoint.name,
+            reason: 'Duplicate endpoint',
+          });
         } else {
           endpoints.push(await this.create(apiId, endpoint));
         }
