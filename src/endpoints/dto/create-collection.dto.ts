@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateCollectionDto {
   @ApiProperty()
@@ -10,6 +10,6 @@ export class CreateCollectionDto {
   @ApiProperty()
   event: any[];
 
-  @ApiPropertyOptional()
+  @ApiProperty()
   variable: any[];
 }

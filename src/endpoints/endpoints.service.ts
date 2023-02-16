@@ -82,7 +82,7 @@ export class EndpointsService {
     body: CreateCollectionDto,
   ): Promise<CollectionResponse> {
     try {
-      return await this.getEndpoints(body.item, apiId);
+      return await this.getEndpoints(body, apiId);
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),
@@ -111,56 +111,71 @@ export class EndpointsService {
   }
 
   /**
-   * It takes an array of objects, loops through them, and creates an endpoint for each object
-   * @param {any} data - this is the data that is being passed to the function
+   * It takes in a collection of endpoints and an apiId, then it creates the endpoints and returns the
+   * endpoints that were created and the endpoints that were skipped
+   * @param {CreateCollectionDto} data - CreateCollectionDto
    * @param {string} apiId - string
-   * @returns An object with two properties: endpoints and skipped.
+   * @returns an object with two properties: endpoints and skipped.
    */
-  async getEndpoints(data: any, apiId: string): Promise<any> {
-    try {
-      const { base_url } = await this.apiRepo.findOne({ where: { id: apiId } });
-      const endpoints: Endpoint[] = [];
-      const skipped: CollectionResponse['skipped'] = [];
+  async getEndpoints(data: CreateCollectionDto, apiId: string): Promise<any> {
+    const api = this.apiRepo.findOne({ where: { id: apiId } });
+    return api
+      .then(async ({ base_url }) => {
+        let collectionBaseUrl = data.variable.find(
+          (variable) => variable.key === 'base_url',
+        )?.value;
 
-      for (const item of data) {
-        const body =
-          item.request.body?.raw && JSON.parse(item.request.body?.raw);
-
-        const endpoint: CreateEndpointDto = {
-          name: item.name,
-          description: item.request.description,
-          body: Array.isArray(body) ? body : body ? [body] : [],
-          method: item.request.method.toLowerCase(),
-          route: item.request.url.raw.split(base_url)[1],
-          headers: item.request.header ?? [],
-          query: item.request.url.query ?? [],
-        };
-
-        const isEndpoint = await this.endpointRepo.findOne({
-          where: {
-            apiId,
-            method: endpoint.method,
-            route: encodeURIComponent(endpoint.route),
-          },
-        });
-
-        if (Object.values(endpoint).includes(undefined)) {
-          skipped.push({ name: endpoint.name, reason: 'Malformed endpoint' });
-        } else if (isEndpoint) {
-          skipped.push({
-            name: endpoint.name,
-            reason: 'Duplicate endpoint',
-          });
-        } else {
-          endpoints.push(await this.create(apiId, endpoint));
+        if (base_url !== collectionBaseUrl) {
+          throw new BadRequestException(
+            ZaLaResponse.BadRequest(
+              'Internal Server Error',
+              'Base url mismatch',
+              '500',
+            ),
+          );
         }
-      }
-      return { endpoints, skipped };
-    } catch (error) {
-      throw new BadRequestException(
-        ZaLaResponse.BadRequest(error.name, error.message, error.status),
-      );
-    }
+
+        const endpoints = [];
+        const skipped = [];
+
+        for (const item of data.item) {
+          const { raw = {} } = item.request.body || {};
+          const endpoint = {
+            name: item.name,
+            description: item.request.description,
+            body: Array.isArray(raw) ? raw : raw ? [raw] : [],
+            method: item.request.method.toLowerCase(),
+            route: item.request.url.raw.split(base_url)[1],
+            headers: item.request.header || [],
+            query: item.request.url.query || [],
+          };
+
+          const isEndpoint = await this.endpointRepo.findOne({
+            where: {
+              apiId,
+              method: endpoint.method,
+              route: encodeURIComponent(endpoint.route),
+            },
+          });
+
+          if (Object.values(endpoint).includes(undefined)) {
+            skipped.push({ name: endpoint.name, reason: 'Malformed endpoint' });
+          } else if (isEndpoint) {
+            skipped.push({
+              name: endpoint.name,
+              reason: 'Duplicate endpoint',
+            });
+          } else {
+            endpoints.push(await this.create(apiId, endpoint));
+          }
+        }
+        return { endpoints, skipped };
+      })
+      .catch((error) => {
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(error.name, error.message, error.status),
+        );
+      });
   }
 
   /**
