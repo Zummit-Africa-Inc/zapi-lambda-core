@@ -69,35 +69,20 @@ export class CategoriesService {
     query: PaginateQuery,
   ): Promise<Paginated<Api>> {
     try {
-      const category = await this.categoryRepo.findOne({
-        where: { id: categoryId },
-      });
-      
-      if (category.name.toLowerCase() == 'all')
-        return paginate(query, this.apiRepo, {
-          sortableColumns: ['createdOn', 'name', 'visibility'],
-          searchableColumns: ['name', 'description', 'about', 'visibility'],
-          defaultSortBy: [['id', 'DESC']],
-          where: { visibility: Visibility.Public },
-          filterableColumns: {
-            category: [FilterOperator.IN],
-            status: [FilterOperator.IN],
-            rating: [FilterOperator.GTE, FilterOperator.LTE],
-          },
-        });
-
-      const apis = paginate(query, this.apiRepo, {
+      return paginate(query, this.apiRepo, {
         sortableColumns: ['createdOn', 'name', 'visibility'],
         searchableColumns: ['name', 'description', 'about', 'visibility'],
         defaultSortBy: [['id', 'DESC']],
-        where: { visibility: Visibility.Public },
+        where: {
+          visibility: Visibility.Public,
+          categoryId: categoryId,
+        },
         filterableColumns: {
           category: [FilterOperator.IN],
           status: [FilterOperator.IN],
           rating: [FilterOperator.GTE, FilterOperator.LTE],
         },
       });
-      return apis;
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),
