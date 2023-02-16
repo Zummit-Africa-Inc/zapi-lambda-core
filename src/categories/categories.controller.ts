@@ -48,7 +48,6 @@ export class CategoriesController {
   @Get(':categoryId/apis')
   @IdCheck('categoryId')
   @Public()
-  @ApiOperation({ summary: 'get all apis in a particular category' })
   @ApiOperation({ summary: 'get all public apis in a particular category' })
   async findAllApis(
     @Paginate() query: PaginateQuery,
