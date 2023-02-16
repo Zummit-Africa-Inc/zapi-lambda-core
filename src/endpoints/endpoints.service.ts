@@ -134,8 +134,8 @@ export class EndpointsService {
           );
         }
 
-        const endpoints = [];
-        const skipped = [];
+        const endpoints: Endpoint[] = [];
+        const skipped: CollectionResponse['skipped'] = [];
 
         for (const item of data.item) {
           const { raw = {} } = item.request.body || {};
