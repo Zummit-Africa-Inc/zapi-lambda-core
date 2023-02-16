@@ -35,4 +35,13 @@ export class ContactService {
       );
     }
   }
+  async findOne(id: string): Promise<ContactUs> {
+    try {
+      return await this.contactUsRepo.findOne({ where: { id } });
+    } catch (err) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(err.name, err.message, err.status),
+      );
+    }
+  }
 }
