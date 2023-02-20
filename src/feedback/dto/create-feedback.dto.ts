@@ -1,4 +1,4 @@
-import { ApiProperty ,ApiPropertyOptional} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 import { FeedbackEnum } from 'src/common/enums/feedback.enum';
 

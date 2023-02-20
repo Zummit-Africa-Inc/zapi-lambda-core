@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Body, Post, UseGuards, Param } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -26,9 +26,16 @@ export class FeedbackController {
 
   @Public()
   @Get()
-  @ApiOperation({ summary: 'Get all available feedback' })
+  @ApiOperation({ summary: 'Get all available feedbacks' })
   async findAll(): Promise<Ok<Feedback[]>> {
     const feedbacks = await this.feedbackService.findAll();
     return ZaLaResponse.Ok(feedbacks, 'Ok', '200');
+  }
+  @Public()
+  @Get('/:id')
+  @ApiOperation({ summary: 'Get one feedback' })
+  async findOne(@Param('id') id: string): Promise<Ok<Feedback>> {
+    const feedback = await this.feedbackService.findOne(id);
+    return ZaLaResponse.Ok(feedback, 'Ok', '200');
   }
 }
