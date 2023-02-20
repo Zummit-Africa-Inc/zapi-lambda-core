@@ -1,8 +1,6 @@
 import { ConfigModule } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 
-import { config } from 'dotenv';
-config({ path: './.env.example' });
 ConfigModule.forRoot();
 
 export const AppDataSource = new DataSource({
