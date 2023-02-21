@@ -53,7 +53,10 @@ export class CategoriesController {
     @Paginate() query: PaginateQuery,
     @Param('categoryId') categoryId: string,
   ): Promise<Ok<Paginated<Api>>> {
-    const apis = await this.categoryService.getAllApis(categoryId, query);
+    const apis = await this.categoryService.getAllApis({
+      ...query,
+      filter: { ...query.filter, categoryId },
+    });
     return ZaLaResponse.Paginated(apis, 'Ok', '200');
   }
 

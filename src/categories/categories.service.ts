@@ -64,10 +64,7 @@ export class CategoriesService {
     }
   }
 
-  async getAllApis(
-    categoryId: string,
-    query: PaginateQuery,
-  ): Promise<Paginated<Api>> {
+  async getAllApis(query: PaginateQuery): Promise<Paginated<Api>> {
     try {
       return paginate(query, this.apiRepo, {
         sortableColumns: ['createdOn', 'name', 'visibility'],
@@ -75,9 +72,9 @@ export class CategoriesService {
         defaultSortBy: [['id', 'DESC']],
         where: {
           visibility: Visibility.Public,
-          categoryId: categoryId,
         },
         filterableColumns: {
+          categoryId: [FilterOperator.EQ],
           category: [FilterOperator.IN],
           status: [FilterOperator.IN],
           rating: [FilterOperator.GTE, FilterOperator.LTE],
