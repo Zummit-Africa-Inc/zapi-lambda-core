@@ -1,25 +1,19 @@
-import { ApiProperty } from "@nestjs/swagger"
-import { IsNotEmpty, IsString } from "class-validator"
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString } from 'class-validator';
 
-export class CreateDiscussionDto{
+export class CreateDiscussionDto {
+  @IsNotEmpty()
+  @IsString()
+  @ApiProperty()
+  api_id: string;
 
-    @IsNotEmpty()
-    @IsString()
-    @ApiProperty()
-    api_id: string
+  @IsNotEmpty()
+  @IsString()
+  @ApiProperty()
+  body: string;
 
-    @IsNotEmpty()
-    @IsString()
-    @ApiProperty()
-    title: string
-
-    @IsNotEmpty()
-    @IsString()
-    @ApiProperty()
-    body: string
-
-    @IsNotEmpty()
-    @IsString()
-    @ApiProperty()
-    profile_id: string
+  @IsNotEmpty()
+  @IsString()
+  @ApiProperty()
+  profile_id: string;
 }
