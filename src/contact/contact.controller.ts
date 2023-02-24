@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Param } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
@@ -28,6 +28,14 @@ export class ContactController {
   @ApiOperation({ summary: 'Get all available Contact messages' })
   async findAll(): Promise<Ok<ContactUs[]>> {
     const contactUs = await this.contactService.findAll();
+    return ZaLaResponse.Ok(contactUs, 'Ok', '200');
+  }
+
+  @Public()
+  @Get('/:id')
+  @ApiOperation({ summary: 'Get one Contact message' })
+  async findOne(@Param('id') id: string): Promise<Ok<ContactUs>> {
+    const contactUs = await this.contactService.findOne(id);
     return ZaLaResponse.Ok(contactUs, 'Ok', '200');
   }
 }

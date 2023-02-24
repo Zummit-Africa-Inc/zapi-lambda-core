@@ -123,6 +123,20 @@ export class ApiController {
   @Get()
   @Public()
   @ApiOperation({ summary: 'Get or search all apis' })
+  @ApiQuery({
+    name: 'query',
+    description: 'Paginate query',
+    required: false,
+    schema: {
+      type: 'object',
+      properties: {
+        page: { type: 'number', description: 'Page number' },
+        limit: { type: 'number', description: 'Limit per page' },
+        search: { type: 'string', description: 'Search term' },
+        searchBy: { type: 'string', description: 'Search by field' },
+      },
+    },
+  })
   async findAll(@Paginate() query: PaginateQuery): Promise<Ok<Paginated<Api>>> {
     const apis = await this.apiService.findAll(query);
     return ZaLaResponse.Paginated(apis, 'Ok', '200');

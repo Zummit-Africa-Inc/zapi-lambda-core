@@ -12,9 +12,7 @@ export class FeedbackService {
     private readonly feedbackRepo: Repository<Feedback>,
   ) {}
 
-  async create(
-    createFeedbackDto: CreateFeedbackDto,
-  ): Promise<Feedback> {
+  async create(createFeedbackDto: CreateFeedbackDto): Promise<Feedback> {
     try {
       const newFeedback = this.feedbackRepo.create({
         ...createFeedbackDto,
@@ -31,6 +29,15 @@ export class FeedbackService {
   async findAll(): Promise<Feedback[]> {
     try {
       return await this.feedbackRepo.find();
+    } catch (err) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(err.name, err.message, err.status),
+      );
+    }
+  }
+  async findOne(id: string): Promise<Feedback> {
+    try {
+      return await this.feedbackRepo.findOne({ where: { id } });
     } catch (err) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(err.name, err.message, err.status),

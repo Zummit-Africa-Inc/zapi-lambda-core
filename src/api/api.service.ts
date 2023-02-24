@@ -513,7 +513,7 @@ export class ApiService {
     dto: ApiRatingDto,
   ): Promise<void> {
     try {
-      //ensure api owner cannot post a review
+      // Ensure api owner cannot post a review
       const api = await this.apiRepo.findOne({ where: { id: apiId } });
       if (api.profileId === profileId) {
         throw new BadRequestException(
@@ -525,7 +525,7 @@ export class ApiService {
         );
       }
 
-      //ensure user cannot rate an api twice
+      // Ensure user cannot rate an api twice
       const reviewAlreadyExists = await this.reviewRepo.findOne({
         where: { api_id: apiId, profile_id: profileId },
       });
@@ -539,17 +539,23 @@ export class ApiService {
         );
       }
 
-      //create api rating object
-      const apiRating = await this.reviewRepo.create({
-        profile_id: profileId,
-        api_id: apiId,
-        ...dto,
+      // Get email from the provided profileId to populate the `reviewer` field
+      const reviewer = await this.profileRepo.findOne({
+        where: { id: profileId },
       });
 
-      //save api rating
+      // Create api rating object
+      const apiRating = this.reviewRepo.create({
+        profile_id: profileId,
+        api_id: apiId,
+        reviewer: reviewer.email,
+        rating: dto.rating,
+      });
+
+      // Save api rating
       await this.reviewRepo.save(apiRating);
 
-      //calculate api rating
+      // Calculate api rating
       const reviews = await this.reviewRepo.find({ where: { api_id: apiId } });
       let ratingsTotal = 0;
 
@@ -559,7 +565,7 @@ export class ApiService {
 
       const overallRating = (ratingsTotal / reviews.length) * 2;
 
-      //update api rating
+      // Update api rating
       await this.apiRepo.update(apiId, { rating: overallRating });
     } catch (error) {
       throw new BadRequestException(
