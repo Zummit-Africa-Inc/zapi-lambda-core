@@ -92,6 +92,12 @@ export class ReviewService {
     }
   }
 
+  /**
+   * Get the Paginated Reviews of an API
+   * @param query PaginatedQuery
+   * @param apiId The id of the API all the reviews belong to
+   * @returns Paginated reviews of an API
+   */
   async getAllApiReviewsAndRating(query: PaginateQuery, apiId: string) {
     try {
       const filterOperators = [
@@ -121,6 +127,12 @@ export class ReviewService {
     }
   }
 
+  /**
+   *
+   * @param apiId The id of the API the review to obtain belong to
+   * @param reviewId The id of the review to obtain
+   * @returns A review of of an API
+   */
   async getSingleApiReviewsAndRating(apiId: string, reviewId: string) {
     try {
       const review = await this.reviewRepo.findOne({
