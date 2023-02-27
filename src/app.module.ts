@@ -29,6 +29,7 @@ import { Discussion } from './entities/discussion.entity';
 import { InvitationModule } from './invitation/invitation.module';
 import { Invitation } from './entities/invitation.entity';
 import { ContactModule } from './contact/contact.module';
+import { ReviewModule } from './review/review.module';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -78,6 +79,7 @@ const RabbitMQService = {
     DiscussionModule,
     InvitationModule,
     ContactModule,
+    ReviewModule,
 
   ],
   controllers: [AppController],
