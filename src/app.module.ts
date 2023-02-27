@@ -30,6 +30,7 @@ import { InvitationModule } from './invitation/invitation.module';
 import { Invitation } from './entities/invitation.entity';
 import { ContactModule } from './contact/contact.module';
 import { ReviewModule } from './review/review.module';
+import { Review } from './entities/review.entity';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -65,7 +66,8 @@ const RabbitMQService = {
       Logger,
       Comment,
       Discussion,
-      Invitation
+      Invitation,
+      Review,
     ]),
     TypeOrmModule.forRoot(AppDataSource.options),
     EndpointsModule,
@@ -80,7 +82,6 @@ const RabbitMQService = {
     InvitationModule,
     ContactModule,
     ReviewModule,
-
   ],
   controllers: [AppController],
   providers: [

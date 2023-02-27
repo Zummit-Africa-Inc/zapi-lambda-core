@@ -91,29 +91,29 @@ export class ReviewService {
     }
   }
 
-  async getAllApiReviewsAndRating(query: PaginateQuery, apiId: string) {
-    try {
-      return paginate(query, this.reviewRepo, {
-        sortableColumns: ['createdOn', 'name', 'visibility'],
-        searchableColumns: ['name', 'description', 'about', 'visibility'],
-        defaultSortBy: [['id', 'DESC']],
-        where: { visibility: Visibility.Public },
-        filterableColumns: {
-          category: [FilterOperator.IN],
-          status: [FilterOperator.IN],
-          rating: [FilterOperator.GTE, FilterOperator.LTE],
-        },
-      });
-    } catch (error) {
-      throw new BadRequestException(
-        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
-      );
-    }
-  }
+  // async getAllApiReviewsAndRating(query: PaginateQuery, apiId: string) {
+  //   try {
+  //     return paginate(query, this.reviewRepo, {
+  //       sortableColumns: ['createdOn', 'name', 'visibility'],
+  //       searchableColumns: ['name', 'description', 'about', 'visibility'],
+  //       defaultSortBy: [['id', 'DESC']],
+  //       where: { visibility: Visibility.Public },
+  //       filterableColumns: {
+  //         category: [FilterOperator.IN],
+  //         status: [FilterOperator.IN],
+  //         rating: [FilterOperator.GTE, FilterOperator.LTE],
+  //       },
+  //     });
+  //   } catch (error) {
+  //     throw new BadRequestException(
+  //       ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+  //     );
+  //   }
+  // }
 
   async getSingleApiReviewsAndRating(apiId: string, reviewId: string) {
     try {
-      const review = await this.reviewRepo.find({
+      const review = await this.reviewRepo.findOne({
         where: { api_id: apiId, id: reviewId },
       });
       return review;
