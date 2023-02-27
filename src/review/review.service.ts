@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { paginate, PaginateQuery } from 'nestjs-paginate';
+import { FilterOperator, paginate, PaginateQuery } from 'nestjs-paginate';
 import { ApiRatingDto } from 'src/review/dto/create-api-review.dto';
 import { ZaLaResponse } from 'src/common/helpers/response';
 import { Api } from 'src/entities/api.entity';
@@ -67,6 +67,7 @@ export class ReviewService {
         api_id: apiId,
         reviewer: reviewer.email,
         rating: dto.rating,
+        review: dto.review,
       });
 
       // Save api rating
@@ -91,25 +92,34 @@ export class ReviewService {
     }
   }
 
-  // async getAllApiReviewsAndRating(query: PaginateQuery, apiId: string) {
-  //   try {
-  //     return paginate(query, this.reviewRepo, {
-  //       sortableColumns: ['createdOn', 'name', 'visibility'],
-  //       searchableColumns: ['name', 'description', 'about', 'visibility'],
-  //       defaultSortBy: [['id', 'DESC']],
-  //       where: { visibility: Visibility.Public },
-  //       filterableColumns: {
-  //         category: [FilterOperator.IN],
-  //         status: [FilterOperator.IN],
-  //         rating: [FilterOperator.GTE, FilterOperator.LTE],
-  //       },
-  //     });
-  //   } catch (error) {
-  //     throw new BadRequestException(
-  //       ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
-  //     );
-  //   }
-  // }
+  async getAllApiReviewsAndRating(query: PaginateQuery, apiId: string) {
+    try {
+      const filterOperators = [
+        FilterOperator.LT,
+        FilterOperator.GT,
+        FilterOperator.GTE,
+        FilterOperator.LTE,
+        FilterOperator.BTW,
+      ];
+      return paginate(query, this.reviewRepo, {
+        sortableColumns: ['createdOn', 'rating', 'updatedOn'],
+        searchableColumns: ['createdBy', 'review', 'rating', 'reviewer'],
+        defaultSortBy: [['createdOn', 'ASC']],
+        where: { api_id: apiId },
+        filterableColumns: {
+          rating: filterOperators,
+          createdOn: filterOperators,
+          createdBy: filterOperators,
+          updatedBy: filterOperators,
+          updatedOn: filterOperators,
+        },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+      );
+    }
+  }
 
   async getSingleApiReviewsAndRating(apiId: string, reviewId: string) {
     try {
