@@ -17,6 +17,8 @@ import { Category } from '../entities/category.entity';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
+import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
+import { Api } from 'src/entities/api.entity';
 
 @ApiTags('Categories')
 @Controller('categories')
@@ -46,10 +48,16 @@ export class CategoriesController {
   @Get(':categoryId/apis')
   @IdCheck('categoryId')
   @Public()
-  @ApiOperation({ summary: 'get all apis in a particular category' })
   @ApiOperation({ summary: 'get all public apis in a particular category' })
-  findAllApis(@Param('categoryId') categoryId: string) {
-    return this.categoryService.getAllApis(categoryId);
+  async findAllApis(
+    @Paginate() query: PaginateQuery,
+    @Param('categoryId') categoryId: string,
+  ): Promise<Ok<Paginated<Api>>> {
+    const apis = await this.categoryService.getAllApis({
+      ...query,
+      filter: { ...query.filter, categoryId },
+    });
+    return ZaLaResponse.Paginated(apis, 'Ok', '200');
   }
 
   @Get('/valid-categories')
