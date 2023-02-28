@@ -29,7 +29,7 @@ import { Endpoint } from 'src/entities/endpoint.entity';
 import { Action } from 'src/common/enums/actionLogger.enum';
 import { FreeApis } from 'src/subscription/apis';
 import { Visibility } from 'src/common/enums/visibility.enum';
-import { ApiRatingDto } from './dto/add-api-rating.dto';
+import { ApiRatingDto } from '../review/dto/create-api-review.dto';
 import { Review } from 'src/entities/review.entity';
 
 @Injectable()

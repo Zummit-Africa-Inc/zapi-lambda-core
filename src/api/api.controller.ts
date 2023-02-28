@@ -30,7 +30,7 @@ import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
-import { ApiRatingDto } from './dto/add-api-rating.dto';
+import { ApiRatingDto } from '../review/dto/create-api-review.dto';
 import { Review } from 'src/entities/review.entity';
 
 @ApiTags('Apis')
