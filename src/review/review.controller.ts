@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
@@ -13,6 +21,7 @@ import { ApiRatingDto } from 'src/review/dto/create-api-review.dto';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Review } from './../entities/review.entity';
 import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
+import { Request } from 'express';
 
 @ApiTags('Review')
 @UseGuards(AuthenticationGuard)
@@ -21,15 +30,15 @@ import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
-  @IdCheck('apiId', 'profileId')
-  @Post(':apiId/:profileId')
+  @IdCheck('apiId')
+  @Post(':apiId')
   @ApiOperation({ summary: 'Review an api' })
   async addApiRating(
-    @Param('profileId') profileId: string,
+    @Req() req: Request,
     @Param('apiId') apiId: string,
     @Body() dto: ApiRatingDto,
   ): Promise<Ok<string>> {
-    await this.reviewService.addApiRating(profileId, apiId, dto);
+    await this.reviewService.addApiRating(req.profileId, apiId, dto);
     return ZaLaResponse.Ok('Api review complete', 'Ok', '201');
   }
 

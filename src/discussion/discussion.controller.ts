@@ -26,12 +26,16 @@ import { Request } from 'express';
 export class DiscussionController {
   constructor(private readonly discussionService: DiscussionService) {}
 
-  @Post('')
+  @Post()
   @ApiOperation({ summary: 'Start a new discussion' })
   async startDiscussion(
     @Body() dto: CreateDiscussionDto,
+    @Req() req: Request,
   ): Promise<Ok<Discussion>> {
-    const discussion = await this.discussionService.startDiscussion(dto);
+    const discussion = await this.discussionService.startDiscussion(
+      dto,
+      req.profileId,
+    );
     return ZaLaResponse.Ok(discussion, 'Discussion started', '201');
   }
 
@@ -45,7 +49,7 @@ export class DiscussionController {
       await this.discussionService.getSingleDisussionAndComments(discussionId);
     return ZaLaResponse.Ok(discussion, 'Ok', '200');
   }
-
+  4;
   @Get('/get/user-discussions')
   @ApiOperation({ summary: "Get all user's discussions" })
   async getUserDiscussions(@Req() req: Request): Promise<Ok<Discussion[]>> {
@@ -68,31 +72,31 @@ export class DiscussionController {
     return ZaLaResponse.Ok(discussions, 'Ok', '200');
   }
 
-  @IdCheck('discussionId', 'profileId')
-  @Post('/comment/:discussionId/:profileId')
+  @IdCheck('discussionId')
+  @Post('comment/:discussionId')
   @ApiOperation({ summary: 'Comment under a discussion' })
   async addComment(
     @Param('discussionId') discussionId: string,
-    @Param('profileId') profileId: string,
+    @Req() req: Request,
     @Body() dto: CommentDto,
   ) {
     const comment = await this.discussionService.addComment(
       discussionId,
-      profileId,
+      req.profileId,
       dto,
     );
     return ZaLaResponse.Ok(comment, 'Ok', '201');
   }
 
-  @IdCheck('commentId', 'profileId')
-  @Patch('/comment/:commentId/:profileId')
+  @IdCheck('commentId')
+  @Patch('comment/:commentId')
   @ApiOperation({ summary: 'Update a comment' })
   async updateComment(
     @Param('commentId') commentId: string,
-    @Param('profileId') profileId: string,
+    @Req() req: Request,
     @Body() dto: CommentDto,
   ) {
-    await this.discussionService.updateComment(commentId, profileId, dto);
+    await this.discussionService.updateComment(commentId, req.profileId, dto);
     return ZaLaResponse.Ok('Comment updated', 'Ok', '200');
   }
 }

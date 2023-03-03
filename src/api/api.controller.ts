@@ -11,6 +11,7 @@ import {
   ParseFilePipe,
   MaxFileSizeValidator,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ApiService } from './api.service';
 import {
@@ -30,8 +31,8 @@ import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
-import { ApiRatingDto } from '../review/dto/create-api-review.dto';
-import { Review } from 'src/entities/review.entity';
+import { Request } from 'express';
+import { ApiAuthorizationGuard } from 'src/common/guards/resourceGuards/ApiAuthorizationGuard';
 
 @ApiTags('Apis')
 @UseGuards(AuthenticationGuard)
@@ -40,23 +41,21 @@ import { Review } from 'src/entities/review.entity';
 export class ApiController {
   constructor(private readonly apiService: ApiService) {}
 
-  @Post('/new/:profileId')
-  @IdCheck('profileId')
+  @Post('new')
   @ApiOperation({ summary: 'Create an API' })
   async createApi(
     @Body() body: CreateApiDto,
-    @Param('profileId') profileId: string,
+    @Req() req: Request,
   ): Promise<Ok<Api>> {
-    const api = await this.apiService.createApi(body, profileId);
+    const api = await this.apiService.createApi(body, req.profileId);
     return ZaLaResponse.Ok(api, 'Api created', '201');
   }
 
   // This is a get request that takes profileId and returns all api belonging to the user
-  @Get('/user-apis/:profileId')
-  @IdCheck('profileId')
+  @Get('user-apis')
   @ApiOperation({ summary: 'Get all APIs belonging to a user' })
-  async getUserApis(@Param('profileId') profileId: string): Promise<Ok<Api[]>> {
-    const userApis = await this.apiService.getUserApis(profileId);
+  async getUserApis(@Req() req: Request): Promise<Ok<Api[]>> {
+    const userApis = await this.apiService.getUserApis(req.profileId);
     return ZaLaResponse.Ok(userApis, 'OK', '200');
   }
 
@@ -78,18 +77,20 @@ export class ApiController {
   }
 
   @Delete(':apiId')
-  @UseGuards(AuthorizationGuard)
   @IdCheck('apiId')
+  @UseGuards(ApiAuthorizationGuard)
   @ApiOperation({ summary: 'Delete an API' })
   async deleteApi(
     @Param('apiId') apiId: string,
-    @Query('profileId') profileId: string,
+    @Req() req: Request,
   ): Promise<Ok<Api>> {
-    const api = await this.apiService.deleteApi(apiId, profileId);
+    const api = await this.apiService.deleteApi(apiId, req.profileId);
     return ZaLaResponse.Ok(api, 'Api deleted', '200');
   }
 
   @Post('api-logo/:apiId')
+  @IdCheck('apiId')
+  @UseGuards(ApiAuthorizationGuard)
   @ApiOperation({ summary: 'Upload api logo' })
   @ApiFile('image', true, { fileFilter: fileMimetypeFilter('image') })
   async upload(
@@ -108,15 +109,19 @@ export class ApiController {
   /* A put request that takes in an apiId, profileId, and a body and returns a promise of an
   UpdateResult. */
   @Patch(':apiId')
-  @UseGuards(AuthorizationGuard)
   @IdCheck('apiId')
+  @UseGuards(ApiAuthorizationGuard)
   @ApiOperation({ summary: 'Update an API' })
   async update(
     @Param('apiId') apiId: string,
-    @Query('profileId') profileId: string,
+    @Req() req: Request,
     @Body() updateApiDto: UpdateApiDto,
   ): Promise<Ok<any>> {
-    const api = await this.apiService.update(apiId, profileId, updateApiDto);
+    const api = await this.apiService.update(
+      apiId,
+      req.profileId,
+      updateApiDto,
+    );
     return ZaLaResponse.Ok(api, 'Api Updated', '200');
   }
 
@@ -142,11 +147,10 @@ export class ApiController {
     return ZaLaResponse.Paginated(apis, 'Ok', '200');
   }
 
-  @Get('/dev-platform-data/:profileId')
-  @IdCheck('profileId')
+  @Get('dev-platform-data')
   @ApiOperation({ summary: "Get Developer's Platform Data" })
-  async getdpd(@Param('profileId') profileId: string): Promise<Ok<Api[]>> {
-    const apis = await this.apiService.getDPD(profileId);
+  async getdpd(@Req() req: Request): Promise<Ok<Api[]>> {
+    const apis = await this.apiService.getDPD(req.profileId);
     return ZaLaResponse.Ok(apis, 'Ok', '200');
   }
 
@@ -158,7 +162,7 @@ export class ApiController {
     return ZaLaResponse.Ok(apis, 'Ok', '200');
   }
 
-  @Get('/popular-apis')
+  @Get('popular-apis')
   @ApiOperation({
     summary: 'Get most popular apis based on user subscriptions',
   })
@@ -167,7 +171,7 @@ export class ApiController {
     return ZaLaResponse.Ok(apis, 'OK', '200');
   }
 
-  @Get('/contributors/:apiId')
+  @Get('contributors/:apiId')
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Get contributors of an API' })
   async getApiContributors(@Param('apiId') apiId: string): Promise<Ok<any[]>> {
@@ -175,7 +179,7 @@ export class ApiController {
     return ZaLaResponse.Ok(contributors, 'OK', '200');
   }
 
-  @Get('/subscriptions/:apiId')
+  @Get('subscriptions/:apiId')
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Get subscriptions of an API' })
   async getApiSubscriptions(@Param('apiId') apiId: string): Promise<Ok<any[]>> {
@@ -183,31 +187,8 @@ export class ApiController {
     return ZaLaResponse.Ok(subscriptions, 'OK', '200');
   }
 
-  @IdCheck('profileId', 'apiId')
-  @Post('/rate-api/:profileId/:apiId')
-  @ApiOperation({ summary: 'Rate an api' })
-  async addApiRating(
-    @Param('profileId') profileId: string,
-    @Param('apiId') apiId: string,
-    @Body() dto: ApiRatingDto,
-  ): Promise<Ok<string>> {
-    await this.apiService.addApiRating(profileId, apiId, dto);
-    return ZaLaResponse.Ok('Api rating complete', 'Ok', '201');
-  }
-
   @Public()
-  @IdCheck('apiId')
-  @Get('/reviews/:apiId')
-  @ApiOperation({ summary: 'Get all reviews of an api' })
-  async getApiReviewsAndRating(
-    @Param('apiId') apiId: string,
-  ): Promise<Ok<Review[]>> {
-    const reviews = await this.apiService.getApiReviewsAndRating(apiId);
-    return ZaLaResponse.Ok(reviews, 'Ok', '200');
-  }
-
-  @Public()
-  @Get('/api/admin-data')
+  @Get('api/admin-data')
   @ApiOperation({ summary: 'Get api details for admin dashboard' })
   async getApiDetails(): Promise<Ok<any>> {
     const apis = await this.apiService.getApiDetails();
