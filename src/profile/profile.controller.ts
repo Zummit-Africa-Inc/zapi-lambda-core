@@ -29,6 +29,7 @@ import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Request } from 'express';
+import { Public } from 'src/common/decorators/publicRoute.decorator';
 
 @ApiTags('Profile')
 @ApiBearerAuth('access-token')
@@ -47,10 +48,11 @@ export class ProfileController {
     return ZaLaResponse.Ok(userProfile, 'Profile created', 201);
   }
 
-  @Get()
+  @Get(':profileId')
+  @Public()
   @ApiOperation({ summary: 'Get a profile' })
-  async getOne(@Req() req: Request): Promise<Ok<Profile>> {
-    const profile = await this.profileService.getone(req.profileId);
+  async getOne(@Param('profileId') profileId: string): Promise<Ok<Profile>> {
+    const profile = await this.profileService.getone(profileId);
     return ZaLaResponse.Ok(profile, 'Ok', 200);
   }
 
