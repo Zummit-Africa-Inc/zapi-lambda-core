@@ -32,7 +32,6 @@ import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { Request } from 'express';
-import { ApiAuthorizationGuard } from 'src/common/guards/resourceGuards/ApiAuthorizationGuard';
 
 @ApiTags('Apis')
 @UseGuards(AuthenticationGuard)
@@ -78,7 +77,7 @@ export class ApiController {
 
   @Delete(':apiId')
   @IdCheck('apiId')
-  @UseGuards(ApiAuthorizationGuard)
+  @UseGuards(AuthorizationGuard)
   @ApiOperation({ summary: 'Delete an API' })
   async deleteApi(
     @Param('apiId') apiId: string,
@@ -90,7 +89,7 @@ export class ApiController {
 
   @Post('api-logo/:apiId')
   @IdCheck('apiId')
-  @UseGuards(ApiAuthorizationGuard)
+  @UseGuards(AuthorizationGuard)
   @ApiOperation({ summary: 'Upload api logo' })
   @ApiFile('image', true, { fileFilter: fileMimetypeFilter('image') })
   async upload(
@@ -110,7 +109,7 @@ export class ApiController {
   UpdateResult. */
   @Patch(':apiId')
   @IdCheck('apiId')
-  @UseGuards(ApiAuthorizationGuard)
+  @UseGuards(AuthorizationGuard)
   @ApiOperation({ summary: 'Update an API' })
   async update(
     @Param('apiId') apiId: string,

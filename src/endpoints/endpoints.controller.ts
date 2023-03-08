@@ -97,7 +97,7 @@ export class EndpointsController {
   async updateEndpoint(
     @Param('endpointId') endpointId: string,
     @Body() body: UpdateEndpointDto,
-    @Query('profileId') profileId: string,
+    @Query('profileId') _: string,
   ): Promise<Ok<Endpoint>> {
     const updatedEndpoint = await this.endpointsService.update(
       endpointId,
@@ -112,7 +112,7 @@ export class EndpointsController {
   @ApiOperation({ summary: 'Delete an endpoint' })
   async deleteEndpoint(
     @Param('endpointId') endpointId: string,
-    @Query('profileId') profileId: string,
+    @Query('profileId') _: string,
   ): Promise<Ok<string>> {
     await this.endpointsService.delete(endpointId);
     return ZaLaResponse.Ok('success', 'Endpoint Deleted', 203);
