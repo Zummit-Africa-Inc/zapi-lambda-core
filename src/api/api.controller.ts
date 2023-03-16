@@ -19,7 +19,6 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateApiDto } from './dto/create-api.dto';
 import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { Api } from '../entities/api.entity';
 import { UpdateApiDto } from './dto/update-api.dto';
@@ -32,6 +31,7 @@ import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { ApiRatingDto } from '../review/dto/create-api-review.dto';
 import { Review } from 'src/entities/review.entity';
+import { CreateApiAndEndpointsDto } from './dto/create-api-and-endpoints.dto';
 
 @ApiTags('Apis')
 @UseGuards(AuthenticationGuard)
@@ -40,15 +40,23 @@ import { Review } from 'src/entities/review.entity';
 export class ApiController {
   constructor(private readonly apiService: ApiService) {}
 
-  @Post('/new/:profileId')
+  // Create API with its endpoint(s)
+  @Post('new/:profileId')
   @IdCheck('profileId')
-  @ApiOperation({ summary: 'Create an API' })
-  async createApi(
-    @Body() body: CreateApiDto,
+  @ApiOperation({ summary: 'Create an API with its endpoint(s)' })
+  async createApiWithEndpoints(
+    @Body() apiEndpointDto: CreateApiAndEndpointsDto,
     @Param('profileId') profileId: string,
-  ): Promise<Ok<Api>> {
-    const api = await this.apiService.createApi(body, profileId);
-    return ZaLaResponse.Ok(api, 'Api created', '201');
+  ) {
+    const apiWithEndpoints = await this.apiService.createApiWithEndpoints(
+      apiEndpointDto,
+      profileId,
+    );
+    return ZaLaResponse.Ok(
+      apiWithEndpoints,
+      'API with endpoints created',
+      '201',
+    );
   }
 
   // This is a get request that takes profileId and returns all api belonging to the user
