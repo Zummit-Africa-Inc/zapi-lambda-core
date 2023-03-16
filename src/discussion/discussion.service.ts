@@ -67,7 +67,9 @@ export class DiscussionService {
 
   async getAllDiscusionsOfAnApi(apiId: string): Promise<Discussion[]> {
     try {
-      return await this.discussionRepo.find({ where: { api_id: apiId } });
+      return await this.discussionRepo.find({
+        where: { api_id: apiId },
+      });
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),

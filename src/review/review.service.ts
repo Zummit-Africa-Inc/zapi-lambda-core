@@ -65,7 +65,7 @@ export class ReviewService {
       const apiRating = this.reviewRepo.create({
         profile_id: profileId,
         api_id: apiId,
-        reviewer: reviewer.email,
+        reviewer: reviewer.fullName,
         rating: dto.rating,
         review: dto.review,
       });
