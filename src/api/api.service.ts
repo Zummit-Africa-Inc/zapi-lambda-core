@@ -102,6 +102,51 @@ export class ApiService {
   }
 
   /**
+   * It creates an api for a user
+   * @param {CreateApiDto} createApiDto - CreateApiDto
+   * @param {string} profileId - string
+   * @returns The return type is an object of type ApiEntity.
+   */
+  async createApiOnly(
+    createApiDto: CreateApiDto,
+    profileId: string,
+  ): Promise<Api> {
+    try {
+      const apiExist = await this.apiRepo.findOne({
+        where: { name: createApiDto.name },
+      });
+      if (apiExist) {
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            'Existing values',
+            'An api with with this name already exist... try another name',
+            '403',
+          ),
+        );
+      }
+      const uniqueApiSecretKey = uuid();
+      const newApi = this.apiRepo.create({
+        ...createApiDto,
+        profileId,
+        secretKey: uniqueApiSecretKey,
+      });
+      const savedApi = await this.apiRepo.save(newApi);
+      const analytics = this.analyticsRepo.create({ apiId: savedApi.id });
+      this.analyticsRepo.save(analytics);
+      return savedApi;
+    } catch (err) {
+      console.log(err);
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(
+          err.response.error,
+          err.response.message,
+          err.response.errorCode,
+        ),
+      );
+    }
+  }
+
+  /**
    * It creates an API with its endpoints for a user
    * @param {CreateApiAndEndpointsDto} apiEndpointDto - CreateApiAndEndpointsDto
    * @param {string} profileId - string

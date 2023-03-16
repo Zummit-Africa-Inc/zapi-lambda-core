@@ -19,6 +19,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { CreateApiDto } from './dto/create-api.dto';
 import { Ok, ZaLaResponse } from '../common/helpers/response';
 import { Api } from '../entities/api.entity';
 import { UpdateApiDto } from './dto/update-api.dto';
@@ -40,8 +41,19 @@ import { CreateApiAndEndpointsDto } from './dto/create-api-and-endpoints.dto';
 export class ApiController {
   constructor(private readonly apiService: ApiService) {}
 
+  @Post('/new/:profileId')
+  @IdCheck('profileId')
+  @ApiOperation({ summary: 'Create an API' })
+  async createApi(
+    @Body() body: CreateApiDto,
+    @Param('profileId') profileId: string,
+  ): Promise<Ok<Api>> {
+    const api = await this.apiService.createApiOnly(body, profileId);
+    return ZaLaResponse.Ok(api, 'Api created', '201');
+  }
+
   // Create API with its endpoint(s)
-  @Post('new/:profileId')
+  @Post('endpoints/:profileId')
   @IdCheck('profileId')
   @ApiOperation({ summary: 'Create an API with its endpoint(s)' })
   async createApiWithEndpoints(
