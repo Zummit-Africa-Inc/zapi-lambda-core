@@ -65,9 +65,32 @@ export class DiscussionService {
     }
   }
 
-  async getAllDiscusionsOfAnApi(apiId: string): Promise<Discussion[]> {
+  async getAllDiscusionsOfAnApi(apiId: string): Promise<Object[]> {
     try {
-      return await this.discussionRepo.find({ where: { api_id: apiId } });
+      const discussions = await this.discussionRepo.find({
+        where: { api_id: apiId },
+        // relations: {
+        //   comment: true,
+        // },
+      });
+
+      const newDiscussions = await Promise.all(
+        discussions.map(async (discussion) => {
+          const comments = await Promise.all(
+            discussion.comments.map(async (commentId) => {
+              const comment = await this.commentRepo.findOne({
+                where: { id: commentId },
+              });
+              return comment?.body;
+            }),
+          );
+
+          return { ...discussion, comments };
+        }),
+      );
+
+      return newDiscussions;
+      // return discussions;
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),

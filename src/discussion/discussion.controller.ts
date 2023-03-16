@@ -61,7 +61,7 @@ export class DiscussionController {
   @ApiOperation({ summary: 'Get all discussions of an api' })
   async getAllDiscussions(
     @Param('apiId') apiId: string,
-  ): Promise<Ok<Discussion[]>> {
+  ): Promise<Ok<Object[]>> {
     const discussions = await this.discussionService.getAllDiscusionsOfAnApi(
       apiId,
     );
