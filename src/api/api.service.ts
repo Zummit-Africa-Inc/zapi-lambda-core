@@ -165,13 +165,13 @@ export class ApiService {
         profileId,
         queryRunner,
       );
-      const endpoints = await this.createEndpoints(
+      const {endpoints, duplicateEndpoints} = await this.createEndpoints(
         api.id,
         apiEndpointDto.createEndpointDto,
         queryRunner,
       );
       await queryRunner.commitTransaction();
-      return { api, endpoints };
+      return { api, endpoints, duplicateEndpoints };
     } catch (err) {
       await queryRunner.rollbackTransaction();
       throw new BadRequestException(
@@ -224,17 +224,16 @@ export class ApiService {
     );
     // Check for duplicate endpoints...
     const endpointSet = new Set();
+    const duplicateEndpoints = []
     for (const endpoint of newEndpoints) {
       const endpointKey = `${endpoint.method} ${endpoint.route}`;
       if (endpointSet.has(endpointKey)) {
-        throw new BadRequestException(
-          ZaLaResponse.BadRequest(`Duplicate endpoint: ${endpointKey}`, '403'),
-        );
+        duplicateEndpoints.push(endpoint)
       }
       endpointSet.add(endpointKey);
     }
     const endpoints = await queryRunner.manager.save(newEndpoints);
-    return endpoints;
+    return {endpoints, duplicateEndpoints};
   }
 
   /**
