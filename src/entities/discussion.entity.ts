@@ -25,4 +25,7 @@ export class Discussion extends SharedEntity {
 
   @Column()
   profile_id: string;
+
+  @Column()
+  title: string;
 }

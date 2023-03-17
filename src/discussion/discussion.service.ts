@@ -19,9 +19,12 @@ export class DiscussionService {
     private readonly profileRepo: Repository<Profile>,
   ) {}
 
-  async startDiscussion(dto: CreateDiscussionDto): Promise<Discussion> {
+  async startDiscussion(
+    dto: CreateDiscussionDto,
+    profileId: string,
+  ): Promise<Discussion> {
     try {
-      return await this.discussionRepo.save(dto);
+      return await this.discussionRepo.save({ ...dto, profile_id: profileId });
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),

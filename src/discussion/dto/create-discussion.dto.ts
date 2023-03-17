@@ -10,10 +10,10 @@ export class CreateDiscussionDto {
   @IsNotEmpty()
   @IsString()
   @ApiProperty()
-  body: string;
+  title: string;
 
   @IsNotEmpty()
   @IsString()
   @ApiProperty()
-  profile_id: string;
+  body: string;
 }

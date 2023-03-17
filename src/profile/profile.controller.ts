@@ -13,6 +13,7 @@ import {
   ParseFilePipe,
   UseGuards,
   Query,
+  Req,
 } from '@nestjs/common';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { ProfileService } from './profile.service';
@@ -27,6 +28,8 @@ import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { Request } from 'express';
+import { Public } from 'src/common/decorators/publicRoute.decorator';
 
 @ApiTags('Profile')
 @ApiBearerAuth('access-token')
@@ -45,38 +48,32 @@ export class ProfileController {
     return ZaLaResponse.Ok(userProfile, 'Profile created', 201);
   }
 
-  @Get('/:profileId')
-  @IdCheck('profileId')
+  @Get(':profileId')
+  @Public()
   @ApiOperation({ summary: 'Get a profile' })
-  async getOne(
-    @Param('profileId', new ParseUUIDPipe()) profileId: string,
-  ): Promise<Ok<Profile>> {
+  async getOne(@Param('profileId') profileId: string): Promise<Ok<Profile>> {
     const profile = await this.profileService.getone(profileId);
     return ZaLaResponse.Ok(profile, 'Ok', 200);
   }
 
-  @Patch(':profileId')
-  @IdCheck('profileId')
-  @UseGuards(AuthorizationGuard)
+  @Patch()
   @ApiOperation({ summary: 'Update an existing profile' })
   async updateProfile(
-    @Param('profileId', ParseUUIDPipe) profileId: string,
+    @Req() req: Request,
     @Body() updateProfileDto: UpdateProfileDto,
-    @Query('profileId') user_profile_id: string,
   ): Promise<Ok<Profile>> {
     const profile = await this.profileService.updateProfile(
-      profileId,
+      req.profileId,
       updateProfileDto,
     );
     return ZaLaResponse.Ok(profile, 'Ok', 200);
   }
 
-  @Post('profile-image/:profileId')
-  @IdCheck('profileId')
+  @Post('profile-image')
   @ApiOperation({ summary: 'Upload profile image' })
   @ApiFile('image', true, { fileFilter: fileMimetypeFilter('image') })
   async upload(
-    @Param('profileId') profileId: string,
+    @Req() req: Request,
     @UploadedFile(
       new ParseFilePipe({
         validators: [new MaxFileSizeValidator({ maxSize: 500000 })],
@@ -84,19 +81,14 @@ export class ProfileController {
     )
     file: Express.Multer.File,
   ) {
-    const imageUrl = await this.profileService.uploadImage(file, profileId);
+    const imageUrl = await this.profileService.uploadImage(file, req.profileId);
     return ZaLaResponse.Ok(imageUrl, 'Ok', 201);
   }
 
-  @Delete('/:profileId')
-  @IdCheck('profileId')
-  @UseGuards(AuthorizationGuard)
+  @Delete()
   @ApiOperation({ summary: 'Delete a profile' })
-  async deleteOne(
-    @Param('profileId', new ParseUUIDPipe()) profileId: string,
-    @Query('profileId') user_profile_id: string,
-  ): Promise<Ok<string>> {
-    await this.profileService.deleteProfile(profileId);
+  async deleteOne(@Req() req: Request): Promise<Ok<string>> {
+    await this.profileService.deleteProfile(req.profileId);
     return ZaLaResponse.Ok('Profile deleted successfully', 'Ok', 200);
   }
   @Get('/profile/admin-data')
