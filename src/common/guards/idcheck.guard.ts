@@ -14,6 +14,7 @@ import { Discussion } from 'src/entities/discussion.entity';
 import { Endpoint } from 'src/entities/endpoint.entity';
 import { Pricing } from 'src/entities/pricing.entity';
 import { Profile } from 'src/entities/profile.entity';
+import { Review } from 'src/entities/review.entity';
 import { Subscription } from 'src/entities/subscription.entity';
 import { Repository } from 'typeorm';
 import { ZaLaResponse } from '../helpers/response';
@@ -38,6 +39,8 @@ export class IdCheckGuard implements CanActivate {
     private commentRepo: Repository<Comment>,
     @InjectRepository(Discussion)
     private discussionRepo: Repository<Discussion>,
+    @InjectRepository(Review)
+    private reviewRepo: Repository<Review>,
     private reflector: Reflector,
   ) {}
 
@@ -50,12 +53,16 @@ export class IdCheckGuard implements CanActivate {
     pricingId: this.pricingRepo,
     subscriptionId: this.subRepo,
     commentId: this.commentRepo,
-    discussionId: this.discussionRepo
+    discussionId: this.discussionRepo,
+    reviewId: this.reviewRepo,
   };
 
   async canActivate(context: ExecutionContext) {
     try {
-      const requiredId = this.reflector.get<string[]>('id', context.getHandler());
+      const requiredId = this.reflector.get<string[]>(
+        'id',
+        context.getHandler(),
+      );
       const request = context.switchToHttp().getRequest();
       for (let index in requiredId) {
         const idValue = request.params[`${requiredId[index]}`];
@@ -91,7 +98,6 @@ export class IdCheckGuard implements CanActivate {
         }
       }
       return true;
-    
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest('Internal Server Error', error.message, '500'),

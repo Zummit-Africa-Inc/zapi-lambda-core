@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ZaLaResponse } from 'src/common/helpers/response';
 import { Comment } from 'src/entities/comments.entity';
 import { Discussion } from 'src/entities/discussion.entity';
+import { Profile } from 'src/entities/profile.entity';
 import { Repository } from 'typeorm';
 import { CommentDto } from './dto/comment.dto';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
@@ -14,6 +15,8 @@ export class DiscussionService {
     private readonly discussionRepo: Repository<Discussion>,
     @InjectRepository(Comment)
     private readonly commentRepo: Repository<Comment>,
+    @InjectRepository(Profile)
+    private readonly profileRepo: Repository<Profile>,
   ) {}
 
   async startDiscussion(dto: CreateDiscussionDto): Promise<Discussion> {
@@ -38,7 +41,14 @@ export class DiscussionService {
         const comment = await this.commentRepo.findOne({
           where: { id: discussion.comments[i] },
         });
-        comments.push(comment);
+
+        // populate the commentor's name
+        const commentAuthor = await this.profileRepo.findOne({
+          where: { id: comment.profile_id },
+        });
+
+        const commentAuthorName: string = commentAuthor.fullName || 'User';
+        comments.push({ ...comment, commentAuthorName });
       }
 
       // object to hold discussion and comments
@@ -57,7 +67,9 @@ export class DiscussionService {
 
   async getAllDiscusionsOfAnApi(apiId: string): Promise<Discussion[]> {
     try {
-      return await this.discussionRepo.find({ where: { api_id: apiId } });
+      return await this.discussionRepo.find({
+        where: { api_id: apiId },
+      });
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),

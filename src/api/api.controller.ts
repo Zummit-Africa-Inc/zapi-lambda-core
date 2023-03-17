@@ -30,8 +30,9 @@ import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
-import { ApiRatingDto } from './dto/add-api-rating.dto';
+import { ApiRatingDto } from '../review/dto/create-api-review.dto';
 import { Review } from 'src/entities/review.entity';
+import { CreateApiAndEndpointsDto } from './dto/create-api-and-endpoints.dto';
 
 @ApiTags('Apis')
 @UseGuards(AuthenticationGuard)
@@ -47,8 +48,27 @@ export class ApiController {
     @Body() body: CreateApiDto,
     @Param('profileId') profileId: string,
   ): Promise<Ok<Api>> {
-    const api = await this.apiService.createApi(body, profileId);
+    const api = await this.apiService.createApiOnly(body, profileId);
     return ZaLaResponse.Ok(api, 'Api created', '201');
+  }
+
+  // Create API with its endpoint(s)
+  @Post('endpoints/:profileId')
+  @IdCheck('profileId')
+  @ApiOperation({ summary: 'Create an API with its endpoint(s)' })
+  async createApiWithEndpoints(
+    @Body() apiEndpointDto: CreateApiAndEndpointsDto,
+    @Param('profileId') profileId: string,
+  ) {
+    const apiWithEndpoints = await this.apiService.createApiWithEndpoints(
+      apiEndpointDto,
+      profileId,
+    );
+    return ZaLaResponse.Ok(
+      apiWithEndpoints,
+      'API with endpoints created',
+      '201',
+    );
   }
 
   // This is a get request that takes profileId and returns all api belonging to the user
