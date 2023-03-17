@@ -165,7 +165,7 @@ export class ApiService {
         profileId,
         queryRunner,
       );
-      const {endpoints, duplicateEndpoints} = await this.createEndpoints(
+      const { endpoints, duplicateEndpoints } = await this.createEndpoints(
         api.id,
         apiEndpointDto.createEndpointDto,
         queryRunner,
@@ -215,7 +215,7 @@ export class ApiService {
     apiId: string,
     createEndpointsDto: CreateEndpointDto[],
     queryRunner: QueryRunner,
-  ): Promise<Endpoint[]> {
+  ) {
     const newEndpoints = createEndpointsDto.map((createEndpointDto) =>
       this.endpointsRepo.create({
         ...createEndpointDto,
@@ -224,16 +224,16 @@ export class ApiService {
     );
     // Check for duplicate endpoints...
     const endpointSet = new Set();
-    const duplicateEndpoints = []
+    const duplicateEndpoints = [];
     for (const endpoint of newEndpoints) {
       const endpointKey = `${endpoint.method} ${endpoint.route}`;
       if (endpointSet.has(endpointKey)) {
-        duplicateEndpoints.push(endpoint)
+        duplicateEndpoints.push(endpoint);
       }
       endpointSet.add(endpointKey);
     }
     const endpoints = await queryRunner.manager.save(newEndpoints);
-    return {endpoints, duplicateEndpoints};
+    return { endpoints, duplicateEndpoints };
   }
 
   /**
