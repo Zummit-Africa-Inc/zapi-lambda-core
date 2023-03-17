@@ -5,11 +5,13 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ZaLaResponse } from 'src/common/helpers/response';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { Api } from '../entities/api.entity';
 import { Profile } from 'src/entities/profile.entity';
 import { Logger } from 'src/entities/logger.entity';
+import { CreateApiAndEndpointsDto } from './dto/create-api-and-endpoints.dto';
 import { CreateApiDto } from './dto/create-api.dto';
+import { CreateEndpointDto } from 'src/endpoints/dto/create-endpoint.dto';
 import { v4 as uuid } from 'uuid';
 import { UpdateApiDto } from './dto/update-api.dto';
 import { Category } from 'src/entities/category.entity';
@@ -105,12 +107,14 @@ export class ApiService {
    * @param {string} profileId - string
    * @returns The return type is an object of type ApiEntity.
    */
-  async createApi(createApiDto: CreateApiDto, profileId: string): Promise<Api> {
+  async createApiOnly(
+    createApiDto: CreateApiDto,
+    profileId: string,
+  ): Promise<Api> {
     try {
       const apiExist = await this.apiRepo.findOne({
         where: { name: createApiDto.name },
       });
-
       if (apiExist) {
         throw new BadRequestException(
           ZaLaResponse.BadRequest(
@@ -132,7 +136,6 @@ export class ApiService {
       return savedApi;
     } catch (err) {
       console.log(err);
-
       throw new BadRequestException(
         ZaLaResponse.BadRequest(
           err.response.error,
@@ -141,6 +144,96 @@ export class ApiService {
         ),
       );
     }
+  }
+
+  /**
+   * It creates an API with its endpoints for a user
+   * @param {CreateApiAndEndpointsDto} apiEndpointDto - CreateApiAndEndpointsDto
+   * @param {string} profileId - string
+   * @returns The return value of this method is an object with two properties, API and Endpoints[]
+   */
+  async createApiWithEndpoints(
+    apiEndpointDto: CreateApiAndEndpointsDto,
+    profileId: string,
+  ) {
+    const queryRunner = this.apiRepo.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const api = await this.createApi(
+        apiEndpointDto.createApiDto,
+        profileId,
+        queryRunner,
+      );
+      const {endpoints, duplicateEndpoints} = await this.createEndpoints(
+        api.id,
+        apiEndpointDto.createEndpointDto,
+        queryRunner,
+      );
+      await queryRunner.commitTransaction();
+      return { api, endpoints, duplicateEndpoints };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(
+          err.response.error,
+          err.response.message,
+          err.response.errorCode,
+        ),
+      );
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async createApi(
+    createApiDto: CreateApiDto,
+    profileId: string,
+    queryRunner: QueryRunner,
+  ): Promise<Api> {
+    const apiExist = await this.apiRepo.findOne({
+      where: { name: createApiDto.name },
+    });
+    if (apiExist) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(
+          'Existing values',
+          'An api with with this name already exist... try another name',
+          '403',
+        ),
+      );
+    }
+    const secretKey = uuid();
+    const api = this.apiRepo.create({ profileId, ...createApiDto, secretKey });
+    const savedApi = await queryRunner.manager.save(api);
+    const analytics = this.analyticsRepo.create({ apiId: savedApi.id });
+    await queryRunner.manager.save(analytics);
+    return savedApi;
+  }
+
+  async createEndpoints(
+    apiId: string,
+    createEndpointsDto: CreateEndpointDto[],
+    queryRunner: QueryRunner,
+  ): Promise<Endpoint[]> {
+    const newEndpoints = createEndpointsDto.map((createEndpointDto) =>
+      this.endpointsRepo.create({
+        ...createEndpointDto,
+        apiId,
+      }),
+    );
+    // Check for duplicate endpoints...
+    const endpointSet = new Set();
+    const duplicateEndpoints = []
+    for (const endpoint of newEndpoints) {
+      const endpointKey = `${endpoint.method} ${endpoint.route}`;
+      if (endpointSet.has(endpointKey)) {
+        duplicateEndpoints.push(endpoint)
+      }
+      endpointSet.add(endpointKey);
+    }
+    const endpoints = await queryRunner.manager.save(newEndpoints);
+    return {endpoints, duplicateEndpoints};
   }
 
   /**
