@@ -16,7 +16,7 @@ import { Profile } from './entities/profile.entity';
 import { Api } from './entities/api.entity';
 import { Category } from './entities/category.entity';
 import { Endpoint } from './entities/endpoint.entity';
-import { Pricing } from './entities/pricing.entity';
+import { PricingPlan } from './entities/pricingPlan.entity';
 import { Subscription } from './entities/subscription.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { IdCheckGuard } from './common/guards/idcheck.guard';
@@ -31,6 +31,7 @@ import { Invitation } from './entities/invitation.entity';
 import { ContactModule } from './contact/contact.module';
 import { ReviewModule } from './review/review.module';
 import { Review } from './entities/review.entity';
+import { PricingModule } from './pricing/pricing.module';
 
 /* Creating rabbitmq service that can be used in other modules. */
 const RabbitMQService = {
@@ -61,7 +62,7 @@ const RabbitMQService = {
       Api,
       Category,
       Endpoint,
-      Pricing,
+      PricingPlan,
       Subscription,
       Logger,
       Comment,
@@ -82,6 +83,7 @@ const RabbitMQService = {
     InvitationModule,
     ContactModule,
     ReviewModule,
+    PricingModule,
   ],
   controllers: [AppController],
   providers: [
