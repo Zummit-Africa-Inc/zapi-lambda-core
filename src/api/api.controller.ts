@@ -150,10 +150,14 @@ export class ApiController {
     schema: {
       type: 'object',
       properties: {
-        page: { type: 'number', description: 'Page number' },
-        limit: { type: 'number', description: 'Limit per page' },
-        search: { type: 'string', description: 'Search term' },
-        searchBy: { type: 'string', description: 'Search by field' },
+        page: { type: 'number', description: 'Page number', default: 1 },
+        limit: { type: 'number', description: 'Limit per page', default: 20 },
+        search: { type: 'string', description: 'Search term', default: '' },
+        searchBy: {
+          type: 'string',
+          description: 'Search by field',
+          default: '',
+        },
       },
     },
   })
