@@ -12,6 +12,7 @@ import { Profile } from './profile.entity';
 import { Category } from './category.entity';
 import { Visibility } from '../common/enums/visibility.enum';
 import { Subscription } from './subscription.entity';
+import { PricingPlan } from './pricingPlan.entity';
 @Entity()
 export class Api extends SharedEntity {
   @Column({ unique: true })
@@ -95,6 +96,9 @@ export class Api extends SharedEntity {
   })
   @JoinColumn({ name: 'subscriptions' })
   subscription: Subscription[];
+
+  @ManyToOne(() => PricingPlan, (plan) => plan.apis)
+  pricingPlan: PricingPlan;
 
   /* A lifecycle hook that is called before the entity is inserted into the database. */
   @BeforeInsert()
