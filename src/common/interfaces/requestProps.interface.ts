@@ -1,3 +1,5 @@
+import { HeaderType } from './endpoint.interface';
+
 export interface requestProp {
   payload: any;
   apiId: string;
@@ -6,4 +8,6 @@ export interface requestProp {
   base_url: string;
   profileId: string;
   secretKey: string;
+  headers?: HeaderType[];
+  pricingPlanId?: string;
 }

@@ -8,7 +8,7 @@ export declare class Ok<Type> extends BaseResponseType {
 }
 export declare class BadRequest extends BaseResponseType {
   error?: unknown;
-  errorCode?: string;
+  errorCode?: string | number;
 }
 export declare class NotFound extends BaseResponseType {
   error?: unknown;

@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, ValidateNested } from 'class-validator';
+import { HeaderType } from 'src/common/interfaces/endpoint.interface';
 import { HttpMethod } from '../../common/enums/httpMethods.enum';
 
 export class ApiRequestDto {
@@ -14,7 +15,8 @@ export class ApiRequestDto {
   payload: any;
 
   @ApiPropertyOptional()
-  headers: string;
+  @ValidateNested({ each: true })
+  headers: HeaderType[];
 }
 
 export class FreeRequestDto {
