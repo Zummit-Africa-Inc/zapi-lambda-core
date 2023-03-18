@@ -696,11 +696,11 @@ export class ApiService {
 
       const apis = await Promise.all(
         allApis.map(async (api) => {
-          const { totalCalls, totalLatency, successfulCalls, totalErrors } =
+          const { totalCalls, averageLatency, successfulCalls, totalErrors } =
             await this.analyticsRepo
               .createQueryBuilder('analytics')
               .select('SUM(analytics.total_calls)', 'totalCalls')
-              .addSelect('SUM(analytics.totalLatency)', 'totalLatency')
+              .addSelect('SUM(analytics.averageLatency)', 'averageLatency')
               .addSelect('SUM(analytics.successful_calls)', 'successfulCalls')
               .addSelect('SUM(analytics.total_errors)', 'totalErrors')
               .where('analytics.apiId = :apiId', { apiId: api.id })
@@ -725,7 +725,7 @@ export class ApiService {
             subscriptionCount,
             subscriptions: api.subscriptions,
             totalCalls: Number(totalCalls),
-            totalLatency: Number(totalLatency),
+            averageLatency: Number(averageLatency),
             successfulCalls: Number(successfulCalls),
             totalErrors: Number(totalErrors),
           };

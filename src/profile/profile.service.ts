@@ -159,6 +159,7 @@ export class ProfileService {
       const result = await this.profileRepo
         .createQueryBuilder('profile')
         .leftJoinAndSelect('profile.apis', 'api')
+        .orderBy('profile.createdOn', 'DESC')
         .groupBy('profile.id')
         .addGroupBy('api.id')
         .getMany();

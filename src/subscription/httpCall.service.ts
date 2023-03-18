@@ -3,6 +3,7 @@ import { ZaLaResponse } from '../common/helpers/response';
 import { HttpService } from '@nestjs/axios';
 import { AnalyticsService } from 'src/analytics/analytics.service';
 import { requestProp } from 'src/common/interfaces/requestProps.interface';
+import { Headers } from '@nestjs/common';
 
 @Injectable()
 export class HttpCallService {
@@ -19,18 +20,25 @@ export class HttpCallService {
     endpoint,
     secretKey,
     method,
+    headers,
   }: requestProp): Promise<any> {
     try {
+      const responseHeaders = {};
+      headers?.forEach((header) => {
+        responseHeaders[header.name] = header.value;
+      });
+
       /* Getting the current time in nanoseconds. */
       const startTime = process.hrtime();
 
       /* Making a request to the api with the payload and the secret key. */
       const ref = this.httpService.axiosRef;
+
       const axiosResponse = await ref({
         method,
         url: `${base_url}${endpoint}`,
         data: payload,
-        headers: { 'X-Zapi-Proxy-Secret': secretKey },
+        headers: { 'X-Zapi-Proxy-Secret': secretKey, ...responseHeaders },
       });
 
       /* Calculating the time it takes to make a request to the api. */
@@ -55,6 +63,7 @@ export class HttpCallService {
 
       return data;
     } catch (error) {
+      console.log(error);
       this.analyticsService.updateAnalytics(
         error.response.status ?? 'Unknown error',
         apiId,
