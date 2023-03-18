@@ -28,7 +28,7 @@ import { CollectionResponse } from 'src/common/interfaces/collectionResponse.int
 import { fileMimetypeFilter } from 'src/common/decorators/fileTypeFilter';
 import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 
-@ApiTags('endpoints')
+@ApiTags('Endpoints')
 @ApiBearerAuth('access-token')
 @UseGuards(AuthenticationGuard)
 @Controller('endpoints')
