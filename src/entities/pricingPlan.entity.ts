@@ -25,9 +25,6 @@ export class PricingPlan extends SharedEntity {
   @Column({ default: 0 })
   requestLimit: number;
 
-  @OneToMany(() => Api, (api) => api.pricingPlan)
-  apis: Api[];
-
   @OneToMany(() => Subscription, (subscription) => subscription.pricingPlan)
   subscriptions: Subscription[];
 }

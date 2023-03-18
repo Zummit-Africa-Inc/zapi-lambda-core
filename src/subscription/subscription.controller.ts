@@ -21,9 +21,9 @@ import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { FreeRequestDto } from './dto/make-request.dto';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
-import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { DevTesting } from 'src/entities/devTesting.entity';
 import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
+import { StatusCode } from 'src/common/enums/httpStatusCodes.enum';
 
 @ApiTags('Subscription')
 @ApiBearerAuth('access-token')
@@ -33,40 +33,45 @@ export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
 
   @IdCheck('apiId')
-  @UseGuards(AuthorizationGuard)
   @Post('subscribe/:apiId')
   @ApiOperation({ summary: 'Subscribe to an API' })
   async subscribe(
     @Param('apiId') apiId: string,
-    @Query('profileId') profileId: string,
+    @Req() req: Request,
+    @Query('planId') planId: string,
   ): Promise<Ok<Tokens>> {
-    const subToken = await this.subscriptionService.subscribe(apiId, profileId);
+    const subToken = await this.subscriptionService.subscribe(
+      apiId,
+      planId,
+      req.profileId,
+    );
     return ZaLaResponse.Ok(subToken, 'Subscription successful', '200');
   }
 
   @IdCheck('apiId')
-  @UseGuards(AuthorizationGuard)
   @Post('unsubscribe/:apiId')
   @ApiOperation({ summary: 'Unsubscribe from an API' })
   async unsubscribe(
     @Param('apiId') apiId: string,
-    @Query('profileId') profileId: string,
+    @Req() req: Request,
+    @Query('planId') planId: string,
   ): Promise<Ok<string>> {
-    await this.subscriptionService.unsubscribe(apiId, profileId);
+    await this.subscriptionService.unsubscribe(apiId, req.profileId, planId);
     return ZaLaResponse.Ok('Successful', 'Unsubscription successful', '200');
   }
 
   @IdCheck('apiId')
-  @UseGuards(AuthorizationGuard)
   @Post('revoke/:apiId')
   @ApiOperation({ summary: 'Revoke a subscription token' })
   async revokeToken(
     @Param('apiId') apiId: string,
-    @Query('profileId') profileId: string,
+    @Req() req: Request,
+    @Query('planId') planId: string,
   ): Promise<Ok<Tokens>> {
     const subToken = await this.subscriptionService.revokeToken(
       apiId,
-      profileId,
+      req.profileId,
+      planId,
     );
     return ZaLaResponse.Ok(subToken, 'Access key revoked', '200');
   }
@@ -83,7 +88,7 @@ export class SubscriptionController {
         ZaLaResponse.BadRequest(
           'Bad Request',
           'Subscription token is required to make a request',
-          '403',
+          StatusCode.UNAUTHORIZED,
         ),
       );
     }

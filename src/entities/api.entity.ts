@@ -91,15 +91,6 @@ export class Api extends SharedEntity {
   @JoinColumn({ name: 'categoryId' })
   category: Category;
 
-  @OneToMany(() => Subscription, (subscription) => subscription.api, {
-    onDelete: 'SET NULL',
-  })
-  @JoinColumn({ name: 'subscriptions' })
-  subscription: Subscription[];
-
-  @ManyToOne(() => PricingPlan, (plan) => plan.apis)
-  pricingPlan: PricingPlan;
-
   /* A lifecycle hook that is called before the entity is inserted into the database. */
   @BeforeInsert()
   public onInsert() {

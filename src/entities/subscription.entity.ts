@@ -21,7 +21,7 @@ export class Subscription extends SharedEntity {
   @Column({ nullable: true })
   pricingPlanId: string;
 
-  @ManyToOne(() => Api, (api) => api.subscription, {
+  @ManyToOne(() => Api, (api) => api.subscriptions, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'apiId' })
