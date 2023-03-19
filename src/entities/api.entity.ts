@@ -1,5 +1,8 @@
 import { SharedEntity } from '../common/model/sharedEntity';
 import {
+  AfterInsert,
+  AfterLoad,
+  AfterUpdate,
   BeforeInsert,
   Column,
   Entity,
@@ -11,8 +14,7 @@ import { Status } from '../common/enums/apiVerification.enum';
 import { Profile } from './profile.entity';
 import { Category } from './category.entity';
 import { Visibility } from '../common/enums/visibility.enum';
-import { Subscription } from './subscription.entity';
-import { PricingPlan } from './pricingPlan.entity';
+import { Pricing } from './pricingPlan.entity';
 @Entity()
 export class Api extends SharedEntity {
   @Column({ unique: true })
@@ -90,6 +92,10 @@ export class Api extends SharedEntity {
   @ManyToOne(() => Category, (category) => category.api)
   @JoinColumn({ name: 'categoryId' })
   category: Category;
+
+  @OneToMany(() => Pricing, (plan) => plan.api, { cascade: true })
+  @JoinColumn()
+  pricingPlans: Pricing[];
 
   /* A lifecycle hook that is called before the entity is inserted into the database. */
   @BeforeInsert()

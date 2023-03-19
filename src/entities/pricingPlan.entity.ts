@@ -1,11 +1,10 @@
 import { SharedEntity } from '../common/model/sharedEntity';
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 import { Api } from './api.entity';
-import { Subscription } from './subscription.entity';
 import { PricingName } from '../common/enums/pricing.enum';
 
 @Entity()
-export class PricingPlan extends SharedEntity {
+export class Pricing extends SharedEntity {
   @Column({
     type: 'enum',
     enum: PricingName,
@@ -25,6 +24,6 @@ export class PricingPlan extends SharedEntity {
   @Column({ default: 0 })
   requestLimit: number;
 
-  @OneToMany(() => Subscription, (subscription) => subscription.pricingPlan)
-  subscriptions: Subscription[];
+  @ManyToOne(() => Api, (api) => api.pricingPlans)
+  api: Api;
 }

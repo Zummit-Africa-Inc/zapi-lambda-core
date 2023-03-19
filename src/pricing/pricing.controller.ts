@@ -1,9 +1,9 @@
 import { Controller, Post, Param, Body, UseGuards } from '@nestjs/common';
 import { PricingService } from './pricing.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreatePricingPlanDto } from './dto/pricing.dto';
+import { CreatePricingDto } from './dto/pricing.dto';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
-import { PricingPlan } from 'src/entities/pricingPlan.entity';
+import { Pricing } from 'src/entities/pricingPlan.entity';
 import { IdCheck } from 'src/common/decorators/idcheck.decorator';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { StatusCode } from 'src/common/enums/httpStatusCodes.enum';
@@ -12,7 +12,7 @@ import { StatusCode } from 'src/common/enums/httpStatusCodes.enum';
 @ApiBearerAuth('access-token')
 @UseGuards(AuthenticationGuard)
 @Controller('pricing')
-export class PricingPlanController {
+export class PricingController {
   constructor(private readonly pricingService: PricingService) {}
 
   @Post('new/:apiId')
@@ -20,8 +20,8 @@ export class PricingPlanController {
   @ApiOperation({ summary: 'Create a new pricing plan' })
   async create(
     @Param('apiId') apiId: string,
-    @Body() body: CreatePricingPlanDto,
-  ): Promise<Ok<PricingPlan>> {
+    @Body() body: CreatePricingDto,
+  ): Promise<Ok<Pricing>> {
     const pricing = await this.pricingService.create(apiId, body);
     return ZaLaResponse.Ok(pricing, 'Pricing Created', StatusCode.CREATED);
   }

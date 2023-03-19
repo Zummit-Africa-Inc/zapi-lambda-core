@@ -2,24 +2,29 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { StatusCode } from 'src/common/enums/httpStatusCodes.enum';
 import { ZaLaResponse } from 'src/common/helpers/response';
-import { PricingPlan } from 'src/entities/pricingPlan.entity';
+import { Api } from 'src/entities/api.entity';
+import { Pricing } from 'src/entities/pricingPlan.entity';
 import { Repository } from 'typeorm';
-import { CreatePricingPlanDto } from './dto/pricing.dto';
+import { CreatePricingDto } from './dto/pricing.dto';
 @Injectable()
 export class PricingService {
   constructor(
-    @InjectRepository(PricingPlan)
-    private pricingRepo: Repository<PricingPlan>,
+    @InjectRepository(Pricing)
+    private pricingRepo: Repository<Pricing>,
+    @InjectRepository(Api)
+    private apiRepo: Repository<Api>,
   ) {}
 
-  async create(
-    apiId: string,
-    body: CreatePricingPlanDto,
-  ): Promise<PricingPlan> {
+  async create(apiId: string, body: CreatePricingDto): Promise<Pricing> {
     try {
-      const plan = await this.pricingRepo.findOne({
-        where: { apiId, name: body.name },
-      });
+      const [plan, api] = await Promise.all([
+        this.pricingRepo.findOne({
+          where: { apiId, name: body.name },
+        }),
+        this.apiRepo.findOne({
+          where: { id: apiId },
+        }),
+      ]);
 
       if (plan) {
         throw new BadRequestException(
@@ -32,13 +37,14 @@ export class PricingService {
       }
 
       const newPlan = this.pricingRepo.create({ ...body, apiId });
+      newPlan.api = api;
       return await this.pricingRepo.save(newPlan);
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(
           error.name,
           error.message,
-          error.response.errorCode,
+          StatusCode.INTERNAL_SERVER_ERROR,
         ),
       );
     }

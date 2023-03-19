@@ -49,7 +49,8 @@ export class HttpCallService {
       const totalTime = process.hrtime(startTime);
       const totalTimeInMs = totalTime[0] * 1000 + totalTime[1] / 1e6;
 
-      status === 200 && this.requestTracker(apiId, profileId, pricingPlanId);
+      const responseStatus = /^[45]\d{2}$/.test(status.toString());
+      !responseStatus && this.requestTracker(apiId, profileId, pricingPlanId);
 
       this.analyticsService.updateAnalytics(status, apiId, totalTimeInMs);
       this.analyticsService.analyticLogs({
@@ -89,11 +90,11 @@ export class HttpCallService {
   async requestTracker(
     apiId: string,
     profileId: string,
-    pricingPlanId: string,
+    pricingId: string,
   ): Promise<any> {
     try {
       const subscription = await this.subscriptionRepo.findOne({
-        where: { profileId, pricingPlanId, apiId },
+        where: { profileId, pricingId, apiId },
       });
       subscription.requestCount += 1;
       await this.subscriptionRepo.save(subscription);

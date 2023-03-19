@@ -28,7 +28,7 @@ import {
   Paginated,
   PaginateQuery,
 } from 'nestjs-paginate';
-import { PricingPlan } from 'src/entities/pricingPlan.entity';
+import { Pricing } from 'src/entities/pricingPlan.entity';
 import { StatusCode } from 'src/common/enums/httpStatusCodes.enum';
 import { DynamicObject } from 'src/common/interfaces/dynamicObject.interface';
 
@@ -45,8 +45,8 @@ export class SubscriptionService {
     private readonly subscriptionRepo: Repository<Subscription>,
     @InjectRepository(DevTesting)
     private readonly devTestingRepo: Repository<DevTesting>,
-    @InjectRepository(PricingPlan)
-    private readonly pricingRepo: Repository<PricingPlan>,
+    @InjectRepository(Pricing)
+    private readonly pricingRepo: Repository<Pricing>,
     private jwtService: JwtService,
     private httpService: HttpService,
     private readonly httpCallService: HttpCallService,
@@ -111,7 +111,7 @@ export class SubscriptionService {
    */
   async subscribe(
     apiId: string,
-    pricingPlanId: string,
+    pricingId: string,
     profileId: string,
   ): Promise<Tokens> {
     try {
@@ -132,11 +132,11 @@ export class SubscriptionService {
 
       const [sub, api, profile, plan] = await Promise.all([
         this.subscriptionRepo.findOne({
-          where: { apiId, profileId, pricingPlanId },
+          where: { apiId, profileId, pricingId },
         }),
         this.apiRepo.findOne({ where: { id: apiId } }),
         this.profileRepo.findOne({ where: { id: profileId } }),
-        this.pricingRepo.findOne({ where: { id: pricingPlanId } }),
+        this.pricingRepo.findOne({ where: { id: pricingId } }),
       ]);
 
       if (sub) {
@@ -180,7 +180,7 @@ export class SubscriptionService {
         profileId,
         false,
         undefined,
-        pricingPlanId,
+        pricingId,
       );
       const subPayload = { apiId, profileId, subscriptionToken };
       const subToken: Tokens = { subscriptionToken };
@@ -188,7 +188,7 @@ export class SubscriptionService {
       const userSubscription = this.subscriptionRepo.create({
         ...subPayload,
         requestLimit: plan.requestLimit,
-        pricingPlan: plan,
+        pricingId: plan.id,
       });
 
       this.profileRepo.update(profile.id, {
@@ -225,12 +225,12 @@ export class SubscriptionService {
   async unsubscribe(
     apiId: string,
     profileId: string,
-    pricingPlanId: string,
+    pricingId: string,
   ): Promise<void> {
     try {
       const [sub, api, profile] = await Promise.all([
         this.subscriptionRepo.findOne({
-          where: { apiId, profileId, pricingPlanId },
+          where: { apiId, profileId, pricingId },
         }),
         this.apiRepo.findOne({ where: { id: apiId } }),
         this.profileRepo.findOne({ where: { id: profileId } }),
@@ -276,13 +276,13 @@ export class SubscriptionService {
   async revokeToken(
     apiId: string,
     profileId: string,
-    pricingPlanId: string,
+    pricingId: string,
   ): Promise<Tokens> {
     try {
       const subscription = await this.subscriptionRepo.findOneBy({
         apiId,
         profileId,
-        pricingPlanId,
+        pricingId,
       });
 
       const subscriptionToken = await this.setTokens(
@@ -290,7 +290,7 @@ export class SubscriptionService {
         profileId,
         true,
         subscription.subscriptionToken,
-        pricingPlanId,
+        pricingId,
       );
       this.subscriptionRepo.update(subscription.id, {
         ...subscription,
@@ -453,14 +453,13 @@ export class SubscriptionService {
         );
       }
 
-      const { apiId, profileId, pricingPlanId } = this.jwtService.verify(
-        token,
-        { secret },
-      );
+      const { apiId, profileId, pricingId } = this.jwtService.verify(token, {
+        secret,
+      });
 
       const { id, requestLimit, requestCount } =
         await this.subscriptionRepo.findOne({
-          where: { apiId, profileId, pricingPlanId },
+          where: { apiId, profileId, pricingId },
         });
 
       if (!id) {
@@ -483,7 +482,7 @@ export class SubscriptionService {
         );
       }
 
-      return { apiId, profileId, pricingPlanId };
+      return { apiId, profileId, pricingId };
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(

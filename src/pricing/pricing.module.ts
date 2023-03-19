@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { PricingPlanController } from './pricing.controller';
+import { PricingController } from './pricing.controller';
 import { PricingService } from './pricing.service';
-import { PricingPlan } from '../entities/pricingPlan.entity';
+import { Pricing } from '../entities/pricingPlan.entity';
 import { Api } from 'src/entities/api.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PricingPlan, Api])],
-  controllers: [PricingPlanController],
+  imports: [TypeOrmModule.forFeature([Pricing, Api])],
+  controllers: [PricingController],
   providers: [PricingService],
 })
 export class PricingModule {}

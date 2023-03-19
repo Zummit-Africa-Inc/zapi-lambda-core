@@ -16,7 +16,7 @@ import { Profile } from './entities/profile.entity';
 import { Api } from './entities/api.entity';
 import { Category } from './entities/category.entity';
 import { Endpoint } from './entities/endpoint.entity';
-import { PricingPlan } from './entities/pricingPlan.entity';
+import { Pricing } from './entities/pricingPlan.entity';
 import { Subscription } from './entities/subscription.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { IdCheckGuard } from './common/guards/idcheck.guard';
@@ -62,7 +62,7 @@ const RabbitMQService = {
       Api,
       Category,
       Endpoint,
-      PricingPlan,
+      Pricing,
       Subscription,
       Logger,
       Comment,

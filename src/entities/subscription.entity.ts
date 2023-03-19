@@ -1,8 +1,8 @@
 import { SharedEntity } from '../common/model/sharedEntity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 import { Profile } from './profile.entity';
 import { Api } from './api.entity';
-import { PricingPlan } from './pricingPlan.entity';
+import { Pricing } from './pricingPlan.entity';
 
 @Entity()
 export class Subscription extends SharedEntity {
@@ -18,8 +18,8 @@ export class Subscription extends SharedEntity {
   @Column({ default: 0 })
   requestCount: number;
 
-  @Column({ nullable: true })
-  pricingPlanId: string;
+  @Column()
+  pricingId: string;
 
   @ManyToOne(() => Api, (api) => api.subscriptions, {
     onDelete: 'CASCADE',
@@ -35,10 +35,4 @@ export class Subscription extends SharedEntity {
 
   @Column()
   subscriptionToken: string;
-
-  @ManyToOne(() => PricingPlan, (plan) => plan.subscriptions, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'pricingPlanId' })
-  pricingPlan: PricingPlan;
 }

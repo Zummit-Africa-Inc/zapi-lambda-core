@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
 import { PricingName } from 'src/common/enums/pricing.enum';
 
-export class CreatePricingPlanDto {
+export class CreatePricingDto {
   @ApiProperty({ default: 'basic' })
   name: PricingName;
 
