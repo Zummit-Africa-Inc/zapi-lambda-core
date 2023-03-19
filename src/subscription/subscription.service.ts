@@ -318,7 +318,7 @@ export class SubscriptionService {
    * @param {string} profileId - string,
    * @param {boolean} [revoke=false] - boolean = false,
    * @param {string} [oldToken] - The old token that was generated for the user.
-   * @param {string} [pricingPlanId] - string = '',
+   * @param {string} [pricingId] - string = '',
    * @returns A string
    */
   async setTokens(
@@ -326,7 +326,7 @@ export class SubscriptionService {
     profileId: string,
     revoke: boolean = false,
     oldToken: string | undefined = '',
-    pricingPlanId?: string,
+    pricingId?: string,
   ): Promise<string> {
     /* Creating a new token with the same expiry date as the old token if revoke is true */
 
@@ -335,14 +335,14 @@ export class SubscriptionService {
         ? {
             profileId,
             apiId,
-            pricingPlanId,
+            pricingId,
             exp: (
               this.jwtService.decode(oldToken, {
                 complete: true,
               }) as DynamicObject
             ).payload.exp,
           }
-        : { profileId, apiId, pricingPlanId },
+        : { profileId, apiId, pricingId },
       {
         secret: String(process.env.JWT_SUBSCRIPTION_SECRET!),
         expiresIn: String(process.env.JWT_SUBSCRIPTION_EXPIRY!),
