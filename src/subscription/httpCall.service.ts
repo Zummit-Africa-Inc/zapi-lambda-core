@@ -49,7 +49,8 @@ export class HttpCallService {
       const totalTime = process.hrtime(startTime);
       const totalTimeInMs = totalTime[0] * 1000 + totalTime[1] / 1e6;
 
-      this.requestTracker(apiId, profileId, pricingPlanId);
+      status === 200 && this.requestTracker(apiId, profileId, pricingPlanId);
+
       this.analyticsService.updateAnalytics(status, apiId, totalTimeInMs);
       this.analyticsService.analyticLogs({
         status,
