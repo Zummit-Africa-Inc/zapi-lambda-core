@@ -24,7 +24,7 @@ import { Request } from 'express';
 @ApiTags('Discussions')
 @Controller('discussion')
 export class DiscussionController {
-  constructor(private readonly discussionService: DiscussionService) {}
+  constructor(private readonly discussionService: DiscussionService) { }
 
   @Post('')
   @ApiOperation({ summary: 'Start a new discussion' })
@@ -61,7 +61,7 @@ export class DiscussionController {
   @ApiOperation({ summary: 'Get all discussions of an api' })
   async getAllDiscussions(
     @Param('apiId') apiId: string,
-  ): Promise<Ok<Discussion[]>> {
+  ): Promise<Ok<Object[]>> {
     const discussions = await this.discussionService.getAllDiscusionsOfAnApi(
       apiId,
     );

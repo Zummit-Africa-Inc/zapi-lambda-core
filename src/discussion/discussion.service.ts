@@ -17,7 +17,7 @@ export class DiscussionService {
     private readonly commentRepo: Repository<Comment>,
     @InjectRepository(Profile)
     private readonly profileRepo: Repository<Profile>,
-  ) {}
+  ) { }
 
   async startDiscussion(dto: CreateDiscussionDto): Promise<Discussion> {
     try {
@@ -65,11 +65,17 @@ export class DiscussionService {
     }
   }
 
-  async getAllDiscusionsOfAnApi(apiId: string): Promise<Discussion[]> {
+  async getAllDiscusionsOfAnApi(apiId: string): Promise<Object[]> {
     try {
-      return await this.discussionRepo.find({
+      const discussions = await this.discussionRepo.find({
         where: { api_id: apiId },
       });
+
+      const newDiscussions = await Promise.all(discussions.map(async discussion => {
+        const profile = await this.profileRepo.findOne({ where: { id: discussion.profile_id } })
+        return { ...discussion, profile_id: undefined, profileName: profile?.fullName ? profile.fullName : 'User' }
+      }))
+      return newDiscussions
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),
