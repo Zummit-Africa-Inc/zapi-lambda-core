@@ -17,7 +17,7 @@ export class ReviewService {
     private readonly reviewRepo: Repository<Review>,
     @InjectRepository(Profile)
     private readonly profileRepo: Repository<Profile>,
-  ) {}
+  ) { }
   /**
    * allows the user to review and rate an api
    * @param profileId : id of the profile making a request to update an api
@@ -65,9 +65,10 @@ export class ReviewService {
       const apiRating = this.reviewRepo.create({
         profile_id: profileId,
         api_id: apiId,
-        reviewer: reviewer.email,
+        reviewer: reviewer.fullName,
         rating: dto.rating,
         review: dto.review,
+        createdBy: reviewer.fullName
       });
 
       // Save api rating
