@@ -16,5 +16,5 @@ export class CreateApiDto {
 
   @ApiProperty()
   @IsString()
-  baseUrl: string;
+  base_url: string;
 }

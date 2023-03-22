@@ -331,7 +331,7 @@ export class ApiService {
           );
         }
 
-        if (!updateApiDto.baseUrl) {
+        if (!updateApiDto.base_url) {
           throw new BadRequestException(
             ZaLaResponse.BadRequest(
               'Bad Request',
@@ -340,16 +340,16 @@ export class ApiService {
             ),
           );
         }
-        if (!updateApiDto.baseUrl.slice(0, 5).includes('https')) {
+        if (!updateApiDto.base_url.slice(0, 5).includes('https')) {
           throw new BadRequestException(
             ZaLaResponse.BadRequest('Bad Request', 'Invalid Base Url', '403'),
           );
         }
 
-        updateApiDto.baseUrl
-          ? updateApiDto.baseUrl.slice(-1) === '/'
-            ? (updateApiDto.baseUrl = updateApiDto.baseUrl.slice(0, -1))
-            : updateApiDto.baseUrl
+        updateApiDto.base_url
+          ? updateApiDto.base_url.slice(-1) === '/'
+            ? (updateApiDto.base_url = updateApiDto.base_url.slice(0, -1))
+            : updateApiDto.base_url
           : null;
 
         const updatedApi = await this.apiRepo.save({
