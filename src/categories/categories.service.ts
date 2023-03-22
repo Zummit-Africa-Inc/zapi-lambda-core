@@ -21,7 +21,7 @@ export class CategoriesService {
     private readonly categoryRepo: Repository<Category>,
     @InjectRepository(Api)
     private readonly apiRepo: Repository<Api>,
-  ) {}
+  ) { }
 
   async createNewCategory(
     createCategoryDto: CreateCategoryDto,
@@ -66,6 +66,12 @@ export class CategoriesService {
 
   async getAllApis(query: PaginateQuery): Promise<Paginated<Api>> {
     try {
+      // Check if the categoryId is for All categories
+      if (query.filter.categoryId === `7b2036ac-8434-4d07-a1e8-8695b624268c`) {
+        const { filter: { categoryId, ...restOfFilter }, ...restOfQuery } = query
+        query = { filter: { ...restOfFilter }, ...restOfQuery }
+      }
+
       return paginate(query, this.apiRepo, {
         sortableColumns: ['createdOn', 'name', 'visibility'],
         searchableColumns: ['name', 'description', 'about', 'visibility'],
