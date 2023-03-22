@@ -71,35 +71,18 @@ export class EndpointsService {
     }
   }
 
-  // Takes an apiId of type string together with an array of CreateEndpointDto objects and creates endpoints for each endpoint in the array using the apiId
   async createMultipleEndpoints(
     apiId: string,
     createEndpointDtos: CreateEndpointDto[],
   ): Promise<Endpoint[]> {
-    const endpoints = await Promise.all(
-      createEndpointDtos.map(async (createEndpointDto) => {
-        const endpoint = await this.endpointRepo.findOne({
-          where: {
-            apiId,
-            method: createEndpointDto.method,
-            route: encodeURIComponent(createEndpointDto.route),
-          },
-        });
-        if (endpoint) {
-          throw new BadRequestException(
-            ZaLaResponse.BadRequest(
-              'Existing Endpoint',
-              'An endpoint with duplicate method already exists, use another method',
-            ),
-          );
-        }
-        const newEndpoint = this.endpointRepo.create({
-          ...createEndpointDto,
-          apiId,
-        });
-        return await this.endpointRepo.save(newEndpoint);
-      }),
-    );
+    const endpoints = [];
+    for (const createEndpointDto of createEndpointDtos) {
+      const endpoint = await this.createSingleEndpoint(
+        apiId,
+        createEndpointDto,
+      );
+      endpoints.push(endpoint);
+    }
     return endpoints;
   }
 
