@@ -137,11 +137,12 @@ export class ApiService {
     } catch (err) {
       console.log(err);
       throw new BadRequestException(
-        ZaLaResponse.BadRequest(
-          err.response.error,
-          err.response.message,
-          err.response.errorCode,
-        ),
+        ZaLaResponse.BadRequest(err, 'error occured'),
+        // ZaLaResponse.BadRequest(
+        //   err.response.error,
+        //   err.response.message,
+        //   err.response.errorCode,
+        // ),
       );
     }
   }
@@ -171,11 +172,12 @@ export class ApiService {
     } catch (err) {
       await queryRunner.rollbackTransaction();
       throw new BadRequestException(
-        ZaLaResponse.BadRequest(
-          err.response.error,
-          err.response.message,
-          err.response.errorCode,
-        ),
+        ZaLaResponse.BadRequest(err, 'error during transaction'),
+        // ZaLaResponse.BadRequest(
+        //   err.response.error,
+        //   err.response.message,
+        //   err.response.errorCode,
+        // ),
       );
     } finally {
       await queryRunner.release();
