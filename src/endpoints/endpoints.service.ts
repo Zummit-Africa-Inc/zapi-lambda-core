@@ -40,50 +40,67 @@ export class EndpointsService {
     apiId: string,
     createEndpointDto: CreateEndpointDto,
   ): Promise<Endpoint> {
-    try {
-      const endpoint = await this.endpointRepo.findOne({
-        where: {
-          apiId,
-          method: createEndpointDto.method,
-          route: encodeURIComponent(createEndpointDto.route),
-        },
-      });
-
-      if (endpoint) {
-        throw new BadRequestException(
-          ZaLaResponse.BadRequest(
-            'Existing Endpoint',
-            'An endpoint with duplicate method already exists, use another method',
-          ),
-        );
-      }
-
-      const newEndpoint = this.endpointRepo.create({
-        ...createEndpointDto,
+    const endpoint = await this.endpointRepo.findOne({
+      where: {
         apiId,
-      });
-
-      return await this.endpointRepo.save(newEndpoint);
-    } catch (error) {
+        method: createEndpointDto.method,
+        route: encodeURIComponent(createEndpointDto.route),
+      },
+    });
+    if (endpoint) {
       throw new BadRequestException(
-        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
+        ZaLaResponse.BadRequest(
+          'Existing Endpoint',
+          'An endpoint with duplicate method already exists, use another method',
+        ),
       );
     }
+    const newEndpoint = this.endpointRepo.create({
+      ...createEndpointDto,
+      apiId,
+    });
+    return await this.endpointRepo.save(newEndpoint);
   }
 
   async createMultipleEndpoints(
     apiId: string,
     createEndpointDtos: CreateEndpointDto[],
-  ): Promise<Endpoint[]> {
-    const endpoints = [];
-    for (const createEndpointDto of createEndpointDtos) {
-      const endpoint = await this.createSingleEndpoint(
-        apiId,
-        createEndpointDto,
+  ): Promise<{
+    createdEndpoints: Endpoint[];
+    duplicateEndpoints: CreateEndpointDto[];
+  }> {
+    const queryRunner =
+      this.endpointRepo.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const endpoints = [];
+      const duplicates = [];
+      for (const createEndpointDto of createEndpointDtos) {
+        try {
+          const endpoint = await this.createSingleEndpoint(
+            apiId,
+            createEndpointDto,
+          );
+          endpoints.push(endpoint);
+        } catch (error) {
+          if (error instanceof BadRequestException) {
+            duplicates.push(createEndpointDto);
+          } else {
+            throw error;
+          }
+        }
+      }
+      await queryRunner.commitTransaction();
+      return { createdEndpoints: endpoints, duplicateEndpoints: duplicates };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
       );
-      endpoints.push(endpoint);
+    } finally {
+      await queryRunner.release();
     }
-    return endpoints;
   }
 
   /**

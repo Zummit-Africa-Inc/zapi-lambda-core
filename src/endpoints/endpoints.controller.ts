@@ -56,7 +56,12 @@ export class EndpointsController {
   async createMultipleEndpoints(
     @Param('apiId') apiId: string,
     @Body() createEndpointDtos: CreateEndpointDto[],
-  ): Promise<Ok<Endpoint[]>> {
+  ): Promise<
+    Ok<{
+      createdEndpoints: Endpoint[];
+      duplicateEndpoints: CreateEndpointDto[];
+    }>
+  > {
     const endpoints = await this.endpointsService.createMultipleEndpoints(
       apiId,
       createEndpointDtos,
