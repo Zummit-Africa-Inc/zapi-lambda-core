@@ -42,7 +42,14 @@ export class DiscussionService {
         const comment = await this.commentRepo.findOne({
           where: { id: discussion.comments[i] },
         });
-        comments.push(comment);
+
+        // populate the commentor's name
+        const commentAuthor = await this.profileRepo.findOne({
+          where: { id: comment.profile_id },
+        });
+
+        const commentAuthorName: string = commentAuthor.fullName || 'User';
+        comments.push({ ...comment, commentAuthorName });
       }
 
       // object to hold discussion and comments
@@ -61,7 +68,9 @@ export class DiscussionService {
 
   async getAllDiscusionsOfAnApi(apiId: string): Promise<Discussion[]> {
     try {
-      return await this.discussionRepo.find({ where: { api_id: apiId } });
+      return await this.discussionRepo.find({
+        where: { api_id: apiId },
+      });
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),
