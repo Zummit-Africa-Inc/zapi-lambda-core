@@ -39,16 +39,31 @@ export class EndpointsController {
   @Post('new/:apiId')
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Add a new endpoint' })
-  async create(
+  async createSingleEndpoint(
     @Param('apiId') apiId: string,
     @Body() createEndpointDto: CreateEndpointDto,
   ): Promise<Ok<Endpoint>> {
-    const endpoint = await this.endpointsService.create(
+    const endpoint = await this.endpointsService.createSingleEndpoint(
       apiId,
       createEndpointDto,
     );
     return ZaLaResponse.Ok(endpoint, 'Endpoint Created', '201');
   }
+
+  @Post('new/:apiId/multiple')
+  @IdCheck('apiId')
+  @ApiOperation({ summary: 'Add new endpoints' })
+  async createMultipleEndpoints(
+    @Param('apiId') apiId: string,
+    @Body() createEndpointDtos: CreateEndpointDto[],
+  ): Promise<Ok<Endpoint[]>> {
+    const endpoints = await this.endpointsService.createMultipleEndpoints(
+      apiId,
+      createEndpointDtos,
+    );
+    return ZaLaResponse.Ok(endpoints, 'Endpoints Created', '201');
+  }
+
   @Post('new/collection/:apiId')
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Endpoints from postman collection' })

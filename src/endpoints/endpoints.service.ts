@@ -36,7 +36,7 @@ export class EndpointsService {
    * @param {CreateEndpointDto} createEndpointDto - CreateEndpointDto
    * @returns The endpoint is being returned.
    */
-  async create(
+  async createSingleEndpoint(
     apiId: string,
     createEndpointDto: CreateEndpointDto,
   ): Promise<Endpoint> {
@@ -69,6 +69,38 @@ export class EndpointsService {
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
       );
     }
+  }
+
+  // Takes an apiId of type string together with an array of CreateEndpointDto objects and creates endpoints for each endpoint in the array using the apiId
+  async createMultipleEndpoints(
+    apiId: string,
+    createEndpointDtos: CreateEndpointDto[],
+  ): Promise<Endpoint[]> {
+    const endpoints = await Promise.all(
+      createEndpointDtos.map(async (createEndpointDto) => {
+        const endpoint = await this.endpointRepo.findOne({
+          where: {
+            apiId,
+            method: createEndpointDto.method,
+            route: encodeURIComponent(createEndpointDto.route),
+          },
+        });
+        if (endpoint) {
+          throw new BadRequestException(
+            ZaLaResponse.BadRequest(
+              'Existing Endpoint',
+              'An endpoint with duplicate method already exists, use another method',
+            ),
+          );
+        }
+        const newEndpoint = this.endpointRepo.create({
+          ...createEndpointDto,
+          apiId,
+        });
+        return await this.endpointRepo.save(newEndpoint);
+      }),
+    );
+    return endpoints;
   }
 
   /**
@@ -152,7 +184,7 @@ export class EndpointsService {
             reason: 'Duplicate endpoint',
           });
         } else {
-          endpoints.push(await this.create(apiId, endpoint));
+          endpoints.push(await this.createSingleEndpoint(apiId, endpoint));
         }
       }
       return { endpoints, skipped };
