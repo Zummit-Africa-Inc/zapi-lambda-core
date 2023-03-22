@@ -160,11 +160,7 @@ export class ApiService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      const api = await this.createApi(
-        apiEndpointDto.createApiDto,
-        profileId,
-        queryRunner,
-      );
+      const api = await this.createApi(apiEndpointDto, profileId, queryRunner);
       const { endpoints, duplicateEndpoints } = await this.createEndpoints(
         api.id,
         apiEndpointDto.createEndpointDto,
@@ -187,12 +183,24 @@ export class ApiService {
   }
 
   async createApi(
-    createApiDto: CreateApiDto,
+    apiEndpointDto: CreateApiAndEndpointsDto,
     profileId: string,
     queryRunner: QueryRunner,
   ): Promise<Api> {
+    const categoryExists = await this.categoryRepo.findOne({
+      where: { id: apiEndpointDto.categoryId },
+    });
+    if (!categoryExists) {
+      throw new NotFoundException(
+        ZaLaResponse.NotFoundRequest(
+          'Not Found',
+          'Category does not exist',
+          '404',
+        ),
+      );
+    }
     const apiExist = await this.apiRepo.findOne({
-      where: { name: createApiDto.name },
+      where: { name: apiEndpointDto.name },
     });
     if (apiExist) {
       throw new BadRequestException(
@@ -204,7 +212,11 @@ export class ApiService {
       );
     }
     const secretKey = uuid();
-    const api = this.apiRepo.create({ profileId, ...createApiDto, secretKey });
+    const api = this.apiRepo.create({
+      profileId,
+      ...apiEndpointDto,
+      secretKey,
+    });
     const savedApi = await queryRunner.manager.save(api);
     const analytics = this.analyticsRepo.create({ apiId: savedApi.id });
     await queryRunner.manager.save(analytics);
@@ -319,7 +331,7 @@ export class ApiService {
           );
         }
 
-        if (!updateApiDto.base_url) {
+        if (!updateApiDto.baseUrl) {
           throw new BadRequestException(
             ZaLaResponse.BadRequest(
               'Bad Request',
@@ -328,16 +340,16 @@ export class ApiService {
             ),
           );
         }
-        if (!updateApiDto.base_url.slice(0, 5).includes('https')) {
+        if (!updateApiDto.baseUrl.slice(0, 5).includes('https')) {
           throw new BadRequestException(
             ZaLaResponse.BadRequest('Bad Request', 'Invalid Base Url', '403'),
           );
         }
 
-        updateApiDto.base_url
-          ? updateApiDto.base_url.slice(-1) === '/'
-            ? (updateApiDto.base_url = updateApiDto.base_url.slice(0, -1))
-            : updateApiDto.base_url
+        updateApiDto.baseUrl
+          ? updateApiDto.baseUrl.slice(-1) === '/'
+            ? (updateApiDto.baseUrl = updateApiDto.baseUrl.slice(0, -1))
+            : updateApiDto.baseUrl
           : null;
 
         const updatedApi = await this.apiRepo.save({

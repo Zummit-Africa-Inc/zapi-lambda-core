@@ -12,7 +12,7 @@ export class UpdateApiDto extends PartialType(CreateApiDto) {
   description: string;
 
   @ApiPropertyOptional()
-  base_url: string;
+  baseUrl: string;
 
   @ApiPropertyOptional()
   about: string;
