@@ -162,22 +162,23 @@ export class ApiService {
     await queryRunner.startTransaction();
     try {
       const api = await this.createApi(apiEndpointDto, profileId, queryRunner);
-      const { endpoints, duplicateEndpoints } = await this.createEndpoints(
-        api.id,
-        apiEndpointDto.createEndpointDto,
-        queryRunner,
-      );
+      let endpoints = [],
+        duplicateEndpoints = [];
+      if (apiEndpointDto.endpoints) {
+        const res = await this.createEndpoints(
+          api.id,
+          apiEndpointDto.endpoints,
+          queryRunner,
+        );
+        endpoints = res.endpoints;
+        duplicateEndpoints = res.duplicateEndpoints;
+      }
       await queryRunner.commitTransaction();
       return { api, endpoints, duplicateEndpoints };
     } catch (err) {
       await queryRunner.rollbackTransaction();
       throw new BadRequestException(
         ZaLaResponse.BadRequest(err, 'error during transaction'),
-        // ZaLaResponse.BadRequest(
-        //   err.response.error,
-        //   err.response.message,
-        //   err.response.errorCode,
-        // ),
       );
     } finally {
       await queryRunner.release();

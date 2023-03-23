@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 import {
   HeaderType,
   QueryType,
@@ -9,17 +9,21 @@ import { HttpMethod } from '../../common/enums/httpMethods.enum';
 
 export class CreateEndpointDto {
   @IsString()
+  @IsNotEmpty()
   @ApiProperty()
   name: string;
 
   @IsString()
-  @ApiProperty()
+  @ApiPropertyOptional()
   description: string;
 
-  @ApiProperty({ default: 'get' })
+  @IsEnum(HttpMethod)
+  @IsNotEmpty()
+  @ApiProperty({ enum: HttpMethod, default: 'get' })
   method: HttpMethod;
 
   @IsString()
+  @IsNotEmpty()
   @ApiProperty()
   route: string;
 

@@ -25,15 +25,11 @@ export class CreateApiAndEndpointsDto {
   @ApiPropertyOptional()
   term_of_use?: string;
 
-  @IsString()
-  @ApiPropertyOptional()
-  logo_url?: string;
-
   @ApiProperty()
   visibility: Visibility;
 
   @ApiProperty({ type: [CreateEndpointDto] })
   @ValidateNested({ each: true })
   @Type(() => CreateEndpointDto)
-  createEndpointDto: CreateEndpointDto[];
+  endpoints: CreateEndpointDto[];
 }
