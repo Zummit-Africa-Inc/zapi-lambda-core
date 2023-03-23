@@ -13,7 +13,7 @@ import {
   UploadedFile,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { EndpointsService } from './endpoints.service';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { Endpoint } from 'src/entities/endpoint.entity';
@@ -53,6 +53,7 @@ export class EndpointsController {
   @Post('new/:apiId/multiple')
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Add new endpoints' })
+  @ApiBody({ type: [CreateEndpointDto] })
   async createMultipleEndpoints(
     @Param('apiId') apiId: string,
     @Body() createEndpointDtos: CreateEndpointDto[],
