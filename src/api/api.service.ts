@@ -231,23 +231,27 @@ export class ApiService {
     createEndpointsDto: CreateEndpointDto[],
     queryRunner: QueryRunner,
   ) {
-    const newEndpoints = createEndpointsDto.map((createEndpointDto) =>
-      this.endpointsRepo.create({
-        ...createEndpointDto,
-        apiId,
-      }),
-    );
-    // Check for duplicate endpoints...
     const endpointSet = new Set();
     const duplicateEndpoints = [];
-    for (const endpoint of newEndpoints) {
+    const endpointsToSave = [];
+    for (const createEndpointDto of createEndpointsDto) {
+      const endpoint = this.endpointsRepo.create({
+        ...createEndpointDto,
+        apiId,
+      });
       const endpointKey = `${endpoint.method} ${endpoint.route}`;
-      if (endpointSet.has(endpointKey)) {
+      if (!endpointSet.has(endpointKey)) {
+        endpointSet.add(endpointKey);
+        endpointsToSave.push(endpoint);
+      } else if (
+        !duplicateEndpoints.some(
+          (e) => e.route === endpoint.route && e.method === endpoint.method,
+        )
+      ) {
         duplicateEndpoints.push(endpoint);
       }
-      endpointSet.add(endpointKey);
     }
-    const endpoints = await queryRunner.manager.save(newEndpoints);
+    const endpoints = await queryRunner.manager.save(endpointsToSave);
     return { endpoints, duplicateEndpoints };
   }
 
