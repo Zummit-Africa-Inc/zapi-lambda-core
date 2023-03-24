@@ -240,18 +240,15 @@ export class ApiService {
         apiId,
       });
       const endpointKey = `${endpoint.method} ${endpoint.route}`;
-      if (endpointSet.has(endpointKey)) {
-        // If a duplicate is found, only add the first one to the array
-        if (
-          !duplicateEndpoints.some(
-            (e) => e.route === endpoint.route && e.method === endpoint.method,
-          )
-        ) {
-          duplicateEndpoints.push(endpoint);
-        }
-      } else {
+      if (!endpointSet.has(endpointKey)) {
         endpointSet.add(endpointKey);
         endpointsToSave.push(endpoint);
+      } else if (
+        !duplicateEndpoints.some(
+          (e) => e.route === endpoint.route && e.method === endpoint.method,
+        )
+      ) {
+        duplicateEndpoints.push(endpoint);
       }
     }
     const endpoints = await queryRunner.manager.save(endpointsToSave);
