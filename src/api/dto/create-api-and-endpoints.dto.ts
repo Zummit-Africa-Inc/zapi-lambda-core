@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsString, ValidateNested } from 'class-validator';
+import { IsEnum, IsString, ValidateNested } from 'class-validator';
 import { Visibility } from 'src/common/enums/visibility.enum';
 import { CreateEndpointDto } from 'src/endpoints/dto/create-endpoint.dto';
 
@@ -25,7 +25,8 @@ export class CreateApiAndEndpointsDto {
   @ApiPropertyOptional()
   term_of_use?: string;
 
-  @ApiProperty()
+  @IsEnum(Visibility)
+  @ApiProperty({ enum: Visibility, default: Visibility.Private })
   visibility: Visibility;
 
   @ApiProperty({ type: [CreateEndpointDto] })
