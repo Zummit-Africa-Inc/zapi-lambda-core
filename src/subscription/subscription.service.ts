@@ -22,13 +22,15 @@ import { ClientProxy } from '@nestjs/microservices';
 import { HttpCallService } from './httpCall.service';
 import { FreeApis } from './apis';
 import { DevTesting } from 'src/entities/devTesting.entity';
-import { HttpMethod } from 'src/common/enums/httpMethods.enum';
 import {
   FilterOperator,
   paginate,
   Paginated,
   PaginateQuery,
 } from 'nestjs-paginate';
+import { Pricing } from 'src/entities/pricingPlan.entity';
+import { StatusCode } from 'src/common/enums/httpStatusCodes.enum';
+import { DynamicObject } from 'src/common/interfaces/dynamicObject.interface';
 
 @Injectable()
 export class SubscriptionService {
@@ -43,6 +45,8 @@ export class SubscriptionService {
     private readonly subscriptionRepo: Repository<Subscription>,
     @InjectRepository(DevTesting)
     private readonly devTestingRepo: Repository<DevTesting>,
+    @InjectRepository(Pricing)
+    private readonly pricingRepo: Repository<Pricing>,
     private jwtService: JwtService,
     private httpService: HttpService,
     private readonly httpCallService: HttpCallService,
@@ -105,38 +109,87 @@ export class SubscriptionService {
    * @param {profileId} string
    * @returns The subscriptionToken
    */
-  async subscribe(apiId: string, profileId: string): Promise<Tokens> {
+  async subscribe(
+    apiId: string,
+    pricingId: string,
+    profileId: string,
+  ): Promise<Tokens> {
     try {
-      const sub = await this.subscriptionRepo.findOne({
-        where: { apiId, profileId },
+      const activeSub = await this.subscriptionRepo.findOne({
+        where: {
+          apiId,
+          profileId,
+        },
       });
-      if (sub) {
-        throw new BadRequestException(
-          ZaLaResponse.BadRequest(
-            'Active Subscription',
-            'User is currently subscribed to this API',
-            '400',
-          ),
+
+      if (activeSub) {
+        throwBadRequestException(
+          'Active Subscription',
+          'User currently subscribed to this Api',
+          StatusCode.FORBIDDEN,
         );
       }
-      const api = await this.apiRepo.findOne({ where: { id: apiId } });
-      const profile = await this.profileRepo.findOne({
-        where: { id: profileId },
-      });
+
+      const [sub, api, profile, plan] = await Promise.all([
+        this.subscriptionRepo.findOne({
+          where: { apiId, profileId, pricingId },
+        }),
+        this.apiRepo.findOne({ where: { id: apiId } }),
+        this.profileRepo.findOne({ where: { id: profileId } }),
+        this.pricingRepo.findOne({ where: { id: pricingId } }),
+      ]);
+
+      if (sub) {
+        throwBadRequestException(
+          'Active Subscription',
+          'User is currently subscribed to this API',
+          StatusCode.BAD_REQUEST,
+        );
+      }
 
       if (profileId === api.profileId) {
-        throw new BadRequestException(
-          ZaLaResponse.BadRequest(
-            'Bad request',
-            "You can't subscribe to your own api",
-            '400',
-          ),
+        throwBadRequestException(
+          'Bad request',
+          "You can't subscribe to your own api",
+          StatusCode.BAD_GATEWAY,
         );
       }
 
-      const subscriptionToken = await this.setTokens(apiId, profileId);
+      if (!plan) {
+        throwBadRequestException(
+          'Bad request',
+          'This pricing plan does not exist',
+          StatusCode.NOT_FOUND,
+        );
+      }
+
+      function throwBadRequestException(
+        title: string,
+        message: string,
+        statusCode: any,
+      ): void {
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(title, message, statusCode),
+        );
+      }
+
+      //TODO: Payment implementation
+
+      const subscriptionToken = await this.setTokens(
+        apiId,
+        profileId,
+        false,
+        undefined,
+        pricingId,
+      );
       const subPayload = { apiId, profileId, subscriptionToken };
       const subToken: Tokens = { subscriptionToken };
+
+      const userSubscription = this.subscriptionRepo.create({
+        ...subPayload,
+        requestLimit: plan.requestLimit,
+        pricingId: plan.id,
+      });
 
       this.profileRepo.update(profile.id, {
         subscriptions: [...profile.subscriptions, api.id],
@@ -146,7 +199,6 @@ export class SubscriptionService {
         subscriptions: [...api.subscriptions, profile.id],
       });
 
-      const userSubscription = this.subscriptionRepo.create(subPayload);
       await this.subscriptionRepo.save(userSubscription);
 
       // make request to notification service to notify user of new subscription
@@ -155,7 +207,11 @@ export class SubscriptionService {
       return subToken;
     } catch (error) {
       throw new BadRequestException(
-        ZaLaResponse.BadRequest(error.name, error.message, error.errorCode),
+        ZaLaResponse.BadRequest(
+          error.name,
+          error.message,
+          error.response.errorCode,
+        ),
       );
     }
   }
@@ -166,29 +222,29 @@ export class SubscriptionService {
    * @param {string} apiId - string, profileId: string
    * @param {string} profileId - The id of the profile that is subscribing to the API
    */
-  async unsubscribe(apiId: string, profileId: string): Promise<void> {
+  async unsubscribe(
+    apiId: string,
+    profileId: string,
+    pricingId: string,
+  ): Promise<void> {
     try {
-      const sub = await this.subscriptionRepo.findOne({
-        where: {
-          apiId,
-          profileId,
-        },
-      });
+      const [sub, api, profile] = await Promise.all([
+        this.subscriptionRepo.findOne({
+          where: { apiId, profileId, pricingId },
+        }),
+        this.apiRepo.findOne({ where: { id: apiId } }),
+        this.profileRepo.findOne({ where: { id: profileId } }),
+      ]);
 
       if (!sub) {
         throw new BadRequestException(
           ZaLaResponse.BadRequest(
-            'In Subscription',
-            'User is not currently subscribed to this API',
-            '400',
+            'Subscription Error',
+            'User is not currently subscribed to this API or Pricing plan',
+            StatusCode.NOT_FOUND,
           ),
         );
       }
-
-      const api = await this.apiRepo.findOne({ where: { id: apiId } });
-      const profile = await this.profileRepo.findOne({
-        where: { id: profileId },
-      });
 
       await this.subscriptionRepo.delete(sub.id);
 
@@ -201,7 +257,11 @@ export class SubscriptionService {
       });
     } catch (error) {
       throw new BadRequestException(
-        ZaLaResponse.BadRequest(error.name, error.message, error.errorCode),
+        ZaLaResponse.BadRequest(
+          error.name,
+          error.message,
+          error.response.errorCode,
+        ),
       );
     }
   }
@@ -213,14 +273,25 @@ export class SubscriptionService {
    * @param {string} profileId - string
    * @returns The subscriptionToken is being returned.
    */
-  async revokeToken(apiId: string, profileId: string): Promise<Tokens> {
+  async revokeToken(
+    apiId: string,
+    profileId: string,
+    pricingId: string,
+  ): Promise<Tokens> {
     try {
       const subscription = await this.subscriptionRepo.findOneBy({
         apiId,
         profileId,
+        pricingId,
       });
 
-      const subscriptionToken = await this.setTokens(apiId, profileId);
+      const subscriptionToken = await this.setTokens(
+        apiId,
+        profileId,
+        true,
+        subscription.subscriptionToken,
+        pricingId,
+      );
       this.subscriptionRepo.update(subscription.id, {
         ...subscription,
         subscriptionToken,
@@ -231,38 +302,65 @@ export class SubscriptionService {
       };
     } catch (error) {
       throw new BadRequestException(
-        ZaLaResponse.BadRequest(error.name, error.message, error.errorCode),
+        ZaLaResponse.BadRequest(
+          error.name,
+          error.message,
+          error.response.errorCode,
+        ),
       );
     }
   }
 
   /**
-   * It takes an apiId and a profileId, and returns a subscriptionToken
-   * @param {string} apiId - The id of the API
-   * @param {string} profileId - The id of the profile that is subscribing to the API
-   * @returns A JWT token
+   * This function takes in a profileId, apiId, and pricingPlanId, and returns a JWT token that contains
+   * the profileId, apiId, and pricingPlanId.
+   * @param {string} apiId - string,
+   * @param {string} profileId - string,
+   * @param {boolean} [revoke=false] - boolean = false,
+   * @param {string} [oldToken] - The old token that was generated for the user.
+   * @param {string} [pricingId] - string = '',
+   * @returns A string
    */
-  async setTokens(apiId: string, profileId: string): Promise<string> {
+  async setTokens(
+    apiId: string,
+    profileId: string,
+    revoke: boolean = false,
+    oldToken: string | undefined = '',
+    pricingId?: string,
+  ): Promise<string> {
+    /* Creating a new token with the same expiry date as the old token if revoke is true */
+
     const subscriptionToken = await this.jwtService.signAsync(
+      revoke
+        ? {
+            profileId,
+            apiId,
+            pricingId,
+            exp: (
+              this.jwtService.decode(oldToken, {
+                complete: true,
+              }) as DynamicObject
+            ).payload.exp,
+          }
+        : { profileId, apiId, pricingId },
       {
-        profileId,
-        apiId,
-      },
-      {
-        secret: process.env.JWT_SUBSCRIPTION_SECRET,
-        expiresIn: '30d',
+        secret: String(process.env.JWT_SUBSCRIPTION_SECRET!),
+        expiresIn: String(process.env.JWT_SUBSCRIPTION_EXPIRY!),
       },
     );
+
     return subscriptionToken;
   }
 
   async apiRequest(token: string, body: ApiRequestDto): Promise<any> {
     try {
-      const { api, profile } = await this.verifySub(token);
+      const { apiId, profileId, pricingPlanId } = await this.verifySub(token);
+
+      const api = await this.apiRepo.findOne({ where: { id: apiId } });
       const encodedRoute = encodeURIComponent(body.route);
       const endpoint = await this.endpointRepository.findOne({
         where: {
-          apiId: api.id,
+          apiId,
           method: body.method,
           route: encodedRoute,
         },
@@ -270,24 +368,33 @@ export class SubscriptionService {
 
       if (!endpoint) {
         throw new BadRequestException(
-          ZaLaResponse.BadRequest('Server Error', 'Wrong Endpoint', '400'),
+          ZaLaResponse.BadRequest(
+            'Bad Request',
+            'Wrong Endpoint',
+            StatusCode.BAD_REQUEST,
+          ),
         );
       }
-
       const requestProps = {
-        apiId: api.id,
+        apiId,
+        pricingPlanId,
         payload: body.payload,
-        profileId: profile.id,
+        profileId,
         base_url: api.base_url,
         endpoint: endpoint.route,
         secretKey: api.secretKey,
+        headers: body.headers,
         method: endpoint.method.toLowerCase(),
       };
 
       return await this.httpCallService.call(requestProps);
     } catch (error) {
       throw new BadRequestException(
-        ZaLaResponse.BadRequest('Internal server error', error.message, '500'),
+        ZaLaResponse.BadRequest(
+          'Internal server error',
+          error.message,
+          StatusCode.INTERNAL_SERVER_ERROR,
+        ),
       );
     }
   }
@@ -323,49 +430,67 @@ export class SubscriptionService {
   }
 
   /**
-   * It verifies the user's subscription to the api and returns the api and the user's profile.
-   * @param {string} token - the token generated by the user when they subscribe to the api
-   * @returns The api and profile are being returned.
+   * It verifies the token, checks if the user is subscribed to the api, and if the user has exceeded
+   * the request limit
+   * @param {string} token - the token that was sent in the request
+   * @returns an object with the api, profile and pricingPlanId.
    */
-  async verifySub(token: string): Promise<any> {
+  async verifySub(token: string): Promise<DynamicObject> {
     try {
       const secret = process.env.JWT_SUBSCRIPTION_SECRET;
-      const { apiId, profileId } = this.jwtService.verify(token, { secret });
-      const api = await this.apiRepo.findOneBy({ id: apiId });
-      const profile = await this.profileRepo.findOneBy({ id: profileId });
+      const { payload } = this.jwtService.decode(token, {
+        complete: true,
+      }) as DynamicObject;
+      const now = Date.now().valueOf() / 1000;
 
-      /* Finding a subscription by apiId and profileId. */
-      const subscription = this.subscriptionRepo.findOne({
-        where: { apiId, profileId },
+      if (typeof payload.exp !== 'undefined' && payload.exp < now) {
+        throw new UnauthorizedException(
+          ZaLaResponse.BadRequest(
+            'Subscription Error',
+            'Subscription expired',
+            StatusCode.UNAUTHORIZED,
+          ),
+        );
+      }
+
+      const { apiId, profileId, pricingId } = this.jwtService.verify(token, {
+        secret,
       });
-      if (!subscription) {
+
+      const { id, requestLimit, requestCount } =
+        await this.subscriptionRepo.findOne({
+          where: { apiId, profileId, pricingId },
+        });
+
+      if (!id) {
         throw new UnauthorizedException(
           ZaLaResponse.BadRequest(
             'Unauthorized',
             'User not subscribed to this api',
-            '401',
+            StatusCode.FORBIDDEN,
           ),
         );
       }
-      return { api, profile };
-    } catch (error) {
-      if (error.name === 'TokenExpiredError') {
-        throw new UnauthorizedException(
-          ZaLaResponse.BadRequest(
-            'Subscription Error',
-            "User's subscription has expired or is not subscribed to this api",
-            '403',
-          ),
-        );
-      } else {
+
+      if (requestLimit > 0 && requestCount >= requestLimit) {
         throw new BadRequestException(
           ZaLaResponse.BadRequest(
-            'Internal Server Error',
-            error.message,
-            '500',
+            'Unauthorized',
+            'Request limit exceeded',
+            StatusCode.TOO_MANY_REQUESTS,
           ),
         );
       }
+
+      return { apiId, profileId, pricingId };
+    } catch (error) {
+      throw new BadRequestException(
+        ZaLaResponse.BadRequest(
+          'Internal Server Error',
+          error.message,
+          StatusCode.INTERNAL_SERVER_ERROR,
+        ),
+      );
     }
   }
 

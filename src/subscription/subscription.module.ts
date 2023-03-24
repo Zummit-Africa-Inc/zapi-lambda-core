@@ -8,6 +8,7 @@ import { AnalyticsLogs } from 'src/entities/analyticsLogs.entity';
 import { Api } from 'src/entities/api.entity';
 import { DevTesting } from 'src/entities/devTesting.entity';
 import { Endpoint } from 'src/entities/endpoint.entity';
+import { Pricing } from 'src/entities/pricingPlan.entity';
 import { Profile } from 'src/entities/profile.entity';
 import { Subscription } from 'src/entities/subscription.entity';
 import { HttpCallService } from './httpCall.service';
@@ -25,6 +26,7 @@ import { SubscriptionService } from './subscription.service';
       Analytics,
       AnalyticsLogs,
       JwtModule,
+      Pricing,
     ]),
     JwtModule.register({}),
     HttpModule,

@@ -31,7 +31,7 @@ export class ZaLaResponse {
   static BadRequest(
     error: unknown,
     message = '',
-    errorCode = '',
+    errorCode: string | number = '',
     status = 'failed',
   ): BadRequest {
     return {

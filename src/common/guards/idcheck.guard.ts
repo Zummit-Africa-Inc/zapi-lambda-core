@@ -12,7 +12,7 @@ import { Category } from 'src/entities/category.entity';
 import { Comment } from 'src/entities/comments.entity';
 import { Discussion } from 'src/entities/discussion.entity';
 import { Endpoint } from 'src/entities/endpoint.entity';
-import { Pricing } from 'src/entities/pricing.entity';
+import { Pricing } from 'src/entities/pricingPlan.entity';
 import { Profile } from 'src/entities/profile.entity';
 import { Review } from 'src/entities/review.entity';
 import { Subscription } from 'src/entities/subscription.entity';

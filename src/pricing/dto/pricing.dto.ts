@@ -1,15 +1,20 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty } from 'class-validator';
+import { PricingName } from 'src/common/enums/pricing.enum';
 
-export class PricingDto {
-    @IsString()
-    @IsNotEmpty()
-    planName: string;
+export class CreatePricingDto {
+  @ApiProperty({ default: 'basic' })
+  name: PricingName;
 
-    @IsString()
-    @IsNotEmpty()
-    planPrice: string;
+  @ApiProperty()
+  @IsNotEmpty()
+  price: number;
 
-    @IsString()
-    @IsNotEmpty()
-    requesDuration: string;
+  @ApiProperty()
+  @IsNotEmpty()
+  description: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  requestLimit: number;
 }
