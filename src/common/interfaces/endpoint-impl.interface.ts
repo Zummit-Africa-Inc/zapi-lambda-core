@@ -1,11 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsString,
-  IsNotEmpty,
-  IsEnum,
-  IsOptional,
-  IsBoolean,
-} from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsBoolean } from 'class-validator';
 import { EndpointHeaderType } from '../enums/endpointHeaderType.enum';
 import { ReqBody, HeaderType, QueryType } from './endpoint.interface';
 
@@ -47,8 +41,7 @@ export class HeaderTypeClass implements HeaderType {
   })
   type: EndpointHeaderType;
 
-  @IsOptional()
-  @ApiProperty({ type: ReqBodyClass })
+  @ApiProperty({ type: String })
   value: ReqBody['value'];
 
   @IsBoolean()
@@ -82,7 +75,7 @@ export class QueryTypeClass implements QueryType {
   })
   type: EndpointHeaderType;
 
-  @ApiProperty({ type: ReqBodyClass })
+  @ApiProperty({ type: String })
   value: ReqBody['value'];
 
   @IsBoolean()
