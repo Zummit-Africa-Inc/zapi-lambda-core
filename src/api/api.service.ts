@@ -53,7 +53,7 @@ export class ApiService {
     private readonly subscriptionRepo: Repository<Subscription>,
     @InjectRepository(Review)
     private readonly reviewRepo: Repository<Review>,
-  ) {}
+  ) { }
 
   /**
    * It gets all the apis for a user
@@ -298,7 +298,7 @@ export class ApiService {
             where: { name: updateApiDto.name },
           });
 
-          if (apiNameExist) {
+          if (apiNameExist && apiNameExist.id !== apiId) {
             throw new BadRequestException(
               ZaLaResponse.BadRequest(
                 'Existing values',
