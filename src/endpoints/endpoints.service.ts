@@ -28,7 +28,7 @@ export class EndpointsService {
     private readonly profileRepo: Repository<Profile>,
     @InjectRepository(Logger)
     private readonly loggerRepo: Repository<Logger>,
-  ) {}
+  ) { }
 
   /**
    * It creates an endpoint and saves it to the database
@@ -220,8 +220,8 @@ export class EndpointsService {
 
       body.route
         ? (body.route = encodeURIComponent(
-            body.route.charAt(0) === '/' ? body.route : `/${body.route}`,
-          ))
+          body.route.charAt(0) === '/' ? body.route : `/${body.route}`,
+        ))
         : null;
       /**
        * 1. find the api that this endpoint belongs to
