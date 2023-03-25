@@ -33,7 +33,7 @@ import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 @UseGuards(AuthenticationGuard)
 @Controller('endpoints')
 export class EndpointsController {
-  constructor(private readonly endpointsService: EndpointsService) {}
+  constructor(private readonly endpointsService: EndpointsService) { }
 
   /* This is a post request that takes in a body and returns a promise of an Api */
   @Post('new/:apiId')

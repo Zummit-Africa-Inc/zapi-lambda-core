@@ -12,13 +12,13 @@ export interface DataType {
 export interface HeaderType {
   name: string;
   type: EndpointHeaderType;
-  value: ReqBody['value'];
+  value: string;
   required: boolean;
 }
 
 export interface QueryType {
   name: string;
   type: EndpointHeaderType;
-  value: ReqBody['value'];
+  value: string;
   required: boolean;
 }
