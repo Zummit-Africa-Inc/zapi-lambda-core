@@ -48,8 +48,8 @@ export class HeaderTypeClass implements HeaderType {
   type: EndpointHeaderType;
 
   @IsOptional()
-  @ApiProperty({ type: ReqBodyClass })
-  value: ReqBody['value'];
+  @ApiProperty({ type: String })
+  value: string;
 
   @IsBoolean()
   @ApiProperty()
@@ -58,12 +58,10 @@ export class HeaderTypeClass implements HeaderType {
   constructor(
     name: string,
     type: EndpointHeaderType,
-    value: ReqBody['value'],
     required: boolean,
   ) {
     this.name = name;
     this.type = type;
-    this.value = value;
     this.required = required;
   }
 }
@@ -82,8 +80,8 @@ export class QueryTypeClass implements QueryType {
   })
   type: EndpointHeaderType;
 
-  @ApiProperty({ type: ReqBodyClass })
-  value: ReqBody['value'];
+  @ApiProperty({ type: String })
+  value: string;
 
   @IsBoolean()
   @ApiProperty()
@@ -92,12 +90,10 @@ export class QueryTypeClass implements QueryType {
   constructor(
     name: string,
     type: EndpointHeaderType,
-    value: ReqBody['value'],
     required: boolean,
   ) {
     this.name = name;
     this.type = type;
-    this.value = value;
     this.required = required;
   }
 }
