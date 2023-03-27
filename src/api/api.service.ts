@@ -53,7 +53,7 @@ export class ApiService {
     private readonly subscriptionRepo: Repository<Subscription>,
     @InjectRepository(Review)
     private readonly reviewRepo: Repository<Review>,
-  ) {}
+  ) { }
 
   /**
    * It gets all the apis for a user
@@ -137,11 +137,12 @@ export class ApiService {
     } catch (err) {
       console.log(err);
       throw new BadRequestException(
-        ZaLaResponse.BadRequest(
-          err.response.error,
-          err.response.message,
-          err.response.errorCode,
-        ),
+        ZaLaResponse.BadRequest(err, 'error occured'),
+        // ZaLaResponse.BadRequest(
+        //   err.response.error,
+        //   err.response.message,
+        //   err.response.errorCode,
+        // ),
       );
     }
   }
@@ -160,26 +161,24 @@ export class ApiService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      const api = await this.createApi(
-        apiEndpointDto.createApiDto,
-        profileId,
-        queryRunner,
-      );
-      const { endpoints, duplicateEndpoints } = await this.createEndpoints(
-        api.id,
-        apiEndpointDto.createEndpointDto,
-        queryRunner,
-      );
+      const api = await this.createApi(apiEndpointDto, profileId, queryRunner);
+      let endpoints = [],
+        duplicateEndpoints = [];
+      if (apiEndpointDto.endpoints) {
+        const res = await this.createEndpoints(
+          api.id,
+          apiEndpointDto.endpoints,
+          queryRunner,
+        );
+        endpoints = res.endpoints;
+        duplicateEndpoints = res.duplicateEndpoints;
+      }
       await queryRunner.commitTransaction();
       return { api, endpoints, duplicateEndpoints };
     } catch (err) {
       await queryRunner.rollbackTransaction();
       throw new BadRequestException(
-        ZaLaResponse.BadRequest(
-          err.response.error,
-          err.response.message,
-          err.response.errorCode,
-        ),
+        ZaLaResponse.BadRequest(err, 'error during transaction'),
       );
     } finally {
       await queryRunner.release();
@@ -187,12 +186,24 @@ export class ApiService {
   }
 
   async createApi(
-    createApiDto: CreateApiDto,
+    apiEndpointDto: CreateApiAndEndpointsDto,
     profileId: string,
     queryRunner: QueryRunner,
   ): Promise<Api> {
+    const categoryExists = await this.categoryRepo.findOne({
+      where: { id: apiEndpointDto.categoryId },
+    });
+    if (!categoryExists) {
+      throw new NotFoundException(
+        ZaLaResponse.NotFoundRequest(
+          'Not Found',
+          'Category does not exist',
+          '404',
+        ),
+      );
+    }
     const apiExist = await this.apiRepo.findOne({
-      where: { name: createApiDto.name },
+      where: { name: apiEndpointDto.name },
     });
     if (apiExist) {
       throw new BadRequestException(
@@ -204,7 +215,11 @@ export class ApiService {
       );
     }
     const secretKey = uuid();
-    const api = this.apiRepo.create({ profileId, ...createApiDto, secretKey });
+    const api = this.apiRepo.create({
+      profileId,
+      ...apiEndpointDto,
+      secretKey,
+    });
     const savedApi = await queryRunner.manager.save(api);
     const analytics = this.analyticsRepo.create({ apiId: savedApi.id });
     await queryRunner.manager.save(analytics);
@@ -216,23 +231,27 @@ export class ApiService {
     createEndpointsDto: CreateEndpointDto[],
     queryRunner: QueryRunner,
   ) {
-    const newEndpoints = createEndpointsDto.map((createEndpointDto) =>
-      this.endpointsRepo.create({
-        ...createEndpointDto,
-        apiId,
-      }),
-    );
-    // Check for duplicate endpoints...
     const endpointSet = new Set();
     const duplicateEndpoints = [];
-    for (const endpoint of newEndpoints) {
+    const endpointsToSave = [];
+    for (const createEndpointDto of createEndpointsDto) {
+      const endpoint = this.endpointsRepo.create({
+        ...createEndpointDto,
+        apiId,
+      });
       const endpointKey = `${endpoint.method} ${endpoint.route}`;
-      if (endpointSet.has(endpointKey)) {
+      if (!endpointSet.has(endpointKey)) {
+        endpointSet.add(endpointKey);
+        endpointsToSave.push(endpoint);
+      } else if (
+        !duplicateEndpoints.some(
+          (e) => e.route === endpoint.route && e.method === endpoint.method,
+        )
+      ) {
         duplicateEndpoints.push(endpoint);
       }
-      endpointSet.add(endpointKey);
     }
-    const endpoints = await queryRunner.manager.save(newEndpoints);
+    const endpoints = await queryRunner.manager.save(endpointsToSave);
     return { endpoints, duplicateEndpoints };
   }
 
@@ -279,7 +298,7 @@ export class ApiService {
             where: { name: updateApiDto.name },
           });
 
-          if (apiNameExist) {
+          if (apiNameExist && apiNameExist.id !== apiId) {
             throw new BadRequestException(
               ZaLaResponse.BadRequest(
                 'Existing values',

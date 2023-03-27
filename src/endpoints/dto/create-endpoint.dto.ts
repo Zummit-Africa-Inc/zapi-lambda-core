@@ -1,34 +1,48 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
 import {
-  HeaderType,
-  QueryType,
-  ReqBody,
-} from 'src/common/interfaces/endpoint.interface';
+  HeaderTypeClass,
+  QueryTypeClass,
+  ReqBodyClass,
+} from 'src/common/interfaces/endpoint-impl.interface';
 import { HttpMethod } from '../../common/enums/httpMethods.enum';
 
 export class CreateEndpointDto {
   @IsString()
+  @IsNotEmpty()
   @ApiProperty()
   name: string;
 
   @IsString()
-  @ApiProperty()
+  @ApiPropertyOptional()
   description: string;
 
-  @ApiProperty({ default: 'get' })
+  @IsEnum(HttpMethod)
+  @IsNotEmpty()
+  @ApiProperty({ enum: HttpMethod, default: HttpMethod.GET })
   method: HttpMethod;
 
   @IsString()
+  @IsNotEmpty()
   @ApiProperty()
   route: string;
 
-  @ApiPropertyOptional()
-  headers: HeaderType[];
+  @ApiPropertyOptional({ type: [HeaderTypeClass] })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => HeaderTypeClass)
+  headers?: HeaderTypeClass[];
 
-  @ApiPropertyOptional()
-  query: QueryType[];
+  @ApiPropertyOptional({ type: [QueryTypeClass] })
+  @ValidateNested({ each: true })
+  @IsOptional()
+  @Type(() => QueryTypeClass)
+  query?: QueryTypeClass[];
 
-  @ApiPropertyOptional()
-  body: ReqBody[];
+  @ApiPropertyOptional({ type: [ReqBodyClass] })
+  @ValidateNested({ each: true })
+  @IsOptional()
+  @Type(() => ReqBodyClass)
+  body?: ReqBodyClass[];
 }

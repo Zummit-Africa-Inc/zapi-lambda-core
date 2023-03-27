@@ -9,6 +9,6 @@ import { DiscussionService } from './discussion.service';
 @Module({
   controllers: [DiscussionController],
   providers: [DiscussionService],
-  imports: [TypeOrmModule.forFeature([Discussion, Comment, Profile])],
+  imports: [TypeOrmModule.forFeature([Discussion, Comment, Profile])]
 })
-export class DiscussionModule {}
+export class DiscussionModule { }

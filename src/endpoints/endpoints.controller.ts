@@ -13,7 +13,7 @@ import {
   UploadedFile,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { EndpointsService } from './endpoints.service';
 import { Ok, ZaLaResponse } from 'src/common/helpers/response';
 import { Endpoint } from 'src/entities/endpoint.entity';
@@ -33,22 +33,38 @@ import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 @UseGuards(AuthenticationGuard)
 @Controller('endpoints')
 export class EndpointsController {
-  constructor(private readonly endpointsService: EndpointsService) {}
+  constructor(private readonly endpointsService: EndpointsService) { }
 
   /* This is a post request that takes in a body and returns a promise of an Api */
   @Post('new/:apiId')
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Add a new endpoint' })
-  async create(
+  async createSingleEndpoint(
     @Param('apiId') apiId: string,
     @Body() createEndpointDto: CreateEndpointDto,
   ): Promise<Ok<Endpoint>> {
-    const endpoint = await this.endpointsService.create(
+    const endpoint = await this.endpointsService.createSingleEndpoint(
       apiId,
       createEndpointDto,
     );
     return ZaLaResponse.Ok(endpoint, 'Endpoint Created', '201');
   }
+
+  @Post('new/:apiId/multiple')
+  @IdCheck('apiId')
+  @ApiOperation({ summary: 'Add new endpoints' })
+  @ApiBody({ type: [CreateEndpointDto] })
+  async createMultipleEndpoints(
+    @Param('apiId') apiId: string,
+    @Body() createEndpointDtos: CreateEndpointDto[],
+  ): Promise<Ok<Endpoint[]>> {
+    const endpoints = await this.endpointsService.createMultipleEndpoints(
+      apiId,
+      createEndpointDtos,
+    );
+    return ZaLaResponse.Ok(endpoints, 'Endpoints Created', '201');
+  }
+
   @Post('new/collection/:apiId')
   @IdCheck('apiId')
   @ApiOperation({ summary: 'Endpoints from postman collection' })

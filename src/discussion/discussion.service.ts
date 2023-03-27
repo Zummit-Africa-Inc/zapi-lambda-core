@@ -17,11 +17,12 @@ export class DiscussionService {
     private readonly commentRepo: Repository<Comment>,
     @InjectRepository(Profile)
     private readonly profileRepo: Repository<Profile>,
-  ) {}
+  ) { }
 
   async startDiscussion(dto: CreateDiscussionDto): Promise<Discussion> {
     try {
-      return await this.discussionRepo.save(dto);
+      const discussionCreator = await this.profileRepo.findOne({ where: { id: dto.profile_id } })
+      return await this.discussionRepo.save({ ...dto, createdBy: discussionCreator?.fullName });
     } catch (error) {
       throw new BadRequestException(
         ZaLaResponse.BadRequest(error.name, error.message, error.status),
@@ -83,11 +84,15 @@ export class DiscussionService {
     dto: CommentDto,
   ): Promise<Comment> {
     try {
+      // get comment creators name
+      const commentCreator = await this.profileRepo.findOne({ where: { id: profileId } });
+
       // create comment object and save to db
       const comment = await this.commentRepo.create({
         discussion_id: discussionId,
         profile_id: profileId,
         ...dto,
+        createdBy: commentCreator?.fullName,
       });
       const savedComment = await this.commentRepo.save(comment);
 

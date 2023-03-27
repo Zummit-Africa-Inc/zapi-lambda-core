@@ -28,7 +28,7 @@ export class EndpointsService {
     private readonly profileRepo: Repository<Profile>,
     @InjectRepository(Logger)
     private readonly loggerRepo: Repository<Logger>,
-  ) {}
+  ) { }
 
   /**
    * It creates an endpoint and saves it to the database
@@ -36,7 +36,7 @@ export class EndpointsService {
    * @param {CreateEndpointDto} createEndpointDto - CreateEndpointDto
    * @returns The endpoint is being returned.
    */
-  async create(
+  async createSingleEndpoint(
     apiId: string,
     createEndpointDto: CreateEndpointDto,
   ): Promise<Endpoint> {
@@ -69,6 +69,21 @@ export class EndpointsService {
         ZaLaResponse.BadRequest('Internal Server error', error.message, '500'),
       );
     }
+  }
+
+  async createMultipleEndpoints(
+    apiId: string,
+    createEndpointDtos: CreateEndpointDto[],
+  ): Promise<Endpoint[]> {
+    const endpoints = [];
+    for (const createEndpointDto of createEndpointDtos) {
+      const endpoint = await this.createSingleEndpoint(
+        apiId,
+        createEndpointDto,
+      );
+      endpoints.push(endpoint);
+    }
+    return endpoints;
   }
 
   /**
@@ -152,7 +167,7 @@ export class EndpointsService {
             reason: 'Duplicate endpoint',
           });
         } else {
-          endpoints.push(await this.create(apiId, endpoint));
+          endpoints.push(await this.createSingleEndpoint(apiId, endpoint));
         }
       }
       return { endpoints, skipped };
@@ -205,8 +220,8 @@ export class EndpointsService {
 
       body.route
         ? (body.route = encodeURIComponent(
-            body.route.charAt(0) === '/' ? body.route : `/${body.route}`,
-          ))
+          body.route.charAt(0) === '/' ? body.route : `/${body.route}`,
+        ))
         : null;
       /**
        * 1. find the api that this endpoint belongs to
