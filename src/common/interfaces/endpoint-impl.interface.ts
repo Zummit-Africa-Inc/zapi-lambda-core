@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
@@ -10,12 +10,12 @@ import { EndpointHeaderType } from '../enums/endpointHeaderType.enum';
 import { ReqBody, HeaderType, QueryType } from './endpoint.interface';
 
 export class ReqBodyClass implements ReqBody {
-  @IsNotEmpty()
+  @IsOptional()
+  @ApiPropertyOptional()
   @IsString()
-  @ApiProperty()
-  key: string;
+  key?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     oneOf: [
       { type: 'string' },
       { type: 'boolean' },
@@ -25,7 +25,8 @@ export class ReqBodyClass implements ReqBody {
       { type: 'array' },
     ],
   })
-  value: string | Date | boolean | number | object | symbol | Array<any>;
+  @IsOptional()
+  value?: string | Date | boolean | number | object | symbol | Array<any>;
 
   constructor(key: string, value: ReqBody['value']) {
     this.key = key;
@@ -35,64 +36,60 @@ export class ReqBodyClass implements ReqBody {
 
 export class HeaderTypeClass implements HeaderType {
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  name: string;
+  @IsOptional()
+  @ApiPropertyOptional()
+  key?: string;
 
-  @IsNotEmpty()
-  @IsEnum(EndpointHeaderType)
-  @ApiProperty({
+  @IsOptional()
+  @ApiPropertyOptional({
     enum: EndpointHeaderType,
     enumName: 'EndpointHeaderType',
   })
-  type: EndpointHeaderType;
+  type?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
-  @ApiProperty({ type: String })
-  value: string;
+  @IsString()
+  value?: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsBoolean()
-  @ApiProperty()
-  required: boolean;
+  required?: boolean;
 
-  constructor(
-    name: string,
-    type: EndpointHeaderType,
-    required: boolean,
-  ) {
-    this.name = name;
+  constructor(key: string, type: EndpointHeaderType, required: boolean) {
+    this.key = key;
     this.type = type;
     this.required = required;
   }
 }
 
 export class QueryTypeClass implements QueryType {
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  name: string;
+  key?: string;
 
-  @IsNotEmpty()
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsEnum(EndpointHeaderType)
   @ApiProperty({
     enum: EndpointHeaderType,
     enumName: 'EndpointHeaderType',
   })
-  type: EndpointHeaderType;
+  type?: EndpointHeaderType;
 
-  @ApiProperty({ type: String })
-  value: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  value?: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsBoolean()
-  @ApiProperty()
-  required: boolean;
+  required?: boolean;
 
-  constructor(
-    name: string,
-    type: EndpointHeaderType,
-    required: boolean,
-  ) {
-    this.name = name;
+  constructor(key: string, type: EndpointHeaderType, required: boolean) {
+    this.key = key;
     this.type = type;
     this.required = required;
   }
