@@ -79,41 +79,32 @@ export class EndpointsService {
     duplicates: CreateEndpointDto[];
     updated: Endpoint[];
   }> {
-    const created = [];
+    const created: Endpoint[] = [];
     const duplicates = [];
     const updated = [];
     for (const createEndpointDto of createEndpointDtos) {
+      const { name, method, route } = createEndpointDto;
+      const encodedRoute = encodeURIComponent(route);
       const existingEndpoint = await this.endpointRepo.findOne({
-        where: {
-          apiId,
-          method: createEndpointDto.method,
-          route: encodeURIComponent(createEndpointDto.route),
-        },
+        where: { apiId, method, route: encodedRoute },
       });
       if (existingEndpoint) {
-        // Update endpoints
-        const updatedEndpoint = this.endpointRepo.merge(
-          existingEndpoint,
-          createEndpointDto,
-        );
-        updatedEndpoint.apiId = apiId;
-        await this.endpointRepo.save(updatedEndpoint);
+        const updatedEndpoint = await this.endpointRepo.save({
+          ...existingEndpoint,
+          ...createEndpointDto,
+          apiId,
+        });
         updated.push({
           name: updatedEndpoint.name,
           method: updatedEndpoint.method,
           route: updatedEndpoint.route,
         });
-        duplicates.push({
-          name: createEndpointDto.name,
-          method: createEndpointDto.method,
-          route: createEndpointDto.route,
-        });
+        duplicates.push({ name, method, route });
       } else {
-        const newEndpoint = this.endpointRepo.create({
-          ...createEndpointDto,
-          apiId,
-        });
-        created.push(await this.endpointRepo.save(newEndpoint));
+        const newEndpoint = await this.endpointRepo.save(
+          this.endpointRepo.create({ ...createEndpointDto, apiId }),
+        );
+        created.push(newEndpoint);
       }
     }
     return { created, duplicates, updated };
