@@ -28,7 +28,7 @@ export class EndpointsService {
     private readonly profileRepo: Repository<Profile>,
     @InjectRepository(Logger)
     private readonly loggerRepo: Repository<Logger>,
-  ) { }
+  ) {}
 
   /**
    * It creates an endpoint and saves it to the database
@@ -74,16 +74,49 @@ export class EndpointsService {
   async createMultipleEndpoints(
     apiId: string,
     createEndpointDtos: CreateEndpointDto[],
-  ): Promise<Endpoint[]> {
-    const endpoints = [];
+  ): Promise<{
+    created: Endpoint[];
+    duplicates: CreateEndpointDto[];
+    updated: Endpoint[];
+  }> {
+    const created = [];
+    const duplicates = [];
+    const updated = [];
     for (const createEndpointDto of createEndpointDtos) {
-      const endpoint = await this.createSingleEndpoint(
-        apiId,
-        createEndpointDto,
-      );
-      endpoints.push(endpoint);
+      const existingEndpoint = await this.endpointRepo.findOne({
+        where: {
+          apiId,
+          method: createEndpointDto.method,
+          route: encodeURIComponent(createEndpointDto.route),
+        },
+      });
+      if (existingEndpoint) {
+        // Update endpoints
+        const updatedEndpoint = this.endpointRepo.merge(
+          existingEndpoint,
+          createEndpointDto,
+        );
+        updatedEndpoint.apiId = apiId;
+        await this.endpointRepo.save(updatedEndpoint);
+        updated.push({
+          name: updatedEndpoint.name,
+          method: updatedEndpoint.method,
+          route: updatedEndpoint.route,
+        });
+        duplicates.push({
+          name: createEndpointDto.name,
+          method: createEndpointDto.method,
+          route: createEndpointDto.route,
+        });
+      } else {
+        const newEndpoint = this.endpointRepo.create({
+          ...createEndpointDto,
+          apiId,
+        });
+        created.push(await this.endpointRepo.save(newEndpoint));
+      }
     }
-    return endpoints;
+    return { created, duplicates, updated };
   }
 
   /**
@@ -220,8 +253,8 @@ export class EndpointsService {
 
       body.route
         ? (body.route = encodeURIComponent(
-          body.route.charAt(0) === '/' ? body.route : `/${body.route}`,
-        ))
+            body.route.charAt(0) === '/' ? body.route : `/${body.route}`,
+          ))
         : null;
       /**
        * 1. find the api that this endpoint belongs to
