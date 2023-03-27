@@ -10,14 +10,14 @@ export interface DataType {
 }
 
 export interface HeaderType {
-  name?: string;
-  type?: EndpointHeaderType;
+  key?: string;
+  type?: string;
   value?: string;
   required?: boolean;
 }
 
 export interface QueryType {
-  name?: string;
+  key?: string;
   type?: EndpointHeaderType;
   value?: string;
   required?: boolean;

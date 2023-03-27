@@ -38,15 +38,14 @@ export class HeaderTypeClass implements HeaderType {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional()
-  name?: string;
+  key?: string;
 
-  @IsEnum(EndpointHeaderType)
   @IsOptional()
   @ApiPropertyOptional({
     enum: EndpointHeaderType,
     enumName: 'EndpointHeaderType',
   })
-  type?: EndpointHeaderType;
+  type?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -58,8 +57,8 @@ export class HeaderTypeClass implements HeaderType {
   @IsBoolean()
   required?: boolean;
 
-  constructor(name: string, type: EndpointHeaderType, required: boolean) {
-    this.name = name;
+  constructor(key: string, type: EndpointHeaderType, required: boolean) {
+    this.key = key;
     this.type = type;
     this.required = required;
   }
@@ -69,7 +68,7 @@ export class QueryTypeClass implements QueryType {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  name?: string;
+  key?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -89,8 +88,8 @@ export class QueryTypeClass implements QueryType {
   @IsBoolean()
   required?: boolean;
 
-  constructor(name: string, type: EndpointHeaderType, required: boolean) {
-    this.name = name;
+  constructor(key: string, type: EndpointHeaderType, required: boolean) {
+    this.key = key;
     this.type = type;
     this.required = required;
   }
