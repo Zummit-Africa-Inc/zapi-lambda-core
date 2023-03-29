@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -33,7 +32,7 @@ import { ApiFile } from 'src/common/decorators/swaggerUploadField';
 @UseGuards(AuthenticationGuard)
 @Controller('endpoints')
 export class EndpointsController {
-  constructor(private readonly endpointsService: EndpointsService) { }
+  constructor(private readonly endpointsService: EndpointsService) {}
 
   /* This is a post request that takes in a body and returns a promise of an Api */
   @Post('new/:apiId')
@@ -57,12 +56,35 @@ export class EndpointsController {
   async createMultipleEndpoints(
     @Param('apiId') apiId: string,
     @Body() createEndpointDtos: CreateEndpointDto[],
-  ): Promise<Ok<Endpoint[]>> {
-    const endpoints = await this.endpointsService.createMultipleEndpoints(
-      apiId,
-      createEndpointDtos,
-    );
-    return ZaLaResponse.Ok(endpoints, 'Endpoints Created', '201');
+  ): Promise<
+    Ok<{
+      created: Endpoint[];
+      duplicates: CreateEndpointDto[];
+      updated: Endpoint[];
+    }>
+  > {
+    const { created, duplicates, updated } =
+      await this.endpointsService.createMultipleEndpoints(
+        apiId,
+        createEndpointDtos,
+      );
+    let message = '';
+    if (created.length > 0) {
+      message = `Endpoints Created: ${created
+        .map((ep) => ep.route)
+        .join(', ')}`;
+    }
+    if (duplicates.length > 0) {
+      message += ` | Duplicates Found: ${duplicates
+        .map((ep) => ep.route)
+        .join(', ')}`;
+    }
+    if (updated.length > 0) {
+      message += ` | Endpoints Updated: ${updated
+        .map((ep) => ep.route)
+        .join(', ')}`;
+    }
+    return ZaLaResponse.Ok({ created, duplicates, updated }, message, '201');
   }
 
   @Post('new/collection/:apiId')

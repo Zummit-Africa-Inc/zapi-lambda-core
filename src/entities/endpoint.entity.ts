@@ -29,6 +29,9 @@ export class Endpoint extends SharedEntity {
   @Column()
   description: string;
 
+  @Column({ nullable: true })
+  contentType: string;
+
   @Column('jsonb', {
     default: () => "'[]'",
     nullable: false,

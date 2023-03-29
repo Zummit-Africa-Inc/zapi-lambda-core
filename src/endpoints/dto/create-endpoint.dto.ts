@@ -1,6 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import {
   HeaderTypeClass,
   QueryTypeClass,
@@ -16,7 +22,7 @@ export class CreateEndpointDto {
 
   @IsString()
   @ApiPropertyOptional()
-  description: string;
+  description?: string;
 
   @IsEnum(HttpMethod)
   @IsNotEmpty()
@@ -27,6 +33,10 @@ export class CreateEndpointDto {
   @IsNotEmpty()
   @ApiProperty()
   route: string;
+
+  @IsString()
+  @ApiProperty()
+  contentType?: string;
 
   @ApiPropertyOptional({ type: [HeaderTypeClass] })
   @IsOptional()

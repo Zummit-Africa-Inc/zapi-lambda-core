@@ -28,7 +28,7 @@ export class EndpointsService {
     private readonly profileRepo: Repository<Profile>,
     @InjectRepository(Logger)
     private readonly loggerRepo: Repository<Logger>,
-  ) { }
+  ) {}
 
   /**
    * It creates an endpoint and saves it to the database
@@ -74,16 +74,40 @@ export class EndpointsService {
   async createMultipleEndpoints(
     apiId: string,
     createEndpointDtos: CreateEndpointDto[],
-  ): Promise<Endpoint[]> {
-    const endpoints = [];
+  ): Promise<{
+    created: Endpoint[];
+    duplicates: CreateEndpointDto[];
+    updated: Endpoint[];
+  }> {
+    const created: Endpoint[] = [];
+    const duplicates = [];
+    const updated = [];
     for (const createEndpointDto of createEndpointDtos) {
-      const endpoint = await this.createSingleEndpoint(
-        apiId,
-        createEndpointDto,
-      );
-      endpoints.push(endpoint);
+      const { name, method, route } = createEndpointDto;
+      const encodedRoute = encodeURIComponent(route);
+      const existingEndpoint = await this.endpointRepo.findOne({
+        where: { apiId, method, route: encodedRoute },
+      });
+      if (existingEndpoint) {
+        const updatedEndpoint = await this.endpointRepo.save({
+          ...existingEndpoint,
+          ...createEndpointDto,
+          apiId,
+        });
+        updated.push({
+          name: updatedEndpoint.name,
+          method: updatedEndpoint.method,
+          route: updatedEndpoint.route,
+        });
+        duplicates.push({ name, method, route });
+      } else {
+        const newEndpoint = await this.endpointRepo.save(
+          this.endpointRepo.create({ ...createEndpointDto, apiId }),
+        );
+        created.push(newEndpoint);
+      }
     }
-    return endpoints;
+    return { created, duplicates, updated };
   }
 
   /**
@@ -220,8 +244,8 @@ export class EndpointsService {
 
       body.route
         ? (body.route = encodeURIComponent(
-          body.route.charAt(0) === '/' ? body.route : `/${body.route}`,
-        ))
+            body.route.charAt(0) === '/' ? body.route : `/${body.route}`,
+          ))
         : null;
       /**
        * 1. find the api that this endpoint belongs to
