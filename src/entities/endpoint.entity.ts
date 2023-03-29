@@ -1,5 +1,6 @@
 import { SharedEntity } from '../common/model/sharedEntity';
 import { AfterLoad, BeforeInsert, Column, Entity } from 'typeorm';
+import { EndpointContentType } from '../common/enums/endpointContentType.enum';
 import { HttpMethod } from '../common/enums/httpMethods.enum';
 import {
   HeaderType,
@@ -29,7 +30,7 @@ export class Endpoint extends SharedEntity {
   @Column()
   description: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'enum', enum: EndpointContentType, nullable: true })
   contentType: string;
 
   @Column('jsonb', {

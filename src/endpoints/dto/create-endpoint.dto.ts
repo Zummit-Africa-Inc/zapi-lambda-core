@@ -7,6 +7,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
+import { EndpointContentType } from 'src/common/enums/endpointContentType.enum';
 import {
   HeaderTypeClass,
   QueryTypeClass,
@@ -34,9 +35,9 @@ export class CreateEndpointDto {
   @ApiProperty()
   route: string;
 
-  @IsString()
-  @ApiProperty()
-  contentType?: string;
+  @IsEnum(EndpointContentType)
+  @ApiProperty({ enum: EndpointContentType })
+  contentType?: EndpointContentType;
 
   @ApiPropertyOptional({ type: [HeaderTypeClass] })
   @IsOptional()
