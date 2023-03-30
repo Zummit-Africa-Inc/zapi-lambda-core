@@ -1,9 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class endpointContentTypeRefactor1680100817350
+export class endpointContentTypeRefactor1680149834110
   implements MigrationInterface
 {
-  name = 'endpointContentTypeRefactor1680100817350';
+  name = 'endpointContentTypeRefactor1680149834110';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`ALTER TABLE "endpoint" DROP COLUMN "contentType"`);
@@ -11,7 +11,7 @@ export class endpointContentTypeRefactor1680100817350
       `CREATE TYPE "public"."endpoint_contenttype_enum" AS ENUM('application/x-www-form-urlencoded', 'application/octet-stream', 'multipart/form-data', 'application/graphql', 'application/json', 'application/xml', 'text/plain')`,
     );
     await queryRunner.query(
-      `ALTER TABLE "endpoint" ADD "contentType" "public"."endpoint_contenttype_enum"`,
+      `ALTER TABLE "endpoint" ADD "contentType" "public"."endpoint_contenttype_enum" DEFAULT 'application/json'`,
     );
   }
 

@@ -36,7 +36,7 @@ export class CreateEndpointDto {
   route: string;
 
   @IsEnum(EndpointContentType)
-  @ApiProperty({ enum: EndpointContentType })
+  @ApiProperty({ enum: EndpointContentType, default: EndpointContentType.JSON })
   contentType?: EndpointContentType;
 
   @ApiPropertyOptional({ type: [HeaderTypeClass] })

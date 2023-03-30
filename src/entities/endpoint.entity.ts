@@ -30,8 +30,13 @@ export class Endpoint extends SharedEntity {
   @Column()
   description: string;
 
-  @Column({ type: 'enum', enum: EndpointContentType, nullable: true })
-  contentType: string;
+  @Column({
+    type: 'enum',
+    enum: EndpointContentType,
+    default: EndpointContentType.JSON,
+    nullable: true,
+  })
+  contentType: EndpointContentType;
 
   @Column('jsonb', {
     default: () => "'[]'",
