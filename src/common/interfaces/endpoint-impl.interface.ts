@@ -1,11 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsString,
-  IsNotEmpty,
-  IsEnum,
-  IsOptional,
-  IsBoolean,
-} from 'class-validator';
+import { IsString, IsEnum, IsOptional, IsBoolean } from 'class-validator';
 import { EndpointHeaderType } from '../enums/endpointHeaderType.enum';
 import { ReqBody, HeaderType, QueryType } from './endpoint.interface';
 
