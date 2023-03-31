@@ -36,24 +36,28 @@ export class CreateEndpointDto {
   route: string;
 
   @IsEnum(EndpointContentType)
-  @ApiProperty({ enum: EndpointContentType, default: EndpointContentType.JSON })
+  @IsOptional()
+  @ApiPropertyOptional({
+    enum: EndpointContentType,
+    default: EndpointContentType.JSON,
+  })
   contentType?: EndpointContentType;
 
-  @ApiPropertyOptional({ type: [HeaderTypeClass] })
   @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => HeaderTypeClass)
+  @ApiPropertyOptional({ type: [HeaderTypeClass] })
   headers?: HeaderTypeClass[];
 
-  @ApiPropertyOptional({ type: [QueryTypeClass] })
   @ValidateNested({ each: true })
   @IsOptional()
   @Type(() => QueryTypeClass)
+  @ApiPropertyOptional({ type: [QueryTypeClass] })
   query?: QueryTypeClass[];
 
-  @ApiPropertyOptional({ type: [ReqBodyClass] })
   @ValidateNested({ each: true })
   @IsOptional()
   @Type(() => ReqBodyClass)
+  @ApiPropertyOptional({ type: [ReqBodyClass] })
   body?: ReqBodyClass[];
 }
