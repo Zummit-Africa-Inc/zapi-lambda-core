@@ -1,5 +1,5 @@
 import { SharedEntity } from '../common/model/sharedEntity';
-import { AfterLoad, BeforeInsert, Column, Entity } from 'typeorm';
+import { AfterLoad, BeforeInsert, Column, Entity, ManyToOne } from 'typeorm';
 import { EndpointContentType } from '../common/enums/endpointContentType.enum';
 import { HttpMethod } from '../common/enums/httpMethods.enum';
 import {
@@ -7,6 +7,7 @@ import {
   QueryType,
   ReqBody,
 } from 'src/common/interfaces/endpoint.interface';
+import { EndpointFolder } from './endpoint-folder.entity';
 
 @Entity()
 export class Endpoint extends SharedEntity {
@@ -53,6 +54,9 @@ export class Endpoint extends SharedEntity {
     default: () => "'[]'",
   })
   body: ReqBody[];
+
+  @ManyToOne(() => EndpointFolder, { onDelete: 'SET NULL' })
+  folder: EndpointFolder;
 
   /* A hook that runs before the entity is inserted into the database. It is used to modify the route property of the entity. */
   @BeforeInsert()
