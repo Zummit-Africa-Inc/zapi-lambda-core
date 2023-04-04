@@ -238,7 +238,7 @@ export class ApiService {
     const duplicateEndpoints = [];
     const endpointsToSave: Endpoint[] = [];
     const foldersToSave: EndpointFolder[] = [];
-    const foldersWithoutToSave: EndpointFolder[] = [];
+    const foldersWithoutDuplicatesToSave: EndpointFolder[] = [];
     const endpointsWithFolder: Endpoint[] = [];
     const folderMap = new Map<string, EndpointFolder>();
     for (const createEndpointDto of createEndpointsDto) {
