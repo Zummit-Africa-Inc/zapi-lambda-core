@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsOptional,
@@ -42,6 +43,17 @@ export class CreateEndpointDto {
     default: EndpointContentType.JSON,
   })
   contentType?: EndpointContentType;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiPropertyOptional()
+  isFolder?: boolean;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  @ApiPropertyOptional()
+  folderName?: string;
 
   @IsOptional()
   @ValidateNested({ each: true })
