@@ -28,6 +28,7 @@ import {
   Paginated,
 } from 'nestjs-paginate';
 import { Endpoint } from 'src/entities/endpoint.entity';
+import { EndpointFolder } from 'src/entities/endpoint-folder.entity';
 import { Action } from 'src/common/enums/actionLogger.enum';
 import { FreeApis } from 'src/subscription/apis';
 import { Visibility } from 'src/common/enums/visibility.enum';
@@ -45,6 +46,8 @@ export class ApiService {
     private readonly analyticsRepo: Repository<Analytics>,
     @InjectRepository(Endpoint)
     private readonly endpointsRepo: Repository<Endpoint>,
+    @InjectRepository(EndpointFolder)
+    private readonly endpointFolderRepo: Repository<EndpointFolder>,
     @InjectRepository(Logger)
     private readonly loggerRepo: Repository<Logger>,
     @InjectRepository(Profile)
@@ -53,7 +56,7 @@ export class ApiService {
     private readonly subscriptionRepo: Repository<Subscription>,
     @InjectRepository(Review)
     private readonly reviewRepo: Repository<Review>,
-  ) { }
+  ) {}
 
   /**
    * It gets all the apis for a user
@@ -233,12 +236,36 @@ export class ApiService {
   ) {
     const endpointSet = new Set();
     const duplicateEndpoints = [];
-    const endpointsToSave = [];
+    const endpointsToSave: Endpoint[] = [];
+    const foldersToSave: EndpointFolder[] = [];
+    const folderMap = new Map<string, EndpointFolder>();
+    // Loop through each endpoint DTO provided
     for (const createEndpointDto of createEndpointsDto) {
-      const endpoint = this.endpointsRepo.create({
-        ...createEndpointDto,
-        apiId,
-      });
+      let endpoint: Endpoint;
+      if (createEndpointDto.isFolder) {
+        const trimmedFolderName = createEndpointDto.folderName.trim();
+        let folder = folderMap.get(trimmedFolderName);
+        if (!folder) {
+          folder = this.endpointFolderRepo.create({
+            name: trimmedFolderName,
+            apiId,
+          });
+          foldersToSave.push(folder);
+          folderMap.set(folder.name, folder);
+        }
+        // Create the endpoint entity with the associated folder
+        endpoint = this.endpointsRepo.create({
+          ...createEndpointDto,
+          apiId,
+          folder,
+        });
+      } else {
+        // If not a folder, create the endpoint entity without a folder
+        endpoint = this.endpointsRepo.create({
+          ...createEndpointDto,
+          apiId,
+        });
+      }
       const endpointKey = `${endpoint.method} ${endpoint.route}`;
       if (!endpointSet.has(endpointKey)) {
         endpointSet.add(endpointKey);
@@ -249,6 +276,29 @@ export class ApiService {
         )
       ) {
         duplicateEndpoints.push(endpoint);
+      }
+    }
+    // For each endpoint with a folder, find the corresponding folder entity in the list to save
+    for (const endpoint of endpointsToSave) {
+      try {
+        if (endpoint.folder) {
+          const folder = foldersToSave.find(
+            (f) => f.name === endpoint.folder.name,
+          );
+          if (folder) {
+            // Save the folder entity to the database and update the endpoint with the saved entity
+            await queryRunner.manager.save(folder);
+            endpoint.folder = folder;
+          }
+        }
+      } catch (error) {
+        throw new BadRequestException(
+          ZaLaResponse.BadRequest(
+            `Error saving folder ${endpoint.folder.name}`,
+            error.message,
+            '500',
+          ),
+        );
       }
     }
     const endpoints = await queryRunner.manager.save(endpointsToSave);

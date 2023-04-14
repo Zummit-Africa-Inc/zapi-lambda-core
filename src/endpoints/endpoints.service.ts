@@ -209,10 +209,11 @@ export class EndpointsService {
    */
   async getAllApiEndpoints(apiId: string): Promise<Endpoint[]> {
     try {
-      //check if api exists in Endpoint table
-      const endpoints = await this.endpointRepo.find({
-        where: { apiId: apiId },
-      });
+      const endpoints = await this.endpointRepo
+        .createQueryBuilder('endpoint')
+        .leftJoinAndSelect('endpoint.folder', 'folder')
+        .where('endpoint.apiId = :apiId', { apiId })
+        .getMany();
       if (!endpoints) {
         throw new NotFoundException(
           ZaLaResponse.NotFoundRequest(
