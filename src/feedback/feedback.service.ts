@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ZaLaResponse } from 'src/common/helpers/response';
+import { ZaLaResponse } from '../common/helpers/response';
 import { Repository } from 'typeorm';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { Feedback } from './../entities/feedback.entity';
